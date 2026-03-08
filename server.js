@@ -1,6 +1,3 @@
-// CloudLinux WebAssembly OOM Fix for Node v18+ (Forces Undici to use JS parser instead of Wasm)
-global.WebAssembly = undefined;
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -29,7 +26,7 @@ app.use(helmet({
 
 // CORS setup for Vercel
 app.use(cors({
-  origin: ['https://chob-shop.vercel.app', 'http://localhost:3000', 'https://localhost:3000'],
+  origin: ['https://chob-shop.vercel.app', 'https://chobshop-production.up.railway.app', 'http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
@@ -378,7 +375,7 @@ app.put('/api/settings', requireAuth, (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🛍️  Chob.Shop server running at http://localhost:${PORT}`);
-  console.log(`📋  Admin panel: http://localhost:${PORT}/admin.html`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🛍️  Chob.Shop server running at http://0.0.0.0:${PORT}`);
+  console.log(`📋  Admin panel: http://0.0.0.0:${PORT}/admin.html`);
 });

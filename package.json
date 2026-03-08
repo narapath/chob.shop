@@ -17,6 +17,7 @@
     "express-rate-limit": "^8.3.0",
     "helmet": "^8.1.0",
     "oauth-1.0a": "^2.2.6",
+    "puppeteer": "^24.38.0",
     "twitter-api-v2": "^1.29.0"
   }
 }
