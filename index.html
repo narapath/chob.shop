@@ -273,6 +273,7 @@
     let currentCategory = 'all';
     let currentPage = 1;
     let hasMore = true;
+    let isCatPillsInitialized = false;
 
     async function loadProducts(reset = false) {
       if (reset) {
@@ -305,7 +306,10 @@
           hasMore = false;
         }
 
-        if (reset) initCategoryPills();
+        if (reset && !isCatPillsInitialized) {
+          initCategoryPills();
+          isCatPillsInitialized = true;
+        }
         renderProducts();
 
       } catch (e) {
