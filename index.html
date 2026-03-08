@@ -224,10 +224,16 @@
       <div class="products-grid" id="productsGrid">
         <!-- Products will be injected here -->
       </div>
+
+      <button id="loadMoreBtn" class="shopee-btn"
+        style="margin: 40px auto; display: none; padding: 12px 32px; border-radius: 20px; font-weight: 500;">
+        โหลดเพิ่มเติม ↓
+      </button>
+
       <div class="empty-state" id="emptyState" style="display:none;">
         <div class="empty-icon">🛒</div>
-        <h3>ยังไม่มีสินค้า</h3>
-        <p>Admin สามารถเพิ่มสินค้าได้ที่ <a href="/admin.html">หน้าจัดการ</a></p>
+        <h3>ไม่พบสินค้า</h3>
+        <p>ลองค้นหาหรือเลือกหมวดหมู่อื่นดูนะ</p>
       </div>
     </div>
   </main>
@@ -265,15 +271,50 @@
     // ===== PRODUCT RENDERING =====
     let ALL_PRODUCTS = [];
     let currentCategory = 'all';
+    let currentPage = 1;
+    let hasMore = true;
 
-    async function loadProducts() {
+    async function loadProducts(reset = false) {
+      if (reset) {
+        currentPage = 1;
+        ALL_PRODUCTS = [];
+        hasMore = true;
+        document.getElementById('productsGrid').innerHTML = ''; // Clear existing
+      }
+
+      if (!hasMore) return;
+
+      const btn = document.getElementById('loadMoreBtn');
+      if (btn) btn.innerText = 'กำลังโหลด...';
+
       try {
-        const res = await fetch(API_BASE + '/api/products');
-        ALL_PRODUCTS = await res.json();
-        initCategoryPills();
+        const term = encodeURIComponent((document.getElementById('searchInput')?.value || '').trim());
+        const cat = encodeURIComponent(currentCategory);
+        const url = `${API_BASE}/api/products?page=${currentPage}&limit=20&category=${cat}&search=${term}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data && data.products) {
+          ALL_PRODUCTS = reset ? data.products : [...ALL_PRODUCTS, ...data.products];
+          hasMore = currentPage < data.totalPages;
+          currentPage++;
+        } else {
+          // Fallback if API returns old array format
+          ALL_PRODUCTS = data;
+          hasMore = false;
+        }
+
+        if (reset) initCategoryPills();
         renderProducts();
+
       } catch (e) {
         console.error('Failed to load products:', e);
+      } finally {
+        if (btn) {
+          btn.innerText = 'โหลดเพิ่มเติม ↓';
+          btn.style.display = hasMore ? 'block' : 'none';
+        }
       }
     }
 
@@ -310,7 +351,7 @@
           cards.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           currentCategory = btn.dataset.cat;
-          renderProducts();
+          loadProducts(true);
 
           // Update Hero Text
           const emoji = btn.querySelector('.cat-emoji')?.innerText || '✨';
@@ -388,22 +429,15 @@
     function renderProducts() {
       const grid = document.getElementById('productsGrid');
       const empty = document.getElementById('emptyState');
-      const term = (document.getElementById('searchInput')?.value || '').toLowerCase();
 
-      const filtered = [...ALL_PRODUCTS].reverse().filter(p => {
-        const matchesTerm = p.title.toLowerCase().includes(term) || (p.description || '').toLowerCase().includes(term);
-        const matchesCat = currentCategory === 'all' || currentCategory === 'ทั้งหมด' || p.category === currentCategory;
-        return matchesTerm && matchesCat;
-      });
-
-      if (filtered.length === 0) {
-        grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: var(--text2);">ไม่พบสินค้าที่ค้นหา</div>';
-        empty.style.display = 'block'; // Keep original empty state visibility logic
+      if (ALL_PRODUCTS.length === 0) {
+        grid.innerHTML = '';
+        empty.style.display = 'block';
         return;
       }
       empty.style.display = 'none';
 
-      grid.innerHTML = filtered.map(product => `
+      grid.innerHTML = ALL_PRODUCTS.map(product => `
         <a href="${product.affiliateUrl}" target="_blank" rel="noopener noreferrer" class="card" onclick="trackClickAndRedirect(event, '${product.id}', '${product.affiliateUrl}')">
           <div class="card-img-wrapper">
             <img src="${product.image || 'https://placehold.co/300x300/1a1a2e/e94560?text=Chob.Shop'}" alt="${product.title}" loading="lazy" class="card-img" />
@@ -423,8 +457,19 @@
       `).join('');
     }
 
-    // Search handler
-    document.getElementById('searchInput')?.addEventListener('input', renderProducts);
+    // Search handler (with debounce)
+    let searchTimeout;
+    document.getElementById('searchInput')?.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        loadProducts(true);
+      }, 500);
+    });
+
+    // Load More Button
+    document.getElementById('loadMoreBtn')?.addEventListener('click', () => {
+      loadProducts(false);
+    });
 
     // Sticky navbar
     window.addEventListener('scroll', () => {

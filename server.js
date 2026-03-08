@@ -83,12 +83,52 @@ app.post('/api/login', apiLimiter, (req, res) => {
   }
 });
 
-// GET all products (Public)
+// GET all products (Public - Support Pagination)
 app.get('/api/products', (req, res) => {
   try {
-    const data = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf-8'));
+    let data = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf-8'));
+
+    // Reverse data so newest is first (like the frontend used to do)
+    data = data.reverse();
+
+    const { page, limit, category, search } = req.query;
+
+    // Filter by category
+    if (category && category !== 'all' && category !== 'ทั้งหมด') {
+      data = data.filter(p => p.category === category);
+    }
+
+    // Filter by search term
+    if (search) {
+      const term = search.toLowerCase();
+      data = data.filter(p =>
+        p.title.toLowerCase().includes(term) ||
+        (p.description || '').toLowerCase().includes(term)
+      );
+    }
+
+    // Pagination
+    if (page && limit) {
+      const pageNum = parseInt(page, 10) || 1;
+      const limitNum = parseInt(limit, 10) || 20;
+      const startIndex = (pageNum - 1) * limitNum;
+      const endIndex = pageNum * limitNum;
+
+      const paginatedData = data.slice(startIndex, endIndex);
+
+      return res.json({
+        products: paginatedData,
+        total: data.length,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(data.length / limitNum)
+      });
+    }
+
+    // Unpaginated response (for backward compatibility / admin panel)
     res.json(data);
   } catch (err) {
+    console.error('Failed to read products:', err);
     res.status(500).json({ error: 'Failed to read products' });
   }
 });
