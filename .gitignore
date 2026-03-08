@@ -1,5 +1,9 @@
 # Dependencies
 node_modules/
+node_modules_old/
+
+# Cleanup folder
+_to_delete/
 
 # Environment
 .env

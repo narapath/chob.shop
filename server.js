@@ -1,3 +1,6 @@
+// CloudLinux WebAssembly OOM Fix for Node v18+ (Forces Undici to use JS parser instead of Wasm)
+global.WebAssembly = undefined;
+
 require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
