@@ -1002,6 +1002,7 @@
     <div class="toast" id="toast">✅ สำเร็จ!</div>
 
     <script>
+        const API_BASE = 'https://chob.shop';
         // === State ===
         let products = [];
         let authToken = localStorage.getItem('vibe_admin_token');
@@ -1034,7 +1035,7 @@
             const password = document.getElementById('loginPass').value;
 
             try {
-                const res = await fetch('/api/login', {
+                const res = await fetch(API_BASE + '/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -1065,6 +1066,7 @@
 
         // Helper for authenticated requests
         async function fetchWithAuth(url, options = {}) {
+            const fullUrl = url.startsWith('/api') ? API_BASE + url : url;
             const headers = {
                 'Content-Type': 'application/json',
                 ...options.headers
@@ -1074,7 +1076,7 @@
                 headers['Authorization'] = `Bearer ${authToken}`;
             }
 
-            const response = await fetch(url, { ...options, headers });
+            const response = await fetch(fullUrl, { ...options, headers });
 
             if (response.status === 401) {
                 // Token invalid or expired
@@ -1089,7 +1091,7 @@
         // === Load products ===
         async function loadProducts() {
             try {
-                const res = await fetch('/api/products');
+                const res = await fetch(API_BASE + '/api/products');
                 products = await res.json();
                 renderProductList();
                 updateStats();

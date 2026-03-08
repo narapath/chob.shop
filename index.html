@@ -261,13 +261,14 @@
 
   <!-- Shop logic -->
   <script>
+    const API_BASE = 'https://chob.shop';
     // ===== PRODUCT RENDERING =====
     let ALL_PRODUCTS = [];
     let currentCategory = 'all';
 
     async function loadProducts() {
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch(API_BASE + '/api/products');
         ALL_PRODUCTS = await res.json();
         initCategoryPills();
         renderProducts();
@@ -376,7 +377,7 @@
     function trackClickAndRedirect(event, id, url) {
       event.preventDefault(); // Stop default navigation
       try {
-        fetch(`/api/products/${id}/click`, { method: 'POST' });
+        fetch(`${API_BASE}/api/products/${id}/click`, { method: 'POST' });
       } catch (e) {
         console.error('Failed to track click', e);
       }

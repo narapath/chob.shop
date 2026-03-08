@@ -3,6 +3,7 @@ global.WebAssembly = undefined;
 
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const helmet = require('helmet');
@@ -23,6 +24,14 @@ const PRODUCTS_FILE = path.join(__dirname, 'products.json');
 // 1. Helmet for secure headers
 app.use(helmet({
   contentSecurityPolicy: false, // Set to false if you have external images/scripts from many domains
+  crossOriginResourcePolicy: false, // Allow external resources if needed
+}));
+
+// CORS setup for Vercel
+app.use(cors({
+  origin: ['https://chob-shop.vercel.app', 'http://localhost:3000', 'https://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
 }));
 
 // 2. Rate Limiting to prevent brute-force
