@@ -1,37 +1,443 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Banner</title>
-    <link rel="stylesheet" href="./index.css" />
-    <link rel="stylesheet" href="./normalize.css" />
-  </head>
-  <body>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chob.Shop — สินค้าดีลพิเศษจาก Shopee</title>
+  <meta name="description" content="Chob.Shop รวมสินค้าดีลพิเศษจาก Shopee Affiliate ราคาดี คุณภาพเยี่ยม" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/normalize.css" />
+  <link rel="stylesheet" href="/css/shop.css" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+</head>
+
+<body>
+
+  <!-- ===== HERO BANNER (Bilibili-style animated) ===== -->
+  <header id="hero">
     <div id="app">loading...</div>
+    <div class="hero-overlay" id="heroOverlay">
+      <div class="hero-content">
+        <h1 id="heroTitle"><span class="hero-emoji">👋</span> ยินดีต้อนรับ</h1>
+        <p id="heroSubtitle">เลือกชมสินค้าดีลพิเศษที่เราคัดสรรมาเพื่อคุณ</p>
+      </div>
+    </div>
+  </header>
 
-    <br /><br />
+  <!-- ===== NAV BAR ===== -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="logo">
+        <span class="logo-icon">🛍️</span>
+        <span class="logo-text">Chob.Shop</span>
+      </a>
+      <div class="nav-links">
+        <a href="#products" class="nav-link active">สินค้าทั้งหมด</a>
+        <div class="nav-dropdown" id="navCatDropdown">
+          <button class="nav-link nav-dd-trigger" id="navCatTrigger">
+            หมวดหมู่
+            <svg class="nav-dd-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+          <div class="nav-dd-panel" id="navCatPanel">
+            <div class="nav-dd-grid">
+              <div class="nav-dd-group">
+                <div class="nav-dd-title">👗 แฟชั่น</div>
+                <a class="nav-dd-item" data-cat="เสื้อผ้าผู้หญิง">👗 เสื้อผ้าผู้หญิง</a>
+                <a class="nav-dd-item" data-cat="เสื้อผ้าผู้ชาย">👔 เสื้อผ้าผู้ชาย</a>
+                <a class="nav-dd-item" data-cat="กระเป๋า">👜 กระเป๋า</a>
+                <a class="nav-dd-item" data-cat="รองเท้าผู้หญิง">👠 รองเท้าผู้หญิง</a>
+                <a class="nav-dd-item" data-cat="รองเท้าผู้ชาย">👟 รองเท้าผู้ชาย</a>
+                <a class="nav-dd-item" data-cat="เครื่องประดับ">💍 เครื่องประดับ</a>
+                <a class="nav-dd-item" data-cat="นาฬิกาและแว่นตา">⌚ นาฬิกา</a>
+              </div>
+              <div class="nav-dd-group">
+                <div class="nav-dd-title">📱 อิเล็กทรอนิกส์</div>
+                <a class="nav-dd-item" data-cat="โทรศัพท์มือถือและอุปกรณ์เสริม">📱 มือถือ</a>
+                <a class="nav-dd-item" data-cat="คอมพิวเตอร์และแล็ปท็อป">💻 คอมพิวเตอร์</a>
+                <a class="nav-dd-item" data-cat="เครื่องใช้ไฟฟ้าในบ้าน">🔌 เครื่องใช้ไฟฟ้า</a>
+                <a class="nav-dd-item" data-cat="กล้องและอุปกรณ์ถ่ายภาพ">📷 กล้อง</a>
+                <a class="nav-dd-item" data-cat="เครื่องเสียง">🎧 เครื่องเสียง</a>
+                <a class="nav-dd-item" data-cat="Gaming และอุปกรณ์เกม">🎮 Gaming</a>
+              </div>
+              <div class="nav-dd-group">
+                <div class="nav-dd-title">💄 ความงาม</div>
+                <a class="nav-dd-item" data-cat="ความงาม">💄 ความงาม</a>
+                <a class="nav-dd-item" data-cat="สุขภาพ">💊 สุขภาพ</a>
+                <a class="nav-dd-item" data-cat="ผลิตภัณฑ์ดูแลผิว">🧴 ดูแลผิว</a>
+              </div>
+              <div class="nav-dd-group">
+                <div class="nav-dd-title">🏠 บ้านและไลฟ์สไตล์</div>
+                <a class="nav-dd-item" data-cat="บ้านและสวน">🏡 บ้านและสวน</a>
+                <a class="nav-dd-item" data-cat="เครื่องใช้ในบ้าน">🏠 ของใช้ในบ้าน</a>
+                <a class="nav-dd-item" data-cat="อาหารและเครื่องดื่ม">🍜 อาหาร</a>
+                <a class="nav-dd-item" data-cat="ของเล่น สินค้างานอดิเรก">🧸 ของเล่น</a>
+              </div>
+              <div class="nav-dd-group">
+                <div class="nav-dd-title">👶 แม่และเด็ก</div>
+                <a class="nav-dd-item" data-cat="แม่และเด็ก">👶 แม่และเด็ก</a>
+                <a class="nav-dd-item" data-cat="เสื้อผ้าเด็ก">👕 เสื้อผ้าเด็ก</a>
+              </div>
+              <div class="nav-dd-group">
+                <div class="nav-dd-title">⚽ อื่นๆ</div>
+                <a class="nav-dd-item" data-cat="กีฬาและกิจกรรมกลางแจ้ง">⚽ กีฬา</a>
+                <a class="nav-dd-item" data-cat="การเดินทางและกระเป๋าเดินทาง">✈️ ท่องเที่ยว</a>
+                <a class="nav-dd-item" data-cat="สัตว์เลี้ยง">🐾 สัตว์เลี้ยง</a>
+                <a class="nav-dd-item" data-cat="ยานยนต์">🚗 ยานยนต์</a>
+                <a class="nav-dd-item" data-cat="หนังสือและสื่อบันเทิง">📚 หนังสือ</a>
+                <a class="nav-dd-item" data-cat="ตั๋วและบัตรกำนัล">🎫 ตั๋ว</a>
+                <a class="nav-dd-item" data-cat="เครื่องเขียนและอุปกรณ์สำนักงาน">✏️ เครื่องเขียน</a>
+                <a class="nav-dd-item" data-cat="อื่นๆ">📦 อื่นๆ</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <div class="search-box" id="searchBox">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input type="text" id="searchInput" placeholder="ค้นหาสินค้า..." />
+        </div>
+        <a href="/admin.html" class="btn-admin" title="Admin Panel">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== BANNER SELECTOR (hidden but still functional) ===== -->
+  <div id="bannerSelectorWrap" style="display:none;">
     <div id="selectBox"></div>
-    <br /><br />
-  </body>
+  </div>
 
+  <!-- ===== CATEGORY GRID ===== -->
+  <section id="categories" class="categories-section">
+    <div class="container">
+      <div class="cat-header">
+        <h2>🏷️ หมวดหมู่สินค้า</h2>
+        <span class="cat-hint">เลื่อนเพื่อดูเพิ่มเติม →</span>
+      </div>
+      <div class="cat-wrapper">
+        <button class="cat-arrow cat-arrow-left" id="catLeft" aria-label="เลื่อนซ้าย">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+        <div class="cat-fade cat-fade-left"></div>
+        <div class="cat-scroll" id="catScroll">
+          <button class="cat-card active" data-cat="all"><span class="cat-emoji">🔥</span><span
+              class="cat-label">ทั้งหมด</span></button>
+          <button class="cat-card" data-cat="เสื้อผ้าผู้หญิง"><span class="cat-emoji">👗</span><span
+              class="cat-label">แฟชั่นหญิง</span></button>
+          <button class="cat-card" data-cat="เสื้อผ้าผู้ชาย"><span class="cat-emoji">👔</span><span
+              class="cat-label">แฟชั่นชาย</span></button>
+          <button class="cat-card" data-cat="กระเป๋า"><span class="cat-emoji">👜</span><span
+              class="cat-label">กระเป๋า</span></button>
+          <button class="cat-card" data-cat="รองเท้าผู้หญิง"><span class="cat-emoji">👠</span><span
+              class="cat-label">รองเท้าหญิง</span></button>
+          <button class="cat-card" data-cat="รองเท้าผู้ชาย"><span class="cat-emoji">👟</span><span
+              class="cat-label">รองเท้าชาย</span></button>
+          <button class="cat-card" data-cat="เครื่องประดับ"><span class="cat-emoji">💍</span><span
+              class="cat-label">เครื่องประดับ</span></button>
+          <button class="cat-card" data-cat="นาฬิกาและแว่นตา"><span class="cat-emoji">⌚</span><span
+              class="cat-label">นาฬิกา</span></button>
+          <button class="cat-card" data-cat="โทรศัพท์มือถือและอุปกรณ์เสริม"><span class="cat-emoji">📱</span><span
+              class="cat-label">มือถือ</span></button>
+          <button class="cat-card" data-cat="คอมพิวเตอร์และแล็ปท็อป"><span class="cat-emoji">💻</span><span
+              class="cat-label">คอมพิวเตอร์</span></button>
+          <button class="cat-card" data-cat="เครื่องใช้ไฟฟ้าในบ้าน"><span class="cat-emoji">🔌</span><span
+              class="cat-label">เครื่องไฟฟ้า</span></button>
+          <button class="cat-card" data-cat="กล้องและอุปกรณ์ถ่ายภาพ"><span class="cat-emoji">📷</span><span
+              class="cat-label">กล้อง</span></button>
+          <button class="cat-card" data-cat="เครื่องเสียง"><span class="cat-emoji">🎧</span><span
+              class="cat-label">เครื่องเสียง</span></button>
+          <button class="cat-card" data-cat="Gaming และอุปกรณ์เกม"><span class="cat-emoji">🎮</span><span
+              class="cat-label">Gaming</span></button>
+          <button class="cat-card" data-cat="ความงาม"><span class="cat-emoji">💄</span><span
+              class="cat-label">ความงาม</span></button>
+          <button class="cat-card" data-cat="สุขภาพ"><span class="cat-emoji">💊</span><span
+              class="cat-label">สุขภาพ</span></button>
+          <button class="cat-card" data-cat="ผลิตภัณฑ์ดูแลผิว"><span class="cat-emoji">🧴</span><span
+              class="cat-label">ดูแลผิว</span></button>
+          <button class="cat-card" data-cat="บ้านและสวน"><span class="cat-emoji">🏡</span><span
+              class="cat-label">บ้านและสวน</span></button>
+          <button class="cat-card" data-cat="เครื่องใช้ในบ้าน"><span class="cat-emoji">🏠</span><span
+              class="cat-label">ของใช้ในบ้าน</span></button>
+          <button class="cat-card" data-cat="อาหารและเครื่องดื่ม"><span class="cat-emoji">🍜</span><span
+              class="cat-label">อาหาร</span></button>
+          <button class="cat-card" data-cat="ของเล่น สินค้างานอดิเรก"><span class="cat-emoji">🧸</span><span
+              class="cat-label">ของเล่น</span></button>
+          <button class="cat-card" data-cat="แม่และเด็ก"><span class="cat-emoji">👶</span><span
+              class="cat-label">แม่และเด็ก</span></button>
+          <button class="cat-card" data-cat="เสื้อผ้าเด็ก"><span class="cat-emoji">👕</span><span
+              class="cat-label">เสื้อผ้าเด็ก</span></button>
+          <button class="cat-card" data-cat="กีฬาและกิจกรรมกลางแจ้ง"><span class="cat-emoji">⚽</span><span
+              class="cat-label">กีฬา</span></button>
+          <button class="cat-card" data-cat="การเดินทางและกระเป๋าเดินทาง"><span class="cat-emoji">✈️</span><span
+              class="cat-label">ท่องเที่ยว</span></button>
+          <button class="cat-card" data-cat="สัตว์เลี้ยง"><span class="cat-emoji">🐾</span><span
+              class="cat-label">สัตว์เลี้ยง</span></button>
+          <button class="cat-card" data-cat="ยานยนต์"><span class="cat-emoji">🚗</span><span
+              class="cat-label">ยานยนต์</span></button>
+          <button class="cat-card" data-cat="หนังสือและสื่อบันเทิง"><span class="cat-emoji">📚</span><span
+              class="cat-label">หนังสือ</span></button>
+          <button class="cat-card" data-cat="ตั๋วและบัตรกำนัล"><span class="cat-emoji">🎫</span><span
+              class="cat-label">ตั๋ว</span></button>
+          <button class="cat-card" data-cat="เครื่องเขียนและอุปกรณ์สำนักงาน"><span class="cat-emoji">✏️</span><span
+              class="cat-label">เครื่องเขียน</span></button>
+          <button class="cat-card" data-cat="อื่นๆ"><span class="cat-emoji">📦</span><span
+              class="cat-label">อื่นๆ</span></button>
+        </div>
+        <div class="cat-fade cat-fade-right"></div>
+        <button class="cat-arrow cat-arrow-right" id="catRight" aria-label="เลื่อนขวา">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRODUCTS GRID ===== -->
+  <main id="products" class="products-section">
+    <div class="container">
+      <div class="section-header">
+        <h1>🔥 สินค้าแนะนำ</h1>
+        <p class="subtitle">ดีลสุดพิเศษจาก Shopee คัดสรรมาเพื่อคุณ</p>
+      </div>
+      <div class="products-grid" id="productsGrid">
+        <!-- Products will be injected here -->
+      </div>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-icon">🛒</div>
+        <h3>ยังไม่มีสินค้า</h3>
+        <p>Admin สามารถเพิ่มสินค้าได้ที่ <a href="/admin.html">หน้าจัดการ</a></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer id="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="logo-icon">🛍️</span>
+        <span class="logo-text">Chob.Shop</span>
+        <p class="footer-tagline">สินค้าดีล สไตล์คุณ</p>
+      </div>
+      <div class="footer-links">
+        <a href="#">เกี่ยวกับเรา</a>
+        <a href="#">นโยบายความเป็นส่วนตัว</a>
+        <a href="#">ติดต่อเรา</a>
+      </div>
+      <p class="footer-copy">© 2026 Chob.Shop. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- ===== SCRIPTS ===== -->
+  <!-- Banner engine (preserved) -->
   <script type="module">
-    import barnersData from "./config.js";
-    const selectBox = document.getElementById("selectBox");
-    for (let i = 0; i < barnersData.length; i++) {
-      const element = barnersData[i];
-      const btn = document.createElement("button");
-      btn.id = i;
-      btn.innerText = barnersData[i].name;
-      selectBox.appendChild(btn);
-    }
+    import barnersData from "/js/config.js";
+    // We import barnersData here to ensure config.js is loaded,
+    // though index.js also imports it. The selectBox logic was removed
+    // since we use category pills to switch banners instead.
   </script>
-  <script type="module" src="./index.js"></script>
-  <!-- <script>
-    const scriptSrc = `./index.js?r=${Math.floor(Math.random() * 100)}`;
-    const scriptElement = document.createElement("script");
-    scriptElement.type = "module";
-    scriptElement.src = scriptSrc;
-    document.body.appendChild(scriptElement);
-  </script> -->
+  <script type="module" src="/js/index.js"></script>
+
+  <!-- Shop logic -->
+  <script>
+    // ===== PRODUCT RENDERING =====
+    let ALL_PRODUCTS = [];
+    let currentCategory = 'all';
+
+    async function loadProducts() {
+      try {
+        const res = await fetch('/api/products');
+        ALL_PRODUCTS = await res.json();
+        initCategoryPills();
+        renderProducts();
+      } catch (e) {
+        console.error('Failed to load products:', e);
+      }
+    }
+
+    function initCategoryPills() {
+      const scroll = document.getElementById('catScroll');
+      const cards = scroll.querySelectorAll('.cat-card');
+      const leftBtn = document.getElementById('catLeft');
+      const rightBtn = document.getElementById('catRight');
+      const fadeL = document.querySelector('.cat-fade-left');
+      const fadeR = document.querySelector('.cat-fade-right');
+      const hint = document.querySelector('.cat-hint');
+      const SCROLL_STEP = 260; // ~3 cards
+
+      // Arrow click to scroll
+      leftBtn?.addEventListener('click', () => scroll.scrollBy({ left: -SCROLL_STEP, behavior: 'smooth' }));
+      rightBtn?.addEventListener('click', () => scroll.scrollBy({ left: SCROLL_STEP, behavior: 'smooth' }));
+
+      // Update arrows & fades visibility
+      function updateScrollUI() {
+        const atStart = scroll.scrollLeft <= 5;
+        const atEnd = scroll.scrollLeft + scroll.clientWidth >= scroll.scrollWidth - 5;
+        leftBtn?.classList.toggle('hidden', atStart);
+        rightBtn?.classList.toggle('hidden', atEnd);
+        fadeL?.classList.toggle('visible', !atStart);
+        fadeR?.classList.toggle('hidden', atEnd);
+        if (hint && scroll.scrollLeft > 20) hint.style.display = 'none';
+      }
+      scroll.addEventListener('scroll', updateScrollUI, { passive: true });
+      updateScrollUI();
+
+      // Card clicks
+      cards.forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+          cards.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentCategory = btn.dataset.cat;
+          renderProducts();
+
+          // Update Hero Text
+          const emoji = btn.querySelector('.cat-emoji')?.innerText || '✨';
+          const label = btn.querySelector('.cat-label')?.innerText || 'สินค้า';
+          const heroTitle = document.getElementById('heroTitle');
+          const heroSubtitle = document.getElementById('heroSubtitle');
+
+          if (heroTitle) {
+            heroTitle.style.opacity = '0';
+            setTimeout(() => {
+              heroTitle.innerHTML = `<span class="hero-emoji">${emoji}</span> ${label}`;
+              heroTitle.style.opacity = '1';
+            }, 200);
+          }
+          if (heroSubtitle) {
+            heroSubtitle.style.opacity = '0';
+            setTimeout(() => {
+              heroSubtitle.innerText = currentCategory === 'all'
+                ? 'ดีลสุดพิเศษจาก Shopee คัดสรรมาเพื่อคุณ'
+                : `รวมดีลสุดคุ้มในหมวด ${label}`;
+              heroSubtitle.style.opacity = '1';
+            }, 300);
+          }
+
+          // Scroll the clicked card into view within the row
+          btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          // Switch the parallax banner
+          if (window.switchBanner) {
+            window.switchBanner(index);
+          }
+        });
+      });
+
+      // Navbar dropdown items integration
+      const ddItems = document.querySelectorAll('.nav-dd-item');
+      ddItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const targetCat = item.dataset.cat;
+          const targetBtn = Array.from(cards).find(b => b.dataset.cat === targetCat);
+          if (targetBtn) {
+            targetBtn.click();
+            document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      });
+
+      // "All Products" link reset (targeting any link to #products that isn't the trigger)
+      const allLinks = document.querySelectorAll('a[href="#products"], a[href="/#products"]');
+      allLinks.forEach(link => {
+        if (link.classList.contains('nav-dd-trigger')) return;
+        link.addEventListener('click', (e) => {
+          const allBtn = Array.from(cards).find(b => b.dataset.cat === 'all');
+          if (allBtn) {
+            e.preventDefault();
+            allBtn.click();
+            document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      });
+    }
+
+    function trackClickAndRedirect(event, id, url) {
+      event.preventDefault(); // Stop default navigation
+      try {
+        fetch(`/api/products/${id}/click`, { method: 'POST' });
+      } catch (e) {
+        console.error('Failed to track click', e);
+      }
+      // Redirect after attempting to track
+      window.open(url, '_blank');
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById('productsGrid');
+      const empty = document.getElementById('emptyState');
+      const term = (document.getElementById('searchInput')?.value || '').toLowerCase();
+
+      const filtered = [...ALL_PRODUCTS].reverse().filter(p => {
+        const matchesTerm = p.title.toLowerCase().includes(term) || (p.description || '').toLowerCase().includes(term);
+        const matchesCat = currentCategory === 'all' || currentCategory === 'ทั้งหมด' || p.category === currentCategory;
+        return matchesTerm && matchesCat;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: var(--text2);">ไม่พบสินค้าที่ค้นหา</div>';
+        empty.style.display = 'block'; // Keep original empty state visibility logic
+        return;
+      }
+      empty.style.display = 'none';
+
+      grid.innerHTML = filtered.map(product => `
+        <a href="${product.affiliateUrl}" target="_blank" rel="noopener noreferrer" class="card" onclick="trackClickAndRedirect(event, '${product.id}', '${product.affiliateUrl}')">
+          <div class="card-img-wrapper">
+            <img src="${product.image || 'https://placehold.co/300x300/1a1a2e/e94560?text=Chob.Shop'}" alt="${product.title}" loading="lazy" class="card-img" />
+            ${product.discount ? `<span class="discount-badge">-${product.discount}%</span>` : ''}
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">${product.title}</h3>
+            <div class="card-pricing">
+              <span class="card-price">฿${Number(product.price).toLocaleString()}</span>
+              ${product.originalPrice ? `<span class="card-original">฿${Number(product.originalPrice).toLocaleString()}</span>` : ''}
+            </div>
+            <div class="card-cta">
+              <span class="shopee-btn">🛒 ดูสินค้าใน Shopee</span>
+            </div>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    // Search handler
+    document.getElementById('searchInput')?.addEventListener('input', renderProducts);
+
+    // Sticky navbar
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('navbar');
+      if (window.scrollY > 200) {
+        nav.classList.add('sticky');
+      } else {
+        nav.classList.remove('sticky');
+      }
+    });
+
+    // Load on page ready
+    loadProducts();
+  </script>
+</body>
+
 </html>

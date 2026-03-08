@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chob.Shop Admin — จัดการสินค้า</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <style>
+        :root {
+            --bg: #0f0f1a;
+            --bg2: #1a1a2e;
+            --bg3: #16213e;
+            --accent: #e94560;
+            --accent2: #ff6b81;
+            --shopee: #ee4d2d;
+            --text: #f1f1f1;
+            --text2: #a0a0b8;
+            --text3: #6c6c8a;
+            --border: rgba(255, 255, 255, 0.06);
+            --green: #00c853;
+            --radius: 14px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* === HEADER === */
+        .admin-header {
+            background: rgba(15, 15, 26, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-brand .icon {
+            font-size: 28px;
+        }
+
+        .admin-brand h1 {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .admin-brand .badge {
+            background: var(--accent);
+            color: #fff;
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .back-link {
+            color: var(--text2);
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            color: var(--text);
+        }
+
+        /* === LAYOUT === */
+        .admin-layout {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 32px;
+        }
+
+        @media(max-width:900px) {
+            .admin-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* === PANEL === */
+        .panel {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* === FORM === */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text2);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.15);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Link input area */
+        .link-input-area {
+            background: var(--bg3);
+            border: 2px dashed rgba(233, 69, 96, 0.3);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+
+        .link-input-area:hover,
+        .link-input-area:focus-within {
+            border-color: var(--accent);
+            background: rgba(233, 69, 96, 0.05);
+        }
+
+        .link-input-area .hint {
+            font-size: 12px;
+            color: var(--text3);
+            margin-top: 8px;
+        }
+
+        .link-input-area input {
+            background: transparent;
+            border: none;
+            text-align: center;
+            font-size: 14px;
+            color: var(--shopee);
+            width: 100%;
+            outline: none;
+            padding: 8px;
+        }
+
+        .link-input-area input::placeholder {
+            color: var(--text3);
+        }
+
+        /* Image preview */
+        .image-preview {
+            width: 100%;
+            aspect-ratio: 1;
+            max-width: 200px;
+            margin: 12px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview .placeholder {
+            color: var(--text3);
+            font-size: 40px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 8px 24px rgba(233, 69, 96, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg3);
+            color: var(--text2);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .btn-danger {
+            background: rgba(233, 69, 96, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(233, 69, 96, 0.2);
+            padding: 6px 14px;
+            font-size: 12px;
+            width: auto;
+        }
+
+        .btn-danger:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* === PRODUCT TABLE === */
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: var(--transition);
+        }
+
+        .product-item:hover {
+            border-color: rgba(233, 69, 96, 0.2);
+        }
+
+        .product-item .thumb {
+            width: 64px;
+            height: 64px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--bg);
+            flex-shrink: 0;
+        }
+
+        .product-item .thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-item .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .product-item .info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-item .info .meta {
+            font-size: 12px;
+            color: var(--text3);
+        }
+
+        .product-item .info .price-tag {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .product-item .actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-card .num {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: var(--text3);
+            margin-top: 4px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--green);
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 8px 24px rgba(0, 200, 83, 0.3);
+            transform: translateY(120px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 9999;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .empty-list {
+            text-align: center;
+            padding: 40px 10px;
+            color: var(--text3);
+            font-size: 14px;
+        }
+
+        .empty-list .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        /* === LOGIN PANEL === */
+        #loginPanel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: var(--bg);
+        }
+
+        .login-box {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            text-align: center;
+        }
+
+        .login-box h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-box p {
+            color: var(--text2);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .login-box .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .login-error {
+            color: var(--accent2);
+            font-size: 13px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        /* User Menu */
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Filter Controls */
+        .filter-controls {
+            display: grid;
+            grid-template-columns: 1fr 200px;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        @media(max-width: 600px) {
+            .filter-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Toggle Switch */
+        .social-toggles {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .social-toggles h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+
+        .toggle-row .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .toggle-row .toggle-label .platform-icon {
+            font-size: 18px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            transition: var(--transition);
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background: var(--text3);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .toggle-switch input:checked+.toggle-slider::before {
+            transform: translateX(20px);
+            background: #fff;
+        }
+
+        /* Bulk Actions */
+        .bulk-actions-bar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg2);
+            border: 1px solid var(--accent);
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .bulk-actions-bar.show {
+            display: flex;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .product-item {
+            position: relative;
+            padding-left: 48px;
+        }
+
+        .product-checkbox {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .select-all-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+
+        .select-all-row input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOGIN PANEL (Visible by default until authed) -->
+    <div id="loginPanel">
+        <div class="login-box">
+            <div style="font-size: 48px; margin-bottom: 16px;">🔐</div>
+            <h1>Chob.Shop Admin</h1>
+            <p>กรุณาเข้าสู่ระบบเพื่อจัดการร้านค้า</p>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="loginUser" placeholder="admin" required />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPass" placeholder="••••••••" required />
+                </div>
+                <button type="submit" class="btn btn-primary" id="loginBtn">เข้าสู่ระบบ</button>
+                <div class="login-error" id="loginError">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+            </form>
+            <div style="margin-top: 20px;">
+                <a href="/" class="back-link" style="justify-content: center;">← กลับหน้าร้าน</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER (Hidden by default) -->
+    <div id="appWrapper" style="display: none;">
+
+        <!-- HEADER -->
+        <header class="admin-header">
+            <div class="admin-brand">
+                <span class="icon">⚙️</span>
+                <h1>Chob.Shop Admin</h1>
+                <span class="badge">ADMIN</span>
+            </div>
+            <div class="user-menu">
+                <a href="/" class="back-link">← กลับหน้าร้าน</a>
+                <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="logout()">ออกจากระบบ
+                    (Logout)</button>
+            </div>
+        </header>
+
+        <!-- LAYOUT -->
+        <div class="admin-layout">
+
+            <!-- LEFT: ADD PRODUCT FORM -->
+            <aside>
+                <div class="panel">
+                    <h2 class="panel-title">➕ เพิ่มสินค้าใหม่</h2>
+
+                    <div class="link-input-area">
+                        <div style="font-size:24px;margin-bottom:8px;">🔗</div>
+                        <input type="text" id="affiliateUrl" placeholder="วาง Shopee Affiliate Link ที่นี่..." />
+                        <p class="hint">เช่น https://s.shopee.co.th/xxxxx หรือ https://affiliate.shopee.co.th/...</p>
+                    </div>
+
+                    <form id="productForm">
+                        <div class="form-group">
+                            <label>ชื่อสินค้า *</label>
+                            <input type="text" id="productTitle" placeholder="เช่น หูฟังไร้สาย Bluetooth 5.0"
+                                required />
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ราคา (฿) *</label>
+                                <input type="number" id="productPrice" placeholder="299" required />
+                            </div>
+                            <div class="form-group">
+                                <label>ราคาเต็ม (฿)</label>
+                                <input type="number" id="productOriginalPrice" placeholder="599" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ส่วนลด (%)</label>
+                                <input type="number" id="productDiscount" placeholder="50" />
+                            </div>
+                            <div class="form-group">
+                                <label>หมวดหมู่</label>
+                                <select id="productCategory">
+                                    <optgroup label="👗 แฟชั่นและเครื่องแต่งกาย">
+                                        <option value="เสื้อผ้าผู้หญิง">เสื้อผ้าผู้หญิง</option>
+                                        <option value="เสื้อผ้าผู้ชาย">เสื้อผ้าผู้ชาย</option>
+                                        <option value="กระเป๋า">กระเป๋า</option>
+                                        <option value="รองเท้าผู้หญิง">รองเท้าผู้หญิง</option>
+                                        <option value="รองเท้าผู้ชาย">รองเท้าผู้ชาย</option>
+                                        <option value="เครื่องประดับ">เครื่องประดับ</option>
+                                        <option value="นาฬิกาและแว่นตา">นาฬิกาและแว่นตา</option>
+                                    </optgroup>
+                                    <optgroup label="📱 อิเล็กทรอนิกส์">
+                                        <option value="โทรศัพท์มือถือและอุปกรณ์เสริม">โทรศัพท์มือถือและอุปกรณ์เสริม
+                                        </option>
+                                        <option value="คอมพิวเตอร์และแล็ปท็อป">คอมพิวเตอร์และแล็ปท็อป</option>
+                                        <option value="เครื่องใช้ไฟฟ้าในบ้าน">เครื่องใช้ไฟฟ้าในบ้าน</option>
+                                        <option value="กล้องและอุปกรณ์ถ่ายภาพ">กล้องและอุปกรณ์ถ่ายภาพ</option>
+                                        <option value="เครื่องเสียง">เครื่องเสียง</option>
+                                        <option value="Gaming และอุปกรณ์เกม">Gaming และอุปกรณ์เกม</option>
+                                    </optgroup>
+                                    <optgroup label="💄 ความงามและสุขภาพ">
+                                        <option value="ความงาม">ความงาม</option>
+                                        <option value="สุขภาพ">สุขภาพ</option>
+                                        <option value="ผลิตภัณฑ์ดูแลผิว">ผลิตภัณฑ์ดูแลผิว</option>
+                                    </optgroup>
+                                    <optgroup label="🏠 บ้านและไลฟ์สไตล์">
+                                        <option value="บ้านและสวน">บ้านและสวน</option>
+                                        <option value="เครื่องใช้ในบ้าน">เครื่องใช้ในบ้าน</option>
+                                        <option value="อาหารและเครื่องดื่ม">อาหารและเครื่องดื่ม</option>
+                                        <option value="ของเล่น สินค้างานอดิเรก">ของเล่น สินค้างานอดิเรก</option>
+                                    </optgroup>
+                                    <optgroup label="👶 แม่และเด็ก">
+                                        <option value="แม่และเด็ก">แม่และเด็ก</option>
+                                        <option value="เสื้อผ้าเด็ก">เสื้อผ้าเด็ก</option>
+                                    </optgroup>
+                                    <optgroup label="⚽ กีฬาและกิจกรรม">
+                                        <option value="กีฬาและกิจกรรมกลางแจ้ง">กีฬาและกิจกรรมกลางแจ้ง</option>
+                                        <option value="การเดินทางและกระเป๋าเดินทาง">การเดินทางและกระเป๋าเดินทาง</option>
+                                    </optgroup>
+                                    <optgroup label="🐾 อื่นๆ">
+                                        <option value="สัตว์เลี้ยง">สัตว์เลี้ยง</option>
+                                        <option value="ยานยนต์">ยานยนต์</option>
+                                        <option value="หนังสือและสื่อบันเทิง">หนังสือและสื่อบันเทิง</option>
+                                        <option value="ตั๋วและบัตรกำนัล">ตั๋วและบัตรกำนัล</option>
+                                        <option value="เครื่องเขียนและอุปกรณ์สำนักงาน">เครื่องเขียนและอุปกรณ์สำนักงาน
+                                        </option>
+                                        <option value="อื่นๆ">อื่นๆ</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>รูปภาพ URL</label>
+                            <input type="text" id="productImage" placeholder="https://... หรือวาง URL รูปภาพ" />
+                        </div>
+                        <div class="image-preview" id="imagePreview">
+                            <span class="placeholder">🖼️</span>
+                        </div>
+                        <div class="form-group">
+                            <label>คำอธิบาย</label>
+                            <textarea id="productDescription" placeholder="รายละเอียดสินค้าเพิ่มเติม..."></textarea>
+                        </div>
+                        <input type="hidden" id="editProductId" value="">
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="btn btn-primary" id="submitBtn" style="flex: 1;">
+                                🛒 เพิ่มสินค้า
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="cancelEditBtn"
+                                style="display: none; padding: 0 16px;">
+                                ยกเลิก
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
+                    <h2 class="panel-title">📁 นำเข้าสินค้าจาก Shopee CSV</h2>
+                    <p class="hint" style="margin-bottom: 16px;">อัปโหลดไฟล์ CSV ที่ส่งออกจาก Shopee Affiliate
+                        เพื่อเพิ่มสินค้าหลายรายการพร้อมกัน</p>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label>เลือกหมวดหมู่สำหรับสินค้าที่นำเข้า</label>
+                        <select id="importCategory" class="form-control">
+                            <option value="auto" selected>✨ จัดหมวดหมู่อัตโนมัติ (แนะนำ)</option>
+                            <option value="ทั่วไป">📁 ไม่ระบุหมวดหมู่ (ทั่วไป)</option>
+                            <optgroup label="👗 แฟชั่นและเครื่องแต่งกาย">
+                                <option value="เสื้อผ้าผู้หญิง">เสื้อผ้าผู้หญิง</option>
+                                <option value="เสื้อผ้าผู้ชาย">เสื้อผ้าผู้ชาย</option>
+                                <option value="กระเป๋า">กระเป๋า</option>
+                                <option value="รองเท้าผู้หญิง">รองเท้าผู้หญิง</option>
+                                <option value="รองเท้าผู้ชาย">รองเท้าผู้ชาย</option>
+                                <option value="เครื่องประดับ">เครื่องประดับ</option>
+                                <option value="นาฬิกาและแว่นตา">นาฬิกาและแว่นตา</option>
+                            </optgroup>
+                            <optgroup label="📱 อิเล็กทรอนิกส์">
+                                <option value="โทรศัพท์มือถือและอุปกรณ์เสริม">โทรศัพท์มือถือและอุปกรณ์เสริม</option>
+                                <option value="คอมพิวเตอร์และแล็ปท็อป">คอมพิวเตอร์และแล็ปท็อป</option>
+                                <option value="เครื่องใช้ไฟฟ้าในบ้าน">เครื่องใช้ไฟฟ้าในบ้าน</option>
+                                <option value="กล้องและอุปกรณ์ถ่ายภาพ">กล้องและอุปกรณ์ถ่ายภาพ</option>
+                                <option value="เครื่องเสียง">เครื่องเสียง</option>
+                                <option value="Gaming และอุปกรณ์เกม">Gaming และอุปกรณ์เกม</option>
+                            </optgroup>
+                            <optgroup label="💄 ความงามและสุขภาพ">
+                                <option value="ความงาม">ความงาม</option>
+                                <option value="สุขภาพ">สุขภาพ</option>
+                                <option value="ผลิตภัณฑ์ดูแลผิว">ผลิตภัณฑ์ดูแลผิว</option>
+                            </optgroup>
+                            <optgroup label="🏠 บ้านและไลฟ์สไตล์">
+                                <option value="บ้านและสวน">บ้านและสวน</option>
+                                <option value="เครื่องใช้ในบ้าน">เครื่องใช้ในบ้าน</option>
+                                <option value="อาหารและเครื่องดื่ม">อาหารและเครื่องดื่ม</option>
+                                <option value="ของเล่น สินค้างานอดิเรก">ของเล่น สินค้างานอดิเรก</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div style="border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px; text-align: center; cursor: pointer; transition: 0.2s;"
+                        id="csvDropzone" onclick="document.getElementById('csvFileInput').click()">
+                        <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
+                        <p style="color: var(--text2); margin: 0;">คลิกเพื่ออัปโหลด หรือ ลากไฟล์ .csv มาวางที่นี่</p>
+                        <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                    </div>
+
+                    <div class="social-toggles">
+                        <h3>📢 โพสต์อัตโนมัติเมื่อนำเข้า CSV</h3>
+                        <div class="toggle-row">
+                            <span class="toggle-label"><span class="platform-icon">📘</span> Facebook Page</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggleFacebook" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <span class="toggle-label"><span class="platform-icon">📷</span> Instagram</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggleInstagram">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <span class="toggle-label"><span class="platform-icon">✨</span> X (Twitter)</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggleX" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <span class="toggle-label"><span class="platform-icon">🧵</span> Threads</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggleThreads" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row"
+                            style="border-color: var(--accent); background: rgba(233, 69, 96, 0.05);">
+                            <span class="toggle-label"><span class="platform-icon">🤖</span> ใช้ AI เขียนโพสต์
+                                (สายป้ายยา)</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggleAI" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <p class="hint" style="margin-top: 4px;">
+                            เปิดสวิตช์เพื่อโพสต์สินค้าลงโซเชียลมีเดียอัตโนมัติเมื่อนำเข้า CSV (ต้องตั้งค่า API Key
+                            ในไฟล์ .env ก่อน)</p>
+                    </div>
+                </div>
+
+                <!-- API Settings Panel -->
+                <div class="panel" style="margin-top: 20px;">
+                    <h2 class="panel-title" style="cursor: pointer;"
+                        onclick="document.getElementById('settingsBody').style.display = document.getElementById('settingsBody').style.display === 'none' ? 'block' : 'none'">
+                        ⚙️ ตั้งค่า API Keys <span style="font-size: 12px; color: var(--text3); margin-left: 8px;">▼
+                            คลิกเพื่อเปิด/ปิด</span>
+                    </h2>
+                    <div id="settingsBody" style="display: none;">
+                        <p class="hint" style="margin-bottom: 16px;">อัปเดต API Token ได้ที่นี่ (เช่น เมื่อ Token
+                            หมดอายุ) ระบบจะบันทึกและใช้งานทันทีโดยไม่ต้อง restart server</p>
+
+                        <div class="form-group">
+                            <label>Facebook Page Access Token</label>
+                            <input type="text" id="settingFBToken" placeholder="วาง Token ใหม่..." />
+                            <small id="currentFBToken" style="color: var(--text3); font-size: 11px;"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Threads User ID</label>
+                            <input type="text" id="settingThreadsUserId" placeholder="เช่น 123456789" />
+                            <small id="currentThreadsUserId" style="color: var(--text3); font-size: 11px;"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Threads Access Token</label>
+                            <input type="text" id="settingThreadsToken" placeholder="วาง Token ใหม่..." />
+                            <small id="currentThreadsToken" style="color: var(--text3); font-size: 11px;"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Gemini AI API Key</label>
+                            <input type="text" id="settingGeminiKey" placeholder="วาง API Key ใหม่..." />
+                            <small id="currentGeminiKey" style="color: var(--text3); font-size: 11px;"></small>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveSettings()" id="saveSettingsBtn">💾
+                            บันทึกการตั้งค่า</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- RIGHT: PRODUCT LIST -->
+            <main>
+                <div class="stats-bar">
+                    <div class="stat-card">
+                        <div class="num" id="totalProducts">0</div>
+                        <div class="label">สินค้าทั้งหมด</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="num" id="totalCategories">0</div>
+                        <div class="label">หมวดหมู่</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="panel-title">📦 รายการสินค้า</h2>
+
+                    <div class="filter-controls">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <input type="text" id="adminSearch" placeholder="🔍 ค้นหาชื่อสินค้า หรือรายละเอียด..." />
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <select id="adminCategoryFilter">
+                                <option value="ทั้งหมด">📁 ทั้งหมด</option>
+                                <!-- Categories populated via JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bulk-actions-bar" id="bulkActionsBar">
+                        <div style="font-size: 14px; font-weight: 500;">เลือกอยู่ <span id="selectedCount"
+                                style="color: var(--accent); font-weight: 700;">0</span> รายการ</div>
+                        <button class="btn-danger" onclick="bulkDelete()" style="padding: 8px 16px; font-size: 13px;">🗑
+                            ลบที่เลือก</button>
+                    </div>
+
+                    <div class="select-all-row">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
+                        <label for="selectAll" style="cursor: pointer;">เลือกทั้งหมด</label>
+                    </div>
+
+                    <div class="product-list" id="productList">
+                        <div class="empty-list">
+                            <div class="icon">📭</div>
+                            <p>ยังไม่มีสินค้า — เพิ่มสินค้าแรกได้เลย!</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div> <!-- END APP WRAPPER -->
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">✅ สำเร็จ!</div>
+
+    <script>
+        // === State ===
+        let products = [];
+        let authToken = localStorage.getItem('vibe_admin_token');
+
+        // === Auth Logic ===
+        const loginPanel = document.getElementById('loginPanel');
+        const appWrapper = document.getElementById('appWrapper');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const loginBtn = document.getElementById('loginBtn');
+
+        function checkAuth() {
+            if (authToken) {
+                loginPanel.style.display = 'none';
+                appWrapper.style.display = 'block';
+                loadProducts();
+            } else {
+                loginPanel.style.display = 'flex';
+                appWrapper.style.display = 'none';
+            }
+        }
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'กำลังตรวจสอบ...';
+            loginError.style.display = 'none';
+
+            const username = document.getElementById('loginUser').value;
+            const password = document.getElementById('loginPass').value;
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json();
+                if (data.success && data.token) {
+                    authToken = data.token;
+                    localStorage.setItem('vibe_admin_token', authToken);
+                    checkAuth();
+                } else {
+                    loginError.style.display = 'block';
+                }
+            } catch (err) {
+                loginError.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+                loginError.style.display = 'block';
+            }
+
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'เข้าสู่ระบบ';
+        });
+
+        function logout() {
+            authToken = null;
+            localStorage.removeItem('vibe_admin_token');
+            checkAuth();
+        }
+
+        // Helper for authenticated requests
+        async function fetchWithAuth(url, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            const response = await fetch(url, { ...options, headers });
+
+            if (response.status === 401) {
+                // Token invalid or expired
+                logout();
+                showToast('เซสชั่นหมดอายุ กรุณาเข้าสู่ระบบใหม่');
+                throw new Error('Unauthorized');
+            }
+
+            return response;
+        }
+
+        // === Load products ===
+        async function loadProducts() {
+            try {
+                const res = await fetch('/api/products');
+                products = await res.json();
+                renderProductList();
+                updateStats();
+            } catch (e) {
+                console.error('Failed to load products:', e);
+            }
+        }
+
+        // === Render product list ===
+        function renderProductList() {
+            const list = document.getElementById('productList');
+            const searchQuery = document.getElementById('adminSearch').value.toLowerCase().trim();
+            const categoryFilter = document.getElementById('adminCategoryFilter').value;
+
+            const filteredProducts = products.filter(p => {
+                const matchesSearch = !searchQuery ||
+                    p.title.toLowerCase().includes(searchQuery) ||
+                    (p.description && p.description.toLowerCase().includes(searchQuery));
+                const matchesCategory = categoryFilter === 'ทั้งหมด' || p.category === categoryFilter;
+                return matchesSearch && matchesCategory;
+            });
+
+            if (filteredProducts.length === 0) {
+                list.innerHTML = `
+          <div class="empty-list">
+            <div class="icon">📭</div>
+            <p>${products.length === 0 ? 'ยังไม่มีสินค้า — เพิ่มสินค้าแรกได้เลย!' : 'ไม่พบสินค้าที่ตรงตามเงื่อนไข'}</p>
+          </div>`;
+                return;
+            }
+            list.innerHTML = filteredProducts.map(p => `
+        <div class="product-item" id="admin-product-${p.id}">
+          <input type="checkbox" class="product-checkbox" data-id="${p.id}" onchange="updateSelection()">
+          <div class="thumb">
+            <img src="${p.image || 'https://placehold.co/64x64/1a1a2e/e94560?text=📦'}" alt="${p.title}" />
+          </div>
+          <div class="info">
+            <h4>${p.title}</h4>
+            <span class="price-tag">฿${Number(p.price).toLocaleString()}</span>
+            <span class="meta"> · <span style="color: var(--accent); font-weight: bold;">👁️ ${p.clicks || 0}</span> · ${p.category || 'ไม่ระบุ'}</span>
+          </div>
+          <div class="actions">
+            <button class="btn-secondary" onclick="editProduct('${p.id}')" style="margin-right: 8px;">✏️ แก้ไข</button>
+            <button class="btn-danger" onclick="deleteProduct('${p.id}')">🗑 ลบ</button>
+          </div>
+        </div>
+      `).join('');
+
+            // Sync "Select All" state
+            document.getElementById('selectAll').checked = false;
+            updateSelection();
+        }
+
+        // === Selection Logic ===
+        function toggleSelectAll(checked) {
+            const checkboxes = document.querySelectorAll('.product-checkbox');
+            checkboxes.forEach(cb => cb.checked = checked);
+            updateSelection();
+        }
+
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('.product-checkbox');
+            const selected = Array.from(checkboxes).filter(cb => cb.checked);
+            const bar = document.getElementById('bulkActionsBar');
+            const countLabel = document.getElementById('selectedCount');
+            const selectAll = document.getElementById('selectAll');
+
+            countLabel.textContent = selected.length;
+
+            if (selected.length > 0) {
+                bar.classList.add('show');
+            } else {
+                bar.classList.remove('show');
+            }
+
+            // Update select all checkbox if all/none are checked
+            if (checkboxes.length > 0 && selected.length === checkboxes.length) {
+                selectAll.checked = true;
+                selectAll.indeterminate = false;
+            } else if (selected.length > 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = true;
+            } else {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+            }
+        }
+
+        async function bulkDelete() {
+            const checkboxes = document.querySelectorAll('.product-checkbox:checked');
+            const ids = Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
+
+            if (ids.length === 0) return;
+            if (!confirm(`คุณต้องการลบสินค้าที่เลือกทั้ง ${ids.length} รายการหรือไม่? (ระบบจะลบโพสต์ใน Facebook ที่เกี่ยวข้องด้วย)`)) return;
+
+            try {
+                const res = await fetchWithAuth('/api/products/bulk-delete', {
+                    method: 'POST',
+                    body: JSON.stringify({ ids })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`🗑 ลบสินค้า ${data.count} รายการแล้ว`);
+                    await loadProducts();
+                } else {
+                    showToast('❌ ลบไม่สำเร็จ');
+                }
+            } catch (e) {
+                if (e.message !== 'Unauthorized') {
+                    showToast('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
+                }
+            }
+        }
+
+        // === Update stats ===
+        function updateStats() {
+            document.getElementById('totalProducts').textContent = products.length;
+            const categories = [...new Set(products.map(p => p.category).filter(c => c && c !== 'ทั้งหมด'))];
+            document.getElementById('totalCategories').textContent = categories.length;
+
+            // Update category filter dropdown
+            const filter = document.getElementById('adminCategoryFilter');
+            const currentValue = filter.value;
+
+            // Keep "All" as first option
+            let options = '<option value="ทั้งหมด">📁 ทั้งหมด</option>';
+            categories.sort().forEach(cat => {
+                options += `<option value="${cat}">${cat}</option>`;
+            });
+            filter.innerHTML = options;
+
+            // Restore selection if it still exists
+            if (categories.includes(currentValue)) {
+                filter.value = currentValue;
+            } else {
+                filter.value = 'ทั้งหมด';
+            }
+        }
+
+        // === Show Toast ===
+        let toastTimeout;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // === Add/Edit product ===
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ กำลังเพิ่ม...';
+
+            const title = document.getElementById('productTitle').value.trim();
+            const price = document.getElementById('productPrice').value;
+            const originalPrice = document.getElementById('productOriginalPrice').value;
+            const discount = document.getElementById('productDiscount').value;
+            const category = document.getElementById('productCategory').value;
+            const image = document.getElementById('productImage').value;
+            const affiliateUrl = document.getElementById('affiliateUrl').value;
+            const description = document.getElementById('productDescription').value;
+            const editId = document.getElementById('editProductId').value;
+
+            if (!affiliateUrl) {
+                alert('กรุณาใส่ Shopee Affiliate Link ก่อนเพิ่มสินค้า');
+                btn.disabled = false;
+                btn.textContent = editId ? '💾 บันทึกการแก้ไข' : '🛒 เพิ่มสินค้า';
+                return;
+            }
+
+            const body = {
+                title, price, originalPrice, discount, category, image, affiliateUrl, description
+            };
+
+            const url = editId ? `/api/products/${editId}` : '/api/products';
+            const method = editId ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetchWithAuth(url, {
+                    method: method,
+                    body: JSON.stringify(body),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(editId ? '✅ แก้ไขสินค้าสำเร็จ!' : '✅ เพิ่มสินค้าสำเร็จ!');
+                    document.getElementById('productForm').reset();
+                    document.getElementById('editProductId').value = '';
+                    document.getElementById('submitBtn').innerHTML = '🛒 เพิ่มสินค้า';
+                    document.getElementById('cancelEditBtn').style.display = 'none';
+                    document.getElementById('imagePreview').innerHTML = '<span class="placeholder">🖼️</span>';
+                    await loadProducts();
+                } else {
+                    showToast('❌ เกิดข้อผิดพลาด');
+                }
+            } catch (e) {
+                if (e.message !== 'Unauthorized') {
+                    showToast('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
+                }
+            }
+
+            btn.disabled = false;
+            btn.textContent = editId ? '💾 บันทึกการแก้ไข' : '🛒 เพิ่มสินค้า';
+        });
+
+        // === Edit product ===
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            document.getElementById('productTitle').value = product.title || '';
+            document.getElementById('productPrice').value = product.price || '';
+            document.getElementById('productOriginalPrice').value = product.originalPrice || '';
+            document.getElementById('productDiscount').value = product.discount || '';
+            document.getElementById('productCategory').value = product.category || 'ทั่วไป';
+            document.getElementById('productImage').value = product.image || '';
+            document.getElementById('affiliateUrl').value = product.affiliateUrl || '';
+            document.getElementById('productDescription').value = product.description || '';
+
+            document.getElementById('editProductId').value = product.id;
+            document.getElementById('submitBtn').innerHTML = '💾 บันทึกการแก้ไข';
+            document.getElementById('cancelEditBtn').style.display = 'block';
+
+            // Trigger image preview
+            document.getElementById('productImage').dispatchEvent(new Event('input'));
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // === Cancel Edit ===
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            document.getElementById('productForm').reset();
+            document.getElementById('editProductId').value = '';
+            document.getElementById('submitBtn').innerHTML = '🛒 เพิ่มสินค้า';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            document.getElementById('imagePreview').innerHTML = '<span class="placeholder">🖼️</span>';
+        });
+
+        // === Delete product ===
+        async function deleteProduct(id) {
+            if (!confirm('ต้องการลบสินค้านี้หรือไม่?')) return;
+            try {
+                await fetchWithAuth(`/api/products/${id}`, { method: 'DELETE' });
+                showToast('🗑 ลบสินค้าแล้ว');
+                await loadProducts();
+            } catch (e) {
+                if (e.message !== 'Unauthorized') {
+                    showToast('❌ ลบไม่สำเร็จ');
+                }
+            }
+        }
+
+        // === CSV Import Logic ===
+        const csvFileInput = document.getElementById('csvFileInput');
+        csvFileInput.addEventListener('change', handleCSVUpload);
+
+        // Helper to parse Thai price abbreviations like '56.9พัน'
+        function parseShopeePrice(priceStr) {
+            if (!priceStr) return '0';
+            let p = priceStr.toString().replace(/,/g, ''); // Remove commas first
+            if (p.includes('พัน')) {
+                p = parseFloat(p.replace('พัน', '')) * 1000;
+            } else if (p.includes('หมื่น')) {
+                p = parseFloat(p.replace('หมื่น', '')) * 10000;
+            } else if (p.includes('แสน')) {
+                p = parseFloat(p.replace('แสน', '')) * 100000;
+            } else if (p.includes('ล้าน')) {
+                p = parseFloat(p.replace('ล้าน', '')) * 1000000;
+            }
+            // Ensure it's a valid number string, remove any non-numeric except dot
+            return p.toString().replace(/[^0-9.]/g, '');
+        }
+
+        async function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const importCat = document.getElementById('importCategory').value || 'auto';
+
+            // Reset input so the same file can be selected again if needed
+            event.target.value = '';
+
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                const text = e.target.result;
+                const productsArray = parseShopeeCSV(text, importCat);
+
+                if (productsArray.length === 0) {
+                    alert('ไม่พบข้อมูลสินค้าที่ถูกต้องในไฟล์ หรือรูปแบบ CSV ไม่ถูกต้อง (ต้องการคอลัมน์ ชื่อสินค้า และ ลิงก์ข้อเสนอ)');
+                    return;
+                }
+
+                // Read social media toggle states
+                const socialMedia = {
+                    facebook: document.getElementById('toggleFacebook').checked,
+                    instagram: document.getElementById('toggleInstagram').checked,
+                    x: document.getElementById('toggleX').checked,
+                    threads: document.getElementById('toggleThreads').checked,
+                };
+                const hasSocial = socialMedia.facebook || socialMedia.instagram || socialMedia.x || socialMedia.threads;
+
+                let confirmMsg = `พบสินค้า ${productsArray.length} รายการ กำลังนำเข้าสู่หมวดหมู่ "${importCat}"...`;
+                if (hasSocial) {
+                    const platforms = [];
+                    if (socialMedia.facebook) platforms.push('Facebook');
+                    if (socialMedia.instagram) platforms.push('Instagram');
+                    if (socialMedia.x) platforms.push('X');
+                    if (socialMedia.threads) platforms.push('Threads');
+                    confirmMsg += ` (พร้อมโพสต์อัตโนมัติไปยัง: ${platforms.join(', ')})`;
+                }
+
+                showToast(confirmMsg);
+
+                try {
+                    const autoPostFB = document.getElementById('toggleFacebook').checked;
+                    const autoPostIG = document.getElementById('toggleInstagram').checked;
+                    const autoPostX = document.getElementById('toggleX').checked;
+                    const autoPostThreads = document.getElementById('toggleThreads').checked;
+                    const toggleAI = document.getElementById('toggleAI').checked;
+
+                    const res = await fetchWithAuth('/api/products/bulk', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            items: productsArray,
+                            autoPostFB,
+                            autoPostIG,
+                            autoPostX,
+                            autoPostThreads,
+                            toggleAI
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        let msg = `✅ นำเข้าสำเร็จ ${data.count} รายการ!`;
+                        if (data.backgroundPosting) {
+                            msg += ` 📢 เริ่มการโพสต์ในพื้นหลังแล้ว...`;
+                        } else if (data.socialResults && data.socialResults.length > 0) {
+                            const successCount = data.socialResults.filter(r => r.facebook?.success || r.instagram?.success || r.x?.success).length;
+                            msg += ` 📢 โพสต์แล้ว ${successCount} รายการ`;
+                        }
+                        showToast(msg);
+                        await loadProducts();
+                    } else {
+                        showToast('❌ เกิดข้อผิดพลาดในการนำเข้า');
+                    }
+                } catch (err) {
+                    if (err.message !== 'Unauthorized') {
+                        showToast('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
+                    }
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Auto-categorize based on common keywords
+        function autoCategorize(title) {
+            if (!title) return 'ทั่วไป';
+            const t = title.toLowerCase();
+
+            // แฟชั่นและเครื่องแต่งกาย
+            if (t.match(/เสื้อ|กางเกง|ชุด|เดรส|กระโปรง|แฟชั่น|ผญ|ผู้หญิง/)) return 'เสื้อผ้าผู้หญิง';
+            if (t.match(/เสื้อเชิ้ต|กางเกงยีนส์|กางเกงสแล็ค|ผู้ชาย|ผช/)) return 'เสื้อผ้าผู้ชาย';
+            if (t.match(/กระเป๋า|เป้|bag|สะพาย/)) return 'กระเป๋า';
+            if (t.match(/รองเท้า|ผ้าใบ|แตะ|sneaker|shoe/)) {
+                if (t.match(/ผู้หญิง|ญ|คาด/)) return 'รองเท้าผู้หญิง';
+                return 'รองเท้าผู้ชาย';
+            }
+            if (t.match(/แหวน|สร้อย|ต่างหู|กำไล|เครื่องประดับ/)) return 'เครื่องประดับ';
+            if (t.match(/นาฬิกา|watch|แว่น|สายตา|กันแดด/)) return 'นาฬิกาและแว่นตา';
+
+            // อิเล็กทรอนิกส์
+            if (t.match(/โทรศัพท์|มือถือ|iphone|samsung|oppo|vivo|xiaomi|redmi|เคส|ฟิล์ม|หัวชาร์จ|powerbank|แบตสำรอง/)) return 'โทรศัพท์มือถือและอุปกรณ์เสริม';
+            if (t.match(/คอมพิวเตอร์|โน๊ตบุ๊ค|notebook|laptop|macbook|ipad|แท็บเล็ต|tablet|เมาส์|คีย์บอร์ด/)) return 'คอมพิวเตอร์และแล็ปท็อป';
+            if (t.match(/พัดลม|แอร์|ตู้เย็น|เครื่องซักผ้า|หม้อทอด|เตารีด|เครื่องฟอก|แผ่นกรอง|ดูดฝุ่น/)) return 'เครื่องใช้ไฟฟ้าในบ้าน';
+            if (t.match(/กล้อง|camera|เลนส์|ขาตั้ง/)) return 'กล้องและอุปกรณ์ถ่ายภาพ';
+            if (t.match(/หูฟัง|earbuds|headphone|ลำโพง|speaker|ไมค์/)) return 'เครื่องเสียง';
+            if (t.match(/เกม|จอย|ps5|nintendo|switch|gaming/)) return 'Gaming และอุปกรณ์เกม';
+
+            // ความงาม
+            if (t.match(/ลิป|แป้ง|รองพื้น|บลัช|อายแชโดว์|เครื่องสำอาง|แต่งหน้า|น้ำหอม/)) return 'ความงาม';
+            if (t.match(/วิตามิน|คอลลาเจน|เวย์|อาหารเสริม|ยา|หน้ากากอนามัย|แมสก์/)) return 'สุขภาพ';
+            if (t.match(/เซรั่ม|ครีม|กันแดดผิว|ดูแลผิว|สบู่|แชมพู|ยาสระ|โฟมล้างหน้า/)) return 'ผลิตภัณฑ์ดูแลผิว';
+
+            // อื่นๆ ที่เจอบ่อย
+            if (t.match(/ชั้นวาง|โต๊ะ|เก้าอี้|ตู้|เตียง|ผ้าปู|ผ้าม่าน|ของตกแต่ง/)) return 'บ้านและสวน';
+            if (t.match(/กระดาษ|ทิชชู่|น้ำยาล้าง|ถุงขยะ|ไม้ถูพื้น|แก้วน้ำ|จาน/)) return 'เครื่องใช้ในบ้าน';
+            if (t.match(/ของเล่น|ฟิกเกอร์|โมเดล|ตุ๊กตา|เลโก้|lego|บอร์ดเกม/)) return 'ของเล่น สินค้างานอดิเรก';
+
+            // fallback
+            return 'ทั่วไป';
+        }
+
+        function parseShopeeCSV(csvText, importCategory) {
+            console.log('📄 Starting CSV Parse...');
+            const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+            if (lines.length < 2) {
+                console.error('❌ CSV too short');
+                return [];
+            }
+
+            let delimiter = '\t';
+            if (!lines[0].includes('\t')) {
+                delimiter = ',';
+            }
+            console.log('📏 Delimiter detected:', delimiter === '\t' ? 'TAB' : 'COMMA');
+
+            const splitLine = (line) => {
+                if (delimiter === '\t') return line.split('\t');
+                const parts = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') inQuotes = !inQuotes;
+                    else if (char === ',' && !inQuotes) {
+                        parts.push(current.trim().replace(/^"|"$/g, ''));
+                        current = '';
+                    } else current += char;
+                }
+                parts.push(current.trim().replace(/^"|"$/g, ''));
+                return parts;
+            };
+
+            const headers = splitLine(lines[0]);
+            console.log('📋 Headers:', headers);
+
+            // Shopee columns mappings (more precise to avoid matching รหัสสินค้า)
+            let colTitle = headers.findIndex(h => h.includes('ชื่อสินค้า') || h.includes('Product Name') || h.includes('Item Name'));
+            if (colTitle === -1) colTitle = headers.findIndex(h => h.includes('สินค้า') && !h.includes('รหัส'));
+
+            let colUrl = headers.findIndex(h => h.includes('ลิงก์ข้อเสนอ') || h.includes('Shopee Affiliate Link') || h.includes('Product Link') || h.includes('URL'));
+            if (colUrl === -1) colUrl = headers.findIndex(h => h.includes('Link'));
+
+            let colPrice = headers.findIndex(h => h.trim() === 'ราคา' || h.trim() === 'Price' || (h.includes('ราคา') && !h.includes('เดิม') && !h.includes('ปกติ') && !h.includes('ลด')));
+            if (colPrice === -1) colPrice = headers.findIndex(h => h.includes('Price') && !h.includes('Original'));
+
+            let colImage = headers.findIndex(h => h.includes('รูป') || h.includes('Image') || h.includes('Photo') || h.includes('Picture'));
+            let colOriginal = headers.findIndex(h => h.includes('ราคาเดิม') || h.includes('ราคาปกติ') || h.includes('Original Price'));
+
+            console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal });
+
+            if (colTitle === -1 || colUrl === -1) {
+                console.error('❌ Missing core columns (Title or Link)');
+                return [];
+            }
+
+            const parsedProducts = [];
+            for (let i = 1; i < lines.length; i++) {
+                const cols = splitLine(lines[i]);
+                if (cols.length <= Math.max(colTitle, colUrl)) continue;
+
+                const title = cols[colTitle];
+                const url = cols[colUrl];
+                if (!title || !url) continue;
+
+                const price = colPrice !== -1 ? parseShopeePrice(cols[colPrice]) : '0';
+                const originalPrice = colOriginal !== -1 ? parseShopeePrice(cols[colOriginal]) : '';
+                const image = colImage !== -1 ? cols[colImage] : '';
+
+                parsedProducts.push({
+                    title: title,
+                    affiliateUrl: url,
+                    category: importCategory === 'auto' ? autoCategorize(title) : importCategory,
+                    price: price,
+                    originalPrice: originalPrice,
+                    image: image,
+                    description: ''
+                });
+            }
+            console.log('✅ Parsed products:', parsedProducts.length);
+            return parsedProducts;
+        }
+
+        // === Image preview ===
+        document.getElementById('productImage').addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            const preview = document.getElementById('imagePreview');
+            if (url) {
+                preview.innerHTML = `<img src="${url}" onerror="this.parentElement.innerHTML='<span class=placeholder>❌</span>'" />`;
+            } else {
+                preview.innerHTML = '<span class="placeholder">🖼️</span>';
+            }
+        });
+
+        // === Auto-calculate discount ===
+        document.getElementById('productOriginalPrice').addEventListener('input', calcDiscount);
+        document.getElementById('productPrice').addEventListener('input', calcDiscount);
+        function calcDiscount() {
+            const price = parseFloat(document.getElementById('productPrice').value);
+            const original = parseFloat(document.getElementById('productOriginalPrice').value);
+            if (price && original && original > price) {
+                const discount = Math.round(((original - price) / original) * 100);
+                document.getElementById('productDiscount').value = discount;
+            } else {
+                document.getElementById('productDiscount').value = '';
+            }
+        }
+
+        // === Init ===
+        document.getElementById('adminSearch').addEventListener('input', renderProductList);
+        document.getElementById('adminCategoryFilter').addEventListener('change', renderProductList);
+
+        // === API Settings Panel ===
+        async function loadSettings() {
+            try {
+                const res = await fetchWithAuth('/api/settings');
+                const data = await res.json();
+                document.getElementById('currentFBToken').textContent = data.FB_PAGE_ACCESS_TOKEN ? `ปัจจุบัน: ${data.FB_PAGE_ACCESS_TOKEN}` : 'ยังไม่ได้ตั้งค่า';
+                document.getElementById('currentThreadsUserId').textContent = data.THREADS_USER_ID ? `ปัจจุบัน: ${data.THREADS_USER_ID}` : 'ยังไม่ได้ตั้งค่า';
+                document.getElementById('currentThreadsToken').textContent = data.THREADS_ACCESS_TOKEN ? `ปัจจุบัน: ${data.THREADS_ACCESS_TOKEN}` : 'ยังไม่ได้ตั้งค่า';
+                document.getElementById('currentGeminiKey').textContent = data.GEMINI_API_KEY ? `ปัจจุบัน: ${data.GEMINI_API_KEY}` : 'ยังไม่ได้ตั้งค่า';
+            } catch (e) {
+                console.error('Failed to load settings:', e);
+            }
+        }
+
+        async function saveSettings() {
+            const btn = document.getElementById('saveSettingsBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ กำลังบันทึก...';
+
+            const updates = {};
+            const fbToken = document.getElementById('settingFBToken').value.trim();
+            const threadsUserId = document.getElementById('settingThreadsUserId').value.trim();
+            const threadsToken = document.getElementById('settingThreadsToken').value.trim();
+            const geminiKey = document.getElementById('settingGeminiKey').value.trim();
+
+            if (fbToken) updates.FB_PAGE_ACCESS_TOKEN = fbToken;
+            if (threadsUserId) updates.THREADS_USER_ID = threadsUserId;
+            if (threadsToken) updates.THREADS_ACCESS_TOKEN = threadsToken;
+            if (geminiKey) updates.GEMINI_API_KEY = geminiKey;
+
+            if (Object.keys(updates).length === 0) {
+                showToast('⚠️ ไม่มีค่าที่ต้องอัปเดต');
+                btn.disabled = false;
+                btn.textContent = '💾 บันทึกการตั้งค่า';
+                return;
+            }
+
+            try {
+                const res = await fetchWithAuth('/api/settings', {
+                    method: 'PUT',
+                    body: JSON.stringify(updates)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`✅ อัปเดตสำเร็จ ${data.updatedCount} รายการ! (ใช้งานได้ทันที)`);
+                    // Clear inputs and reload current values
+                    document.getElementById('settingFBToken').value = '';
+                    document.getElementById('settingThreadsUserId').value = '';
+                    document.getElementById('settingThreadsToken').value = '';
+                    document.getElementById('settingGeminiKey').value = '';
+                    await loadSettings();
+                } else {
+                    showToast('❌ บันทึกไม่สำเร็จ');
+                }
+            } catch (e) {
+                if (e.message !== 'Unauthorized') {
+                    showToast('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
+                }
+            }
+
+            btn.disabled = false;
+            btn.textContent = '💾 บันทึกการตั้งค่า';
+        }
+
+        checkAuth();
+        // Load settings after auth check
+        setTimeout(() => { if (authToken) loadSettings(); }, 500);
+    </script>
+</body>
+
+</html>

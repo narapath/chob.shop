@@ -1,4 +1,33 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Environment
+.env
+
+# Build artifacts
+*.zip
+*.log
+
+# Chrome profile (Puppeteer)
+.chrome_profile/
+
+# Test files
+test_*.js
+trigger_*.js
+verify_*.js
+fix_*.js
+final_*.js
+check_env.js
+list_gemini_models.js
+
+# Debug images
+debug_*.png
+error_*.png
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
 .DS_Store
-pnpm-lock.yaml
-package-lock.json
+Thumbs.db

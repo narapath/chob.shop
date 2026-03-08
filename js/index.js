@@ -6,15 +6,37 @@ let allImagesData = barnersData[0].data
 
 let compensate = 0; // 视窗补偿值
 let layers = []; // DOM集合
+let initX = 0;
+let moveX = 0;
+let startTime = 0;
+const duration = 300; // 动画持续时间（毫秒）
 
-document.getElementById("selectBox").addEventListener("click", (e) => {
-  const setData = barnersData[+e.target.id];
+const selectBox = document.getElementById("selectBox");
+if (selectBox) {
+  selectBox.addEventListener("click", (e) => {
+    const setData = barnersData[+e.target.id];
+    if (!setData) return;
+    allImagesData = setData.data;
+    body.innerHTML = "";
+    layers = [];
+    initItems();
+  });
+}
+
+// Expose banner switching globally for shop integration
+window.switchBanner = function (index) {
+  console.log("🛠️ switchBanner called with index:", index);
+  const idx = index % barnersData.length;
+  const setData = barnersData[idx];
+  console.log(`🖼️ Switching to banner: ${setData?.name} (idx: ${idx})`);
   if (!setData) return;
   allImagesData = setData.data;
   body.innerHTML = "";
   layers = [];
   initItems();
-});
+  console.log("✅ switchBanner completed. Layers recreated:", layers.length);
+};
+window.totalBanners = barnersData.length;
 
 // 添加图片元素
 function initItems() {
@@ -27,17 +49,17 @@ function initItems() {
       const layer = document.createElement("div");
       layer.classList.add("layer");
       if (compensate !== 1) {
-        item.transform[4]= item.transform[4]*compensate
-        item.transform[5]= item.transform[5]*compensate
+        item.transform[4] = item.transform[4] * compensate
+        item.transform[5] = item.transform[5] * compensate
       }
-      layer.style = "transform:" + new DOMMatrix(item.transform);
+      layer.style.transform = `matrix(${item.transform.join(',')})`;
       item.opacity && (layer.style.opacity = item.opacity[0]);
       const child = document.createElement(item.tagName || 'img');
       if (item.tagName === 'video') {
-        child.loop=true; child.autoplay=true; child.muted=true;
+        child.loop = true; child.autoplay = true; child.muted = true;
       }
       child.src = item.src;
-      child.style.filter = `blur(${item.blur}px)`;
+      child.style.filter = `blur(${item.blur || 0}px)`;
       child.style.width = `${item.width * compensate}px`;
       child.style.height = `${item.height * compensate}px`;
       layer.appendChild(child);
@@ -45,29 +67,28 @@ function initItems() {
     }
     body.style.display = "";
     layers = document.querySelectorAll(".layer");
+
+    // Force initial draw
+    startTime = 0;
+    moveX = 0;
+    animate(1);
   } else {
     // 窗口大小变动时重新计算内容
     const cloneData = JSON.parse(JSON.stringify(allImagesData))
     for (let i = 0; i < layers.length; i++) {
       const item = cloneData[i];
-      layers[i].firstElementChild.style.width = `${
-        item.width * compensate
-      }px`;
-      layers[i].firstElementChild.style.height = `${
-        item.height * compensate
-      }px`;
-      item.transform[4]= item.transform[4]*compensate
-      item.transform[5]= item.transform[5]*compensate
+      layers[i].firstElementChild.style.width = `${item.width * compensate
+        }px`;
+      layers[i].firstElementChild.style.height = `${item.height * compensate
+        }px`;
+      item.transform[4] = item.transform[4] * compensate
+      item.transform[5] = item.transform[5] * compensate
       layers[i].style.transform = new DOMMatrix(item.transform)
     }
   }
 }
 initItems();
 
-let initX = 0;
-let moveX = 0;
-let startTime = 0;
-const duration = 300; // 动画持续时间（毫秒）
 function mouseMove() {
   // 滑动操作
   animate();
@@ -128,10 +149,10 @@ function animate(progress) {
         isHoming && moveX > 0
           ? lerp(item.opacity[1], item.opacity[0], progress)
           : lerp(
-              item.opacity[0],
-              item.opacity[1],
-              (moveX / window.innerWidth) * 2
-            );
+            item.opacity[0],
+            item.opacity[1],
+            (moveX / window.innerWidth) * 2
+          );
     }
     layer.style.transform = m; // 应用所有变换效果
   }
