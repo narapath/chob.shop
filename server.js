@@ -346,27 +346,36 @@ app.put('/api/settings', requireAuth, (req, res) => {
     const allowedKeys = ['FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN', 'GEMINI_API_KEY'];
     const updates = req.body;
 
-    // Read current .env file
-    const envPath = path.join(__dirname, '.env');
-    let envContent = fs.readFileSync(envPath, 'utf-8');
-
     let updatedCount = 0;
     for (const key of allowedKeys) {
       if (updates[key] !== undefined && updates[key] !== '') {
-        // Update or add the key in .env
-        const regex = new RegExp(`^${key}=.*$`, 'm');
-        if (envContent.match(regex)) {
-          envContent = envContent.replace(regex, `${key}=${updates[key]}`);
-        } else {
-          envContent += `\n${key}=${updates[key]}`;
-        }
-        // Hot-reload into process.env
+        // Hot-reload into process.env (works on Railway & local)
         process.env[key] = updates[key];
         updatedCount++;
       }
     }
 
-    fs.writeFileSync(envPath, envContent, 'utf-8');
+    // Optionally persist to .env file if it exists (local dev)
+    const envPath = path.join(__dirname, '.env');
+    if (fs.existsSync(envPath)) {
+      try {
+        let envContent = fs.readFileSync(envPath, 'utf-8');
+        for (const key of allowedKeys) {
+          if (updates[key] !== undefined && updates[key] !== '') {
+            const regex = new RegExp(`^${key}=.*$`, 'm');
+            if (envContent.match(regex)) {
+              envContent = envContent.replace(regex, `${key}=${updates[key]}`);
+            } else {
+              envContent += `\n${key}=${updates[key]}`;
+            }
+          }
+        }
+        fs.writeFileSync(envPath, envContent, 'utf-8');
+      } catch (fileErr) {
+        console.warn('Could not persist to .env file:', fileErr.message);
+      }
+    }
+
     console.log(`⚙️ Settings updated: ${updatedCount} key(s) changed`);
     res.json({ success: true, updatedCount });
   } catch (err) {
