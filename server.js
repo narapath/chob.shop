@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { createClient } = require('@supabase/supabase-js');
 const {
   postToFacebook, postToInstagram, postToX, postToThreads,
   deleteFromFacebook, deleteFromX, generateAICaption
@@ -15,53 +16,47 @@ const PORT = process.env.PORT || 3000;
 
 // Trust proxy for secure cookies/headers behind reverse proxy (DirectAdmin)
 app.set('trust proxy', 1);
-const PRODUCTS_FILE = path.join(__dirname, 'products.json');
+
+// --- Initialize Supabase ---
+let supabaseUrl = process.env.SUPABASE_URL || '';
+let supabaseKey = process.env.SUPABASE_KEY || '';
+let supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
 // --- Security Middleware ---
-// 1. Helmet for secure headers
 app.use(helmet({
-  contentSecurityPolicy: false, // Set to false if you have external images/scripts from many domains
-  crossOriginResourcePolicy: false, // Allow external resources if needed
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: false,
 }));
 
-// CORS setup for Vercel
 app.use(cors({
   origin: ['https://chob-shop.vercel.app', 'https://chobshop-production.up.railway.app', 'http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
 
-// 2. Rate Limiting to prevent brute-force
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: { error: 'Too many requests, please try again later.' }
 });
 
-// --- Basic Auth Config from .env ---
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'admin123';
 const AUTH_TOKEN = process.env.AUTH_TOKEN || 'vibe_secret_token_12345';
 
-// Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// --- [SECURITY] Restricted Static File Serving ---
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 app.get('/admin.html', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
+app.get('/about.html', (req, res) => res.sendFile(path.join(__dirname, 'about.html')));
+app.get('/privacy.html', (req, res) => res.sendFile(path.join(__dirname, 'privacy.html')));
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use('/images', express.static(path.join(__dirname, 'assets'))); // Alias for safety
 
-// Ensure products.json exists
-if (!fs.existsSync(PRODUCTS_FILE)) {
-  fs.writeFileSync(PRODUCTS_FILE, '[]', 'utf-8');
-}
-
-// --- Auth Middleware ---
 const requireAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (authHeader === `Bearer ${AUTH_TOKEN}`) {
@@ -73,7 +68,6 @@ const requireAuth = (req, res, next) => {
 
 // --- API Routes ---
 
-// Login Endpoint (Apply Rate Limiting)
 app.post('/api/login', apiLimiter, (req, res) => {
   const { username, password } = req.body;
   if (username === ADMIN_USER && password === ADMIN_PASS) {
@@ -83,62 +77,64 @@ app.post('/api/login', apiLimiter, (req, res) => {
   }
 });
 
-// GET all products (Public - Support Pagination)
-app.get('/api/products', (req, res) => {
+// GET all products (Support Pagination via Supabase)
+app.get('/api/products', async (req, res) => {
   try {
-    let data = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf-8'));
+    if (!supabase) return res.status(500).json({ error: 'Supabase is not configured yet. Please update settings in Admin Panel.' });
 
-    // Reverse data so newest is first (like the frontend used to do)
-    data = data.reverse();
+    let query = supabase.from('products').select('*', { count: 'exact' }).order('date', { ascending: false });
 
     const { page, limit, category, search } = req.query;
 
-    // Filter by category
     if (category && category !== 'all' && category !== 'ทั้งหมด') {
-      data = data.filter(p => p.category === category);
+      query = query.eq('category', category);
     }
 
-    // Filter by search term
     if (search) {
-      const term = search.toLowerCase();
-      data = data.filter(p =>
-        p.title.toLowerCase().includes(term) ||
-        (p.description || '').toLowerCase().includes(term)
-      );
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
-    // Pagination
     if (page && limit) {
       const pageNum = parseInt(page, 10) || 1;
       const limitNum = parseInt(limit, 10) || 20;
       const startIndex = (pageNum - 1) * limitNum;
-      const endIndex = pageNum * limitNum;
+      const endIndex = startIndex + limitNum - 1;
 
-      const paginatedData = data.slice(startIndex, endIndex);
+      query = query.range(startIndex, endIndex);
+
+      const { data, error, count } = await query;
+      if (error) throw error;
 
       return res.json({
-        products: paginatedData,
-        total: data.length,
+        products: data,
+        total: count,
         page: pageNum,
         limit: limitNum,
-        totalPages: Math.ceil(data.length / limitNum)
+        totalPages: Math.ceil(count / limitNum)
       });
     }
 
-    // Unpaginated response (for backward compatibility / admin panel)
+    // Unpaginated response (fallback for admin panel or no pagination request)
+    const { data, error } = await query;
+    if (error) throw error;
     res.json(data);
+
   } catch (err) {
-    console.error('Failed to read products:', err);
-    res.status(500).json({ error: 'Failed to read products' });
+    console.error('Failed to read products from Supabase:', err);
+    res.status(500).json({ error: 'Failed to read products', detail: err.message });
   }
 });
 
-// POST a new product (Protected)
-app.post('/api/products', requireAuth, (req, res) => {
+// POST a new product
+app.post('/api/products', requireAuth, async (req, res) => {
   try {
-    const products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf-8'));
+    if (!supabase) throw new Error("Supabase is not configured.");
+
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    const date = new Date().toISOString();
+
     const newProduct = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      id,
       title: req.body.title || 'Untitled Product',
       price: req.body.price || '0',
       originalPrice: req.body.originalPrice || '',
@@ -148,19 +144,25 @@ app.post('/api/products', requireAuth, (req, res) => {
       category: req.body.category || 'ทั่วไป',
       description: req.body.description || '',
       clicks: 0,
-      createdAt: new Date().toISOString()
+      date,
+      facebookPostId: '',
+      twitterPostId: ''
     };
-    products.unshift(newProduct);
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf-8');
+
+    const { error } = await supabase.from('products').insert([newProduct]);
+    if (error) throw error;
+
     res.json({ success: true, product: newProduct });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to add product' });
+    console.error("Failed to add product:", err);
+    res.status(500).json({ error: 'Failed to add product', detail: err.message });
   }
 });
 
-// BULK POST new products (Protected - used for CSV Import)
+// BULK POST new products
 app.post('/api/products/bulk', requireAuth, async (req, res) => {
   try {
+    if (!supabase) throw new Error("Supabase is not configured.");
     const { items, autoPostFB, autoPostIG, autoPostX, autoPostThreads, toggleAI } = req.body;
     const shouldPost = autoPostFB || autoPostIG || autoPostX || autoPostThreads;
 
@@ -170,14 +172,13 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
 
     const itemsToAdd = items.map(p => ({
       ...p,
-      id: p.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 7), // Ensure unique ID
+      id: p.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
       clicks: 0,
-      createdAt: new Date().toISOString() // Add createdAt for new items
+      date: new Date().toISOString()
     }));
 
-    const products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf-8'));
-    const updatedProducts = [...itemsToAdd, ...products]; // Prepend new items
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(updatedProducts, null, 2), 'utf-8');
+    const { error } = await supabase.from('products').insert(itemsToAdd);
+    if (error) throw error;
 
     // Background Social Media Posting
     if (shouldPost) {
@@ -189,73 +190,40 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
           logMsg(`📝 Processing social media for: ${product.title}`);
 
           let aiCaption = null;
-          logMsg(`🔍 AI Toggle Status: ${toggleAI}`);
           if (toggleAI) {
-            logMsg(`✨ Generating AI Reviewer caption for: ${product.title}`);
             aiCaption = await generateAICaption(product);
-            logMsg(`📝 AI Caption Result: ${aiCaption ? aiCaption.substring(0, 100) + '...' : 'NULL'}`);
           }
 
-          let fbPostId = null;
+          let fbPostId = null, xPostId = null, threadsPostId = null;
+
           if (autoPostFB) {
-            logMsg(`📘 Facebook: Attempting post...`);
             const fbRes = await postToFacebook(product, siteUrl, toggleAI, aiCaption);
-            if (fbRes.success) {
-              logMsg(`✅ Facebook: Post success via ${fbRes.method}`);
-              if (fbRes.postId) fbPostId = fbRes.postId;
-            } else {
-              logMsg(`❌ Facebook: Post failed - ${fbRes.reason || 'Unknown error'}`);
-            }
+            if (fbRes.success && fbRes.postId) fbPostId = fbRes.postId;
           }
-
-          if (autoPostIG) {
-            logMsg(`📷 Instagram: Attempting post...`);
-            const igRes = await postToInstagram(product, siteUrl, toggleAI, aiCaption);
-            logMsg(igRes.success ? `✅ Instagram: Post success` : `❌ Instagram: Post failed`);
-          }
-          let xPostId = null;
+          if (autoPostIG) await postToInstagram(product, siteUrl, toggleAI, aiCaption);
           if (autoPostX) {
-            logMsg(`✨ X: Attempting post...`);
             const xRes = await postToX(product, siteUrl, toggleAI, aiCaption);
-            if (xRes.success) {
-              logMsg(`✅ X: Post success via API`);
-              if (xRes.tweetId) xPostId = xRes.tweetId;
-            } else {
-              logMsg(`❌ X: Post failed - ${xRes.reason || 'Unknown error'}`);
-            }
+            if (xRes.success && xRes.tweetId) xPostId = xRes.tweetId;
           }
-          let threadsPostId = null;
           if (autoPostThreads) {
-            logMsg(`🧵 Threads: Attempting post...`);
-            const threadsRes = await postToThreads(product, siteUrl, toggleAI, aiCaption);
-            if (threadsRes.success) {
-              logMsg(`✅ Threads: Post success via API`);
-              if (threadsRes.threadId) threadsPostId = threadsRes.threadId;
-            } else {
-              logMsg(`❌ Threads: Post failed - ${threadsRes.reason || 'Unknown error'}`);
-            }
+            const tRes = await postToThreads(product, siteUrl, toggleAI, aiCaption);
+            if (tRes.success && tRes.threadId) threadsPostId = tRes.threadId;
           }
 
-          // Update product with Social IDs if they exist
           if (fbPostId || xPostId || threadsPostId) {
             try {
-              const currentProducts = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf-8'));
-              const pIdx = currentProducts.findIndex(p => p.id === product.id);
-              if (pIdx !== -1) {
-                if (fbPostId) currentProducts[pIdx].fbPostId = fbPostId;
-                if (xPostId) currentProducts[pIdx].xPostId = xPostId;
-                if (threadsPostId) currentProducts[pIdx].threadsPostId = threadsPostId;
-                fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(currentProducts, null, 2), 'utf-8');
-                console.log(`💾 Stored Social IDs for "${product.title}"`);
-              }
+              const updates = {};
+              if (fbPostId) updates.facebookPostId = fbPostId;
+              if (xPostId) updates.twitterPostId = xPostId;
+
+              await supabase.from('products').update(updates).eq('id', product.id);
+              console.log(`💾 Stored Social IDs for "${product.title}"`);
             } catch (e) {
               console.error('Failed to update Social IDs:', e.message);
             }
           }
-          // Delay to avoid rate limits between products
           await new Promise(resolve => setTimeout(resolve, 2000));
         }
-
         console.log('🏁 Background social media job finished.');
       })();
     }
@@ -267,105 +235,94 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
   }
 });
 
-// PUT update a product (Protected)
-app.put('/api/products/:id', requireAuth, (req, res) => {
+// PUT update a product
+app.put('/api/products/:id', requireAuth, async (req, res) => {
   try {
-    const products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf-8'));
-    const idx = products.findIndex(p => p.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ error: 'Product not found' });
+    if (!supabase) throw new Error("Supabase is not configured.");
 
-    products[idx] = { ...products[idx], ...req.body, id: products[idx].id };
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf-8');
-    res.json({ success: true, product: products[idx] });
+    // Remove id from updates if present to prevent primary key change
+    const updatePayload = { ...req.body };
+    delete updatePayload.id;
+
+    const { error } = await supabase.from('products').update(updatePayload).eq('id', req.params.id);
+    if (error) throw error;
+
+    res.json({ success: true, product: { ...req.body, id: req.params.id } });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update product' });
+    res.status(500).json({ error: 'Failed to update product', detail: err.message });
   }
 });
 
-// DELETE a product (Protected)
+// DELETE a product
 app.delete('/api/products/:id', requireAuth, async (req, res) => {
   try {
-    let products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf-8'));
-    const productToDelete = products.find(p => p.id === req.params.id);
+    if (!supabase) throw new Error("Supabase is not configured.");
 
-    // Sync deletion with Social Media if ID exists
-    if (productToDelete) {
-      if (productToDelete.fbPostId) {
-        deleteFromFacebook(productToDelete.fbPostId).then(syncRes => {
-          console.log(`🗑️ Sync FB deletion for ${productToDelete.fbPostId}:`, syncRes.success ? 'Success' : 'Failed');
-        }).catch(e => console.error('FB Sync delete error:', e.message));
+    const { data: productToDelete, error: fetchErr } = await supabase.from('products').select('*').eq('id', req.params.id).single();
+    if (!fetchErr && productToDelete) {
+      if (productToDelete.facebookPostId) {
+        deleteFromFacebook(productToDelete.facebookPostId).catch(e => console.error('FB Sync delete err:', e.message));
       }
-      if (productToDelete.xPostId) {
-        deleteFromX(productToDelete.xPostId).then(syncRes => {
-          console.log(`🗑️ Sync X deletion for ${productToDelete.xPostId}:`, syncRes.success ? 'Success' : 'Failed');
-        }).catch(e => console.error('X Sync delete error:', e.message));
+      if (productToDelete.twitterPostId) {
+        deleteFromX(productToDelete.twitterPostId).catch(e => console.error('X Sync delete err:', e.message));
       }
     }
 
-    products = products.filter(p => p.id !== req.params.id);
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf-8');
+    const { error } = await supabase.from('products').delete().eq('id', req.params.id);
+    if (error) throw error;
+
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to delete product' });
+    res.status(500).json({ error: 'Failed to delete product', detail: err.message });
   }
 });
 
-// BULK DELETE products (Protected)
+// BULK DELETE
 app.post('/api/products/bulk-delete', requireAuth, async (req, res) => {
   try {
+    if (!supabase) throw new Error("Supabase is not configured.");
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
       return res.status(400).json({ error: 'Expected an array of product IDs' });
     }
 
-    let products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf-8'));
-    const productsToDelete = products.filter(p => ids.includes(p.id));
+    const { data: productsToDelete } = await supabase.from('products').select('*').in('id', ids);
+    if (productsToDelete) {
+      productsToDelete.forEach(p => {
+        if (p.facebookPostId) deleteFromFacebook(p.facebookPostId).catch(e => console.error('FB err:', e.message));
+        if (p.twitterPostId) deleteFromX(p.twitterPostId).catch(e => console.error('X err:', e.message));
+      });
+    }
 
-    // Cleanup Social Media posts
-    productsToDelete.forEach(p => {
-      if (p.fbPostId) {
-        deleteFromFacebook(p.fbPostId).then(syncRes => {
-          console.log(`🗑️ Sync FB bulk deletion for ${p.fbPostId}:`, syncRes.success ? 'Success' : 'Failed');
-        }).catch(e => console.error('FB Sync bulk delete error:', e.message));
-      }
-      if (p.xPostId) {
-        deleteFromX(p.xPostId).then(syncRes => {
-          console.log(`🗑️ Sync X bulk deletion for ${p.xPostId}:`, syncRes.success ? 'Success' : 'Failed');
-        }).catch(e => console.error('X Sync bulk delete error:', e.message));
-      }
-    });
+    const { error } = await supabase.from('products').delete().in('id', ids);
+    if (error) throw error;
 
-    const updatedProducts = products.filter(p => !ids.includes(p.id));
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(updatedProducts, null, 2), 'utf-8');
-
-    res.json({ success: true, count: productsToDelete.length });
+    res.json({ success: true, count: ids.length });
   } catch (err) {
-    console.error('Bulk delete error:', err);
-    res.status(500).json({ error: 'Failed to bulk delete products' });
+    res.status(500).json({ error: 'Failed to bulk delete products', detail: err.message });
   }
 });
 
-// POST increment click count (Public)
-app.post('/api/products/:id/click', (req, res) => {
+// POST increment click
+app.post('/api/products/:id/click', async (req, res) => {
   try {
-    const products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf-8'));
-    const idx = products.findIndex(p => p.id === req.params.id);
+    if (!supabase) throw new Error("Supabase is not configured.");
 
-    if (idx !== -1) {
-      products[idx].clicks = (Number(products[idx].clicks) || 0) + 1;
-      fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf-8');
-      res.json({ success: true, clicks: products[idx].clicks });
-    } else {
-      res.status(404).json({ error: 'Product not found' });
-    }
+    // We fetch current clicks, increment, and save. (Supabase RPC is better, but this works)
+    const { data: product, error: fetchErr } = await supabase.from('products').select('clicks').eq('id', req.params.id).single();
+    if (fetchErr) throw fetchErr;
+
+    const newClicks = (product.clicks || 0) + 1;
+    const { error } = await supabase.from('products').update({ clicks: newClicks }).eq('id', req.params.id);
+    if (error) throw error;
+
+    res.json({ success: true, clicks: newClicks });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to record click' });
+    res.status(500).json({ error: 'Failed to record click', detail: err.message });
   }
 });
 
 // --- API Settings Management ---
-
-// GET current settings (masked)
 app.get('/api/settings', requireAuth, (req, res) => {
   const mask = (val) => {
     if (!val) return '';
@@ -377,25 +334,24 @@ app.get('/api/settings', requireAuth, (req, res) => {
     THREADS_USER_ID: process.env.THREADS_USER_ID || '',
     THREADS_ACCESS_TOKEN: mask(process.env.THREADS_ACCESS_TOKEN),
     GEMINI_API_KEY: mask(process.env.GEMINI_API_KEY),
+    SUPABASE_URL: mask(process.env.SUPABASE_URL),
+    SUPABASE_KEY: mask(process.env.SUPABASE_KEY)
   });
 });
 
-// PUT update settings (writes to .env and hot-reloads)
 app.put('/api/settings', requireAuth, (req, res) => {
   try {
-    const allowedKeys = ['FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN', 'GEMINI_API_KEY'];
+    const allowedKeys = ['FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN', 'GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_KEY'];
     const updates = req.body;
 
     let updatedCount = 0;
     for (const key of allowedKeys) {
       if (updates[key] !== undefined && updates[key] !== '') {
-        // Hot-reload into process.env (works on Railway & local)
         process.env[key] = updates[key];
         updatedCount++;
       }
     }
 
-    // Optionally persist to .env file if it exists (local dev)
     const envPath = path.join(__dirname, '.env');
     if (fs.existsSync(envPath)) {
       try {
@@ -413,6 +369,16 @@ app.put('/api/settings', requireAuth, (req, res) => {
         fs.writeFileSync(envPath, envContent, 'utf-8');
       } catch (fileErr) {
         console.warn('Could not persist to .env file:', fileErr.message);
+      }
+    }
+
+    // Hot-reload Supabase if keys changed
+    if (updates.SUPABASE_URL || updates.SUPABASE_KEY) {
+      supabaseUrl = process.env.SUPABASE_URL || '';
+      supabaseKey = process.env.SUPABASE_KEY || '';
+      if (supabaseUrl && supabaseKey) {
+        supabase = createClient(supabaseUrl, supabaseKey);
+        console.log("🟢 Supabase client re-initialized with new keys.");
       }
     }
 

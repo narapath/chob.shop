@@ -8,6 +8,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.98.0",
     "axios": "^1.13.6",
     "body-parser": "^2.2.2",
     "cors": "^2.8.6",

@@ -921,25 +921,58 @@
                         <p class="hint" style="margin-bottom: 16px;">อัปเดต API Token ได้ที่นี่ (เช่น เมื่อ Token
                             หมดอายุ) ระบบจะบันทึกและใช้งานทันทีโดยไม่ต้อง restart server</p>
 
-                        <div class="form-group">
-                            <label>Facebook Page Access Token</label>
-                            <input type="text" id="settingFBToken" placeholder="วาง Token ใหม่..." />
-                            <small id="currentFBToken" style="color: var(--text3); font-size: 11px;"></small>
-                        </div>
-                        <div class="form-group">
-                            <label>Threads User ID</label>
-                            <input type="text" id="settingThreadsUserId" placeholder="เช่น 123456789" />
-                            <small id="currentThreadsUserId" style="color: var(--text3); font-size: 11px;"></small>
-                        </div>
-                        <div class="form-group">
-                            <label>Threads Access Token</label>
-                            <input type="text" id="settingThreadsToken" placeholder="วาง Token ใหม่..." />
-                            <small id="currentThreadsToken" style="color: var(--text3); font-size: 11px;"></small>
-                        </div>
-                        <div class="form-group">
-                            <label>Gemini AI API Key</label>
-                            <input type="text" id="settingGeminiKey" placeholder="วาง API Key ใหม่..." />
-                            <small id="currentGeminiKey" style="color: var(--text3); font-size: 11px;"></small>
+                        <div class="settings-grid">
+                            <div class="setting-group" style="grid-column: 1 / -1;">
+                                <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--accent);">Supabase
+                                    Database Settings</h3>
+                                <div class="form-group">
+                                    <label>Supabase Project URL</label>
+                                    <input type="text" id="supabaseUrlInput"
+                                        placeholder="https://<project>.supabase.co">
+                                    <small class="hint">The URL of your Supabase project (Project Settings >
+                                        API)</small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Supabase Anon/Public Key</label>
+                                    <input type="password" id="supabaseKeyInput"
+                                        placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                                    <small class="hint">The anon public key (Project Settings > API)</small>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--accent);">Facebook API
+                                    Settings</h3>
+                                <div class="form-group">
+                                    <label>Page Access Token</label>
+                                    <input type="password" id="fbTokenInput" placeholder="EAABw...">
+                                    <small class="hint">ใช้สำหรับโพสต์ลง Facebook Page อัตโนมัติ</small>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--accent);">Threads API
+                                    Settings</h3>
+                                <div class="form-group">
+                                    <label>Threads User ID</label>
+                                    <input type="text" id="threadsUserIdInput" placeholder="123456789">
+                                </div>
+                                <div class="form-group">
+                                    <label>Threads Access Token</label>
+                                    <input type="password" id="threadsTokenInput" placeholder="THW...">
+                                </div>
+                            </div>
+
+                            <div class="setting-group" style="grid-column: 1 / -1;">
+                                <h3 style="margin-bottom: 20px; font-size: 18px; color: var(--accent);">Google Gemini AI
+                                    (Auto Post)</h3>
+                                <div class="form-group">
+                                    <label>Gemini API Key</label>
+                                    <input type="password" id="geminiKeyInput" placeholder="AIzaSy...">
+                                    <small class="hint">ใช้เพื่อสร้างแคปชั่นรีวิวเท่ๆ อัตโนมัติเวลาโพสต์ลง
+                                        Social</small>
+                                </div>
+                            </div>
                         </div>
                         <button class="btn btn-primary" onclick="saveSettings()" id="saveSettingsBtn">💾
                             บันทึกการตั้งค่า</button>
@@ -1602,10 +1635,12 @@
             try {
                 const res = await fetchWithAuth('/api/settings');
                 const data = await res.json();
-                document.getElementById('currentFBToken').textContent = data.FB_PAGE_ACCESS_TOKEN ? `ปัจจุบัน: ${data.FB_PAGE_ACCESS_TOKEN}` : 'ยังไม่ได้ตั้งค่า';
-                document.getElementById('currentThreadsUserId').textContent = data.THREADS_USER_ID ? `ปัจจุบัน: ${data.THREADS_USER_ID}` : 'ยังไม่ได้ตั้งค่า';
-                document.getElementById('currentThreadsToken').textContent = data.THREADS_ACCESS_TOKEN ? `ปัจจุบัน: ${data.THREADS_ACCESS_TOKEN}` : 'ยังไม่ได้ตั้งค่า';
-                document.getElementById('currentGeminiKey').textContent = data.GEMINI_API_KEY ? `ปัจจุบัน: ${data.GEMINI_API_KEY}` : 'ยังไม่ได้ตั้งค่า';
+                document.getElementById('fbTokenInput').value = data.FB_PAGE_ACCESS_TOKEN ? '***' : '';
+                document.getElementById('threadsUserIdInput').value = data.THREADS_USER_ID ? '***' : '';
+                document.getElementById('threadsTokenInput').value = data.THREADS_ACCESS_TOKEN ? '***' : '';
+                document.getElementById('geminiKeyInput').value = data.GEMINI_API_KEY ? '***' : '';
+                document.getElementById('supabaseUrlInput').value = data.SUPABASE_URL ? '***' : '';
+                document.getElementById('supabaseKeyInput').value = data.SUPABASE_KEY ? '***' : '';
             } catch (e) {
                 console.error('Failed to load settings:', e);
             }
@@ -1616,18 +1651,23 @@
             btn.disabled = true;
             btn.textContent = '⏳ กำลังบันทึก...';
 
-            const updates = {};
-            const fbToken = document.getElementById('settingFBToken').value.trim();
-            const threadsUserId = document.getElementById('settingThreadsUserId').value.trim();
-            const threadsToken = document.getElementById('settingThreadsToken').value.trim();
-            const geminiKey = document.getElementById('settingGeminiKey').value.trim();
+            const payload = {
+                FB_PAGE_ACCESS_TOKEN: document.getElementById('fbTokenInput').value,
+                THREADS_USER_ID: document.getElementById('threadsUserIdInput').value,
+                THREADS_ACCESS_TOKEN: document.getElementById('threadsTokenInput').value,
+                GEMINI_API_KEY: document.getElementById('geminiKeyInput').value,
+                SUPABASE_URL: document.getElementById('supabaseUrlInput').value,
+                SUPABASE_KEY: document.getElementById('supabaseKeyInput').value
+            };
 
-            if (fbToken) updates.FB_PAGE_ACCESS_TOKEN = fbToken;
-            if (threadsUserId) updates.THREADS_USER_ID = threadsUserId;
-            if (threadsToken) updates.THREADS_ACCESS_TOKEN = threadsToken;
-            if (geminiKey) updates.GEMINI_API_KEY = geminiKey;
+            // If the fields are unchanged (still showing ***), don't send them
+            Object.keys(payload).forEach(k => {
+                if (payload[k].includes('***') || payload[k] === '') {
+                    delete payload[k];
+                }
+            });
 
-            if (Object.keys(updates).length === 0) {
+            if (Object.keys(payload).length === 0) {
                 showToast('⚠️ ไม่มีค่าที่ต้องอัปเดต');
                 btn.disabled = false;
                 btn.textContent = '💾 บันทึกการตั้งค่า';
@@ -1637,16 +1677,18 @@
             try {
                 const res = await fetchWithAuth('/api/settings', {
                     method: 'PUT',
-                    body: JSON.stringify(updates)
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
                 if (data.success) {
                     showToast(`✅ อัปเดตสำเร็จ ${data.updatedCount} รายการ! (ใช้งานได้ทันที)`);
                     // Clear inputs and reload current values
-                    document.getElementById('settingFBToken').value = '';
-                    document.getElementById('settingThreadsUserId').value = '';
-                    document.getElementById('settingThreadsToken').value = '';
-                    document.getElementById('settingGeminiKey').value = '';
+                    document.getElementById('fbTokenInput').value = '';
+                    document.getElementById('threadsUserIdInput').value = '';
+                    document.getElementById('threadsTokenInput').value = '';
+                    document.getElementById('geminiKeyInput').value = '';
+                    document.getElementById('supabaseUrlInput').value = '';
+                    document.getElementById('supabaseKeyInput').value = '';
                     await loadSettings();
                 } else {
                     showToast('❌ บันทึกไม่สำเร็จ');
