@@ -114,36 +114,43 @@ body {
   transition: opacity 0.3s ease;
 }
 
-.hero-slogan {
-  font-size: 17px;
-  font-weight: 600;
-  color: #fff;
-  margin-top: 16px;
-  padding: 8px 24px;
-  background: var(--accent-glow);
-  border: 1px solid rgba(233, 69, 96, 0.4);
-  border-radius: var(--radius-pill);
-  display: inline-block;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(233, 69, 96, 0.15);
-  animation: sloganPulse 3s infinite ease-in-out;
+.about-section {
+  text-align: center;
+  padding: 40px 24px 60px;
 }
 
-@keyframes sloganPulse {
+.about-badge {
+  display: inline-block;
+  padding: 6px 18px;
+  border: 1px solid rgba(233, 69, 96, 0.4);
+  border-radius: var(--radius-pill);
+  color: var(--accent-hover);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  background: rgba(233, 69, 96, 0.05);
+  letter-spacing: 0.5px;
+}
 
-  0%,
-  100% {
-    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.15);
-    border-color: rgba(233, 69, 96, 0.3);
-    transform: translateY(0) scale(1);
-  }
+.about-title {
+  font-size: 34px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 20px;
+  line-height: 1.35;
+  letter-spacing: -0.5px;
+}
 
-  50% {
-    box-shadow: 0 4px 25px rgba(233, 69, 96, 0.5);
-    border-color: rgba(233, 69, 96, 0.7);
-    transform: translateY(-2px) scale(1.02);
-  }
+.about-text {
+  font-size: 15px;
+  color: var(--text-secondary);
+  max-width: 650px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.about-text strong {
+  color: #fff;
 }
 
 @media (max-width: 768px) {
@@ -155,10 +162,22 @@ body {
     font-size: 13px;
   }
 
-  .hero-slogan {
-    font-size: 13px;
-    padding: 6px 18px;
-    margin-top: 12px;
+  .about-section {
+    padding: 30px 16px 40px;
+  }
+
+  .about-badge {
+    font-size: 12px;
+    padding: 5px 14px;
+    margin-bottom: 20px;
+  }
+
+  .about-title {
+    font-size: 26px;
+  }
+
+  .about-text {
+    font-size: 14px;
   }
 }
 

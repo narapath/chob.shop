@@ -126,94 +126,97 @@
 
   <!-- ===== CATEGORY GRID ===== -->
   <section id="categories" class="categories-section">
-    <div class="container">
-      <div class="cat-header" style="text-align: center; margin-bottom: 24px;">
-        <p class="hero-slogan" style="margin-bottom: 16px;">✨ ดีลเด็ดโดนใจ แบรนด์แท้ลดจัดหนัก ช้อปง่ายในคลิกเดียว ✨</p>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="margin: 0;">🏷️ หมวดหมู่สินค้า</h2>
-          <span class="cat-hint">เลื่อนเพื่อดูเพิ่มเติม →</span>
-        </div>
+    <div class="about-section">
+      <div class="about-badge">Welcome to Chob.Shop</div>
+      <h2 class="about-title">คัดสรรทุกความ "ชอบ"<br>ส่งตรงถึงมือคุณ</h2>
+      <p class="about-text">เราคือพื้นที่รวบรวมสินค้าดีลเด็ดและไอเทมสุดฮิตจาก <strong>Shopee</strong>
+        ที่ผ่านการคัดกรองคุณภาพและราคามาอย่างดี เพื่อให้คุณช้อปได้อย่างมั่นใจ ปลอดภัย และคุ้มค่าที่สุดในทุกๆ วัน</p>
+    </div>
+
+    <div class="cat-header">
+      <h2>🏷️ หมวดหมู่สินค้า</h2>
+      <span class="cat-hint">เลื่อนเพื่อดูเพิ่มเติม →</span>
+    </div>
+    <div class="cat-wrapper">
+      <button class="cat-arrow cat-arrow-left" id="catLeft" aria-label="เลื่อนซ้าย">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+      </button>
+      <div class="cat-fade cat-fade-left"></div>
+      <div class="cat-scroll" id="catScroll">
+        <button class="cat-card active" data-cat="all"><span class="cat-emoji">🔥</span><span
+            class="cat-label">ทั้งหมด</span></button>
+        <button class="cat-card" data-cat="เสื้อผ้าผู้หญิง"><span class="cat-emoji">👗</span><span
+            class="cat-label">แฟชั่นหญิง</span></button>
+        <button class="cat-card" data-cat="เสื้อผ้าผู้ชาย"><span class="cat-emoji">👔</span><span
+            class="cat-label">แฟชั่นชาย</span></button>
+        <button class="cat-card" data-cat="กระเป๋า"><span class="cat-emoji">👜</span><span
+            class="cat-label">กระเป๋า</span></button>
+        <button class="cat-card" data-cat="รองเท้าผู้หญิง"><span class="cat-emoji">👠</span><span
+            class="cat-label">รองเท้าหญิง</span></button>
+        <button class="cat-card" data-cat="รองเท้าผู้ชาย"><span class="cat-emoji">👟</span><span
+            class="cat-label">รองเท้าชาย</span></button>
+        <button class="cat-card" data-cat="เครื่องประดับ"><span class="cat-emoji">💍</span><span
+            class="cat-label">เครื่องประดับ</span></button>
+        <button class="cat-card" data-cat="นาฬิกาและแว่นตา"><span class="cat-emoji">⌚</span><span
+            class="cat-label">นาฬิกา</span></button>
+        <button class="cat-card" data-cat="โทรศัพท์มือถือและอุปกรณ์เสริม"><span class="cat-emoji">📱</span><span
+            class="cat-label">มือถือ</span></button>
+        <button class="cat-card" data-cat="คอมพิวเตอร์และแล็ปท็อป"><span class="cat-emoji">💻</span><span
+            class="cat-label">คอมพิวเตอร์</span></button>
+        <button class="cat-card" data-cat="เครื่องใช้ไฟฟ้าในบ้าน"><span class="cat-emoji">🔌</span><span
+            class="cat-label">เครื่องไฟฟ้า</span></button>
+        <button class="cat-card" data-cat="กล้องและอุปกรณ์ถ่ายภาพ"><span class="cat-emoji">📷</span><span
+            class="cat-label">กล้อง</span></button>
+        <button class="cat-card" data-cat="เครื่องเสียง"><span class="cat-emoji">🎧</span><span
+            class="cat-label">เครื่องเสียง</span></button>
+        <button class="cat-card" data-cat="Gaming และอุปกรณ์เกม"><span class="cat-emoji">🎮</span><span
+            class="cat-label">Gaming</span></button>
+        <button class="cat-card" data-cat="ความงาม"><span class="cat-emoji">💄</span><span
+            class="cat-label">ความงาม</span></button>
+        <button class="cat-card" data-cat="สุขภาพ"><span class="cat-emoji">💊</span><span
+            class="cat-label">สุขภาพ</span></button>
+        <button class="cat-card" data-cat="ผลิตภัณฑ์ดูแลผิว"><span class="cat-emoji">🧴</span><span
+            class="cat-label">ดูแลผิว</span></button>
+        <button class="cat-card" data-cat="บ้านและสวน"><span class="cat-emoji">🏡</span><span
+            class="cat-label">บ้านและสวน</span></button>
+        <button class="cat-card" data-cat="เครื่องใช้ในบ้าน"><span class="cat-emoji">🏠</span><span
+            class="cat-label">ของใช้ในบ้าน</span></button>
+        <button class="cat-card" data-cat="อาหารและเครื่องดื่ม"><span class="cat-emoji">🍜</span><span
+            class="cat-label">อาหาร</span></button>
+        <button class="cat-card" data-cat="ของเล่น สินค้างานอดิเรก"><span class="cat-emoji">🧸</span><span
+            class="cat-label">ของเล่น</span></button>
+        <button class="cat-card" data-cat="แม่และเด็ก"><span class="cat-emoji">👶</span><span
+            class="cat-label">แม่และเด็ก</span></button>
+        <button class="cat-card" data-cat="เสื้อผ้าเด็ก"><span class="cat-emoji">👕</span><span
+            class="cat-label">เสื้อผ้าเด็ก</span></button>
+        <button class="cat-card" data-cat="กีฬาและกิจกรรมกลางแจ้ง"><span class="cat-emoji">⚽</span><span
+            class="cat-label">กีฬา</span></button>
+        <button class="cat-card" data-cat="การเดินทางและกระเป๋าเดินทาง"><span class="cat-emoji">✈️</span><span
+            class="cat-label">ท่องเที่ยว</span></button>
+        <button class="cat-card" data-cat="สัตว์เลี้ยง"><span class="cat-emoji">🐾</span><span
+            class="cat-label">สัตว์เลี้ยง</span></button>
+        <button class="cat-card" data-cat="ยานยนต์"><span class="cat-emoji">🚗</span><span
+            class="cat-label">ยานยนต์</span></button>
+        <button class="cat-card" data-cat="หนังสือและสื่อบันเทิง"><span class="cat-emoji">📚</span><span
+            class="cat-label">หนังสือ</span></button>
+        <button class="cat-card" data-cat="ตั๋วและบัตรกำนัล"><span class="cat-emoji">🎫</span><span
+            class="cat-label">ตั๋ว</span></button>
+        <button class="cat-card" data-cat="เครื่องเขียนและอุปกรณ์สำนักงาน"><span class="cat-emoji">✏️</span><span
+            class="cat-label">เครื่องเขียน</span></button>
+        <button class="cat-card" data-cat="อื่นๆ"><span class="cat-emoji">📦</span><span
+            class="cat-label">อื่นๆ</span></button>
       </div>
-      <div class="cat-wrapper">
-        <button class="cat-arrow cat-arrow-left" id="catLeft" aria-label="เลื่อนซ้าย">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-        <div class="cat-fade cat-fade-left"></div>
-        <div class="cat-scroll" id="catScroll">
-          <button class="cat-card active" data-cat="all"><span class="cat-emoji">🔥</span><span
-              class="cat-label">ทั้งหมด</span></button>
-          <button class="cat-card" data-cat="เสื้อผ้าผู้หญิง"><span class="cat-emoji">👗</span><span
-              class="cat-label">แฟชั่นหญิง</span></button>
-          <button class="cat-card" data-cat="เสื้อผ้าผู้ชาย"><span class="cat-emoji">👔</span><span
-              class="cat-label">แฟชั่นชาย</span></button>
-          <button class="cat-card" data-cat="กระเป๋า"><span class="cat-emoji">👜</span><span
-              class="cat-label">กระเป๋า</span></button>
-          <button class="cat-card" data-cat="รองเท้าผู้หญิง"><span class="cat-emoji">👠</span><span
-              class="cat-label">รองเท้าหญิง</span></button>
-          <button class="cat-card" data-cat="รองเท้าผู้ชาย"><span class="cat-emoji">👟</span><span
-              class="cat-label">รองเท้าชาย</span></button>
-          <button class="cat-card" data-cat="เครื่องประดับ"><span class="cat-emoji">💍</span><span
-              class="cat-label">เครื่องประดับ</span></button>
-          <button class="cat-card" data-cat="นาฬิกาและแว่นตา"><span class="cat-emoji">⌚</span><span
-              class="cat-label">นาฬิกา</span></button>
-          <button class="cat-card" data-cat="โทรศัพท์มือถือและอุปกรณ์เสริม"><span class="cat-emoji">📱</span><span
-              class="cat-label">มือถือ</span></button>
-          <button class="cat-card" data-cat="คอมพิวเตอร์และแล็ปท็อป"><span class="cat-emoji">💻</span><span
-              class="cat-label">คอมพิวเตอร์</span></button>
-          <button class="cat-card" data-cat="เครื่องใช้ไฟฟ้าในบ้าน"><span class="cat-emoji">🔌</span><span
-              class="cat-label">เครื่องไฟฟ้า</span></button>
-          <button class="cat-card" data-cat="กล้องและอุปกรณ์ถ่ายภาพ"><span class="cat-emoji">📷</span><span
-              class="cat-label">กล้อง</span></button>
-          <button class="cat-card" data-cat="เครื่องเสียง"><span class="cat-emoji">🎧</span><span
-              class="cat-label">เครื่องเสียง</span></button>
-          <button class="cat-card" data-cat="Gaming และอุปกรณ์เกม"><span class="cat-emoji">🎮</span><span
-              class="cat-label">Gaming</span></button>
-          <button class="cat-card" data-cat="ความงาม"><span class="cat-emoji">💄</span><span
-              class="cat-label">ความงาม</span></button>
-          <button class="cat-card" data-cat="สุขภาพ"><span class="cat-emoji">💊</span><span
-              class="cat-label">สุขภาพ</span></button>
-          <button class="cat-card" data-cat="ผลิตภัณฑ์ดูแลผิว"><span class="cat-emoji">🧴</span><span
-              class="cat-label">ดูแลผิว</span></button>
-          <button class="cat-card" data-cat="บ้านและสวน"><span class="cat-emoji">🏡</span><span
-              class="cat-label">บ้านและสวน</span></button>
-          <button class="cat-card" data-cat="เครื่องใช้ในบ้าน"><span class="cat-emoji">🏠</span><span
-              class="cat-label">ของใช้ในบ้าน</span></button>
-          <button class="cat-card" data-cat="อาหารและเครื่องดื่ม"><span class="cat-emoji">🍜</span><span
-              class="cat-label">อาหาร</span></button>
-          <button class="cat-card" data-cat="ของเล่น สินค้างานอดิเรก"><span class="cat-emoji">🧸</span><span
-              class="cat-label">ของเล่น</span></button>
-          <button class="cat-card" data-cat="แม่และเด็ก"><span class="cat-emoji">👶</span><span
-              class="cat-label">แม่และเด็ก</span></button>
-          <button class="cat-card" data-cat="เสื้อผ้าเด็ก"><span class="cat-emoji">👕</span><span
-              class="cat-label">เสื้อผ้าเด็ก</span></button>
-          <button class="cat-card" data-cat="กีฬาและกิจกรรมกลางแจ้ง"><span class="cat-emoji">⚽</span><span
-              class="cat-label">กีฬา</span></button>
-          <button class="cat-card" data-cat="การเดินทางและกระเป๋าเดินทาง"><span class="cat-emoji">✈️</span><span
-              class="cat-label">ท่องเที่ยว</span></button>
-          <button class="cat-card" data-cat="สัตว์เลี้ยง"><span class="cat-emoji">🐾</span><span
-              class="cat-label">สัตว์เลี้ยง</span></button>
-          <button class="cat-card" data-cat="ยานยนต์"><span class="cat-emoji">🚗</span><span
-              class="cat-label">ยานยนต์</span></button>
-          <button class="cat-card" data-cat="หนังสือและสื่อบันเทิง"><span class="cat-emoji">📚</span><span
-              class="cat-label">หนังสือ</span></button>
-          <button class="cat-card" data-cat="ตั๋วและบัตรกำนัล"><span class="cat-emoji">🎫</span><span
-              class="cat-label">ตั๋ว</span></button>
-          <button class="cat-card" data-cat="เครื่องเขียนและอุปกรณ์สำนักงาน"><span class="cat-emoji">✏️</span><span
-              class="cat-label">เครื่องเขียน</span></button>
-          <button class="cat-card" data-cat="อื่นๆ"><span class="cat-emoji">📦</span><span
-              class="cat-label">อื่นๆ</span></button>
-        </div>
-        <div class="cat-fade cat-fade-right"></div>
-        <button class="cat-arrow cat-arrow-right" id="catRight" aria-label="เลื่อนขวา">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round">
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-        </button>
-      </div>
+      <div class="cat-fade cat-fade-right"></div>
+      <button class="cat-arrow cat-arrow-right" id="catRight" aria-label="เลื่อนขวา">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round">
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </button>
+    </div>
     </div>
   </section>
 
