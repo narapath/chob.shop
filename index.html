@@ -385,6 +385,7 @@
       } catch (e) {
         console.error('Failed to load products:', e);
       } finally {
+        isLoading = false;
         if (btn) {
           btn.innerText = 'โหลดเพิ่มเติม ↓';
           btn.style.display = hasMore ? 'block' : 'none';
