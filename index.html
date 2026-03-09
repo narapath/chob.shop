@@ -340,7 +340,7 @@
 
     // --- LOAD PRODUCTS ---
     async function loadProducts(reset = false) {
-      if (isLoading || !hasMore) return;
+      if (isLoading || (!hasMore && !reset)) return;
       isLoading = true;
       if (reset) {
         currentPage = 1;
