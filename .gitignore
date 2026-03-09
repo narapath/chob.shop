@@ -35,3 +35,7 @@ error_*.png
 # OS files
 .DS_Store
 Thumbs.db
+
+# Database files
+products.json
+products_backup.json

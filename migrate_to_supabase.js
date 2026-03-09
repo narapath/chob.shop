@@ -6,11 +6,7 @@ require('dotenv').config();
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-    console.error("❌ SUPABASE_URL and SUPABASE_KEY must be set in your .env file.");
-    process.exit(1);
-}
-
+console.log('Connecting to Supabase URL: "' + SUPABASE_URL + '"');
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const backupFile = path.join(__dirname, 'products_backup.json');
 
@@ -19,6 +15,13 @@ async function migrate() {
         console.error(`❌ Backup file not found at ${backupFile}`);
         process.exit(1);
     }
+
+    const { data: testData, error: testErr } = await supabase.from('products').select('*').limit(1);
+    if (testErr) {
+        console.error("❌ Connection test failed:", testErr.message);
+        return;
+    }
+    console.log("✅ Connection test success (Select worked)");
 
     const data = JSON.parse(fs.readFileSync(backupFile, 'utf-8'));
     console.log(`📦 Found ${data.length} products to migrate...`);
