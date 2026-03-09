@@ -114,6 +114,38 @@ body {
   transition: opacity 0.3s ease;
 }
 
+.hero-slogan {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  margin-top: 16px;
+  padding: 8px 24px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(233, 69, 96, 0.4);
+  border-radius: var(--radius-pill);
+  display: inline-block;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(233, 69, 96, 0.15);
+  animation: sloganPulse 3s infinite ease-in-out;
+}
+
+@keyframes sloganPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.15);
+    border-color: rgba(233, 69, 96, 0.3);
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    box-shadow: 0 4px 25px rgba(233, 69, 96, 0.5);
+    border-color: rgba(233, 69, 96, 0.7);
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+
 @media (max-width: 768px) {
   #heroTitle {
     font-size: 28px;
@@ -121,6 +153,12 @@ body {
 
   #heroSubtitle {
     font-size: 13px;
+  }
+
+  .hero-slogan {
+    font-size: 13px;
+    padding: 6px 18px;
+    margin-top: 12px;
   }
 }
 
