@@ -359,18 +359,22 @@ app.post('/api/products/:id/click', async (req, res) => {
 
 // --- API Settings Management ---
 app.get('/api/settings', requireAuth, (req, res) => {
-  const mask = (val) => {
+  const isRaw = req.query.raw === 'true';
+
+  const formatOutput = (val) => {
     if (!val) return '';
+    if (isRaw) return val; // Return actual value if raw=true is requested
     if (val.length <= 10) return '***';
     return val.substring(0, 6) + '...' + val.substring(val.length - 6);
   };
+
   res.json({
-    FB_PAGE_ACCESS_TOKEN: mask(process.env.FB_PAGE_ACCESS_TOKEN),
-    THREADS_USER_ID: process.env.THREADS_USER_ID || '',
-    THREADS_ACCESS_TOKEN: mask(process.env.THREADS_ACCESS_TOKEN),
-    GEMINI_API_KEY: mask(process.env.GEMINI_API_KEY),
-    SUPABASE_URL: mask(process.env.SUPABASE_URL),
-    SUPABASE_KEY: mask(process.env.SUPABASE_KEY)
+    FB_PAGE_ACCESS_TOKEN: formatOutput(process.env.FB_PAGE_ACCESS_TOKEN),
+    THREADS_USER_ID: process.env.THREADS_USER_ID || '', // User ID isn't a secret typically, so we just return it
+    THREADS_ACCESS_TOKEN: formatOutput(process.env.THREADS_ACCESS_TOKEN),
+    GEMINI_API_KEY: formatOutput(process.env.GEMINI_API_KEY),
+    SUPABASE_URL: formatOutput(process.env.SUPABASE_URL),
+    SUPABASE_KEY: formatOutput(process.env.SUPABASE_KEY)
   });
 });
 
