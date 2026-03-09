@@ -1486,9 +1486,11 @@
                         showToast(msg);
                         await loadProducts();
                     } else {
-                        showToast('❌ เกิดข้อผิดพลาดในการนำเข้า');
+                        console.error('Import Error Data:', data);
+                        showToast('❌ นำเข้าไม่สำเร็จ: ' + (data.detail || data.error || 'เกิดข้อผิดพลาดในการนำเข้า'));
                     }
                 } catch (err) {
+                    console.error('Catch Error:', err);
                     if (err.message !== 'Unauthorized') {
                         showToast('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
                     }
