@@ -910,6 +910,21 @@
                     </div>
                 </div>
 
+                <!-- Backup & Restore Panel -->
+                <div class="panel" style="margin-top: 20px;">
+                    <h2 class="panel-title">💾 สำรอง/กู้คืนข้อมูล (Backup & Restore)</h2>
+                    <p class="hint" style="margin-bottom: 16px;">ดาวน์โหลดข้อมูลสินค้าทั้งหมดเก็บไว้ หรือกู้คืนจากไฟล์
+                        Backup (.json)</p>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn btn-secondary" onclick="exportBackup()" style="flex: 1;">⬇️ ดาวน์โหลด Backup
+                            (JSON)</button>
+                        <button class="btn btn-primary" onclick="document.getElementById('importBackupInput').click()"
+                            style="flex: 1;">⬆️ อัปโหลดไฟล์กู้คืน</button>
+                        <input type="file" id="importBackupInput" accept=".json" style="display: none;"
+                            onchange="importBackup(event)">
+                    </div>
+                </div>
+
                 <!-- API Settings Panel -->
                 <div class="panel" style="margin-top: 20px;">
                     <h2 class="panel-title" style="cursor: pointer;"
@@ -1599,6 +1614,54 @@
             }
             console.log('✅ Parsed products:', parsedProducts.length);
             return parsedProducts;
+        }
+
+        // === Backup & Restore ===
+        function exportBackup() {
+            if (products.length === 0) {
+                showToast('❌ ไม่มีสินค้าสำหรับดาวน์โหลด Backup');
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(products, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            const dateStr = new Date().toISOString().slice(0, 10);
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `chobshop_backup_${dateStr}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            showToast('✅ ดาวน์โหลดไฟล์ Backup เรียบร้อยแล้ว');
+        }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            event.target.value = ''; // reset
+
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                try {
+                    const items = JSON.parse(e.target.result);
+                    if (!Array.isArray(items)) throw new Error("ไฟล์ไม่ถูกต้อง");
+                    if (!confirm(`ต้องการกู้คืนข้อมูลสินค้าจำนวน ${items.length} รายการหรือไม่? (ระบบจะนำเข้าข้อมูลและอัปเดตรายการที่มี ID ตรงกัน)`)) return;
+
+                    showToast('⏳ กำลังกู้คืนข้อมูล...');
+                    const res = await fetchWithAuth('/api/products/restore', {
+                        method: 'POST',
+                        body: JSON.stringify({ items })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast(`✅ กู้คืนข้อมูลสำเร็จ ${data.count} รายการ!`);
+                        await loadProducts();
+                    } else {
+                        showToast('❌ กู้คืนข้อมูลไม่สำเร็จ: ' + data.error);
+                    }
+                } catch (err) {
+                    showToast('❌ รูปแบบไฟล์ Backup ไม่ถูกต้อง');
+                }
+            };
+            reader.readAsText(file);
         }
 
         // === Image preview ===

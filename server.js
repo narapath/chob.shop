@@ -235,6 +235,26 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
   }
 });
 
+// RESTORE Backup bulk UPSERT
+app.post('/api/products/restore', requireAuth, async (req, res) => {
+  try {
+    if (!supabase) throw new Error("Supabase is not configured.");
+    const { items } = req.body;
+    
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Expected an array of products' });
+    }
+
+    const { error } = await supabase.from('products').upsert(items);
+    if (error) throw error;
+    
+    res.json({ success: true, count: items.length });
+  } catch (err) {
+    console.error('Failed to restore products:', err);
+    res.status(500).json({ error: 'Failed to restore products', detail: err.message });
+  }
+});
+
 // PUT update a product
 app.put('/api/products/:id', requireAuth, async (req, res) => {
   try {
