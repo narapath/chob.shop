@@ -309,13 +309,48 @@
     let currentPage = 1;
     let hasMore = true;
     let isCatPillsInitialized = false;
+    let isLoading = false;
 
+    // --- LOAD CATEGORY COUNTS ---
+    async function loadCategoryCounts() {
+      try {
+        const res = await fetch(`${API_BASE}/api/categories/count`);
+        const counts = await res.json();
+        if (counts && Object.keys(counts).length > 0) {
+          document.querySelectorAll('.cat-card').forEach(card => {
+            const catName = card.dataset.cat;
+            const count = counts[catName] || 0;
+            // Remove any existing badge
+            const existingBadge = card.querySelector('.cat-count');
+            if (existingBadge) existingBadge.remove();
+
+            // Add new badge if count > 0
+            if (count > 0) {
+              const badge = document.createElement('span');
+              badge.className = 'cat-count';
+              badge.textContent = count > 99 ? '99+' : count;
+              card.appendChild(badge);
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load category counts");
+      }
+    }
+
+    // --- LOAD PRODUCTS ---
     async function loadProducts(reset = false) {
+      if (isLoading || !hasMore) return;
+      isLoading = true;
       if (reset) {
         currentPage = 1;
         ALL_PRODUCTS = [];
         hasMore = true;
-        document.getElementById('productsGrid').innerHTML = ''; // Clear existing
+        document.getElementById('productsGrid').innerHTML = '';
+        document.getElementById('emptyState').style.display = 'none';
+
+        // Refresh counts when we reload a fresh product grid
+        loadCategoryCounts();
       }
 
       if (!hasMore) return;

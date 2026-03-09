@@ -125,6 +125,31 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+// GET category counts
+app.get('/api/categories/count', async (req, res) => {
+  try {
+    if (!supabase) return res.json({}); // Silently return empty object if no DB
+
+    // Note: Supabase JS library doesn't perfectly support easy GROUP BY counting yet in standard select.
+    // However, since we only need "category", it's far lighter to pull just the category column
+    // and reduce it on our end than pulling all rows.
+    const { data, error } = await supabase.from('products').select('category');
+    if (error) throw error;
+
+    const counts = { all: data.length };
+
+    data.forEach(item => {
+      const cat = item.category || 'ทั่วไป';
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+
+    res.json(counts);
+  } catch (err) {
+    console.error('Failed to count categories:', err);
+    res.status(500).json({ error: 'Failed to count categories' });
+  }
+});
+
 // POST a new product
 app.post('/api/products', requireAuth, async (req, res) => {
   try {

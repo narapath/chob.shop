@@ -650,12 +650,45 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   scroll-snap-align: start;
   flex-shrink: 0;
   font-family: inherit;
   position: relative;
+  /* For the notification badge */
   overflow: hidden;
+  color: var(--text-secondary);
+}
+
+/* Category item count badge */
+.cat-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  min-width: 20px;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(255, 75, 43, 0.4), 0 0 0 2px var(--bg-primary);
+  z-index: 10;
+  pointer-events: none;
+  animation: badgePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .cat-card::after {
