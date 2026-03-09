@@ -170,21 +170,27 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Expected an array of products' });
     }
 
-    const itemsToAdd = items.map(p => ({
-      title: p.title || 'Untitled Product',
-      price: p.price || '0',
-      originalPrice: p.originalPrice || '',
-      discount: p.discount || '',
-      image: p.image || '',
-      affiliateUrl: p.affiliateUrl || '',
-      category: p.category || 'ทั่วไป',
-      description: p.description || '',
-      id: p.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-      clicks: 0,
-      date: new Date().toISOString(),
-      facebookPostId: '',
-      twitterPostId: ''
-    }));
+    const itemsToAdd = items.map(p => {
+      const parsedPrice = parseFloat(p.price) || 0;
+      const parsedOriginalPrice = p.originalPrice ? parseFloat(p.originalPrice) : null;
+      const parsedDiscount = p.discount ? parseInt(p.discount, 10) : null;
+
+      return {
+        title: p.title || 'Untitled Product',
+        price: parsedPrice,
+        originalPrice: parsedOriginalPrice,
+        discount: parsedDiscount,
+        image: p.image || '',
+        affiliateUrl: p.affiliateUrl || '',
+        category: p.category || 'ทั่วไป',
+        description: p.description || '',
+        id: p.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        clicks: 0,
+        date: new Date().toISOString(),
+        facebookPostId: null,
+        twitterPostId: null
+      };
+    });
 
     const { error } = await supabase.from('products').insert(itemsToAdd);
     if (error) throw error;
