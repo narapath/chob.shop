@@ -1289,6 +1289,67 @@
             toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        // === Auto-fetch Product Info from URL ===
+        let scrapeTimeout;
+        document.getElementById('affiliateUrl').addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            if (!url || !url.startsWith('http')) return;
+
+            // Only fetch if title and image are empty
+            const titleInput = document.getElementById('productTitle');
+            const imageInput = document.getElementById('productImage');
+            
+            if (titleInput.value !== '' || imageInput.value !== '') return;
+
+            clearTimeout(scrapeTimeout);
+            
+            // Add a small loading indicator
+            const hint = e.target.nextElementSibling;
+            const originalHint = hint.textContent;
+            hint.textContent = '⏳ กำลังดึงข้อมูลสินค้าจากลิงก์...';
+            hint.style.color = 'var(--accent)';
+
+            scrapeTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetchWithAuth('/api/scrape-link', {
+                        method: 'POST',
+                        body: JSON.stringify({ url })
+                    });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        if (data.title && titleInput.value === '') {
+                            let cleanTitle = data.title;
+                            if (cleanTitle.endsWith(' | Shopee Thailand')) {
+                                cleanTitle = cleanTitle.substring(0, cleanTitle.length - 18);
+                            }
+                            titleInput.value = cleanTitle;
+                        }
+                        if (data.image && imageInput.value === '') {
+                            imageInput.value = data.image;
+                            // Trigger preview update
+                            imageInput.dispatchEvent(new Event('input'));
+                        }
+                        hint.textContent = '✅ ดึงข้อมูลสำเร็จ!';
+                        hint.style.color = '#4CAF50';
+                    } else {
+                        hint.textContent = '❌ ดึงข้อมูลไม่สำเร็จ กรุณากรอกเอง';
+                        hint.style.color = '#f44336';
+                    }
+                } catch (err) {
+                    console.error('Error scraping link:', err);
+                    hint.textContent = '❌ ดึงข้อมูลไม่สำเร็จ';
+                    hint.style.color = '#f44336';
+                }
+                
+                // Reset hint text after 3 seconds
+                setTimeout(() => {
+                    hint.textContent = originalHint;
+                    hint.style.color = 'var(--text3)';
+                }, 3000);
+            }, 500); // Debounce 500ms
+        });
+
         // === Add/Edit product ===
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();

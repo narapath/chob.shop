@@ -6,6 +6,7 @@ const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { createClient } = require('@supabase/supabase-js');
+const ogs = require('open-graph-scraper');
 const {
   postToFacebook, postToInstagram, postToX, postToThreads,
   deleteFromFacebook, deleteFromX, generateAICaption
@@ -388,6 +389,40 @@ app.post('/api/products/:id/click', async (req, res) => {
     res.json({ success: true, clicks: newClicks });
   } catch (err) {
     res.status(500).json({ error: 'Failed to record click', detail: err.message });
+  }
+});
+
+// --- POST scrape link for Auto-fill ---
+app.post('/api/scrape-link', requireAuth, async (req, res) => {
+  const { url } = req.body;
+  if (!url) return res.status(400).json({ error: 'URL is required' });
+
+  try {
+    const options = {
+      url,
+      fetchOptions: {
+        headers: {
+          'user-agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
+        }
+      }
+    };
+    
+    const { result } = await ogs(options);
+    
+    // Fallback logic could be added here if ogImage/ogTitle are missing, but Shopee usually provides them.
+    const title = result.ogTitle || '';
+    let image = '';
+    
+    if (result.ogImage && result.ogImage.length > 0) {
+      image = result.ogImage[0].url;
+    } else if (result.ogImage && typeof result.ogImage === 'string') {
+        image = result.ogImage;
+    }
+
+    res.json({ success: true, title, image });
+  } catch (err) {
+    console.error('Failed to scrape link:', err.message);
+    res.status(500).json({ error: 'Failed to scrape link', detail: err.message });
   }
 });
 
