@@ -125,14 +125,21 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+// Cache object
+let cachedCategoryCounts = null;
+let lastCategoryCountTime = 0;
+const CATEGORY_CACHE_TTL = 60 * 1000; // 1 minute TTL
+
 // GET category counts
 app.get('/api/categories/count', async (req, res) => {
   try {
     if (!supabase) return res.json({}); // Silently return empty object if no DB
 
-    // Note: Supabase JS library doesn't perfectly support easy GROUP BY counting yet in standard select.
-    // However, since we only need "category", it's far lighter to pull just the category column
-    // and reduce it on our end than pulling all rows.
+    const now = Date.now();
+    if (cachedCategoryCounts && (now - lastCategoryCountTime) < CATEGORY_CACHE_TTL) {
+      return res.json(cachedCategoryCounts);
+    }
+
     const { data, error } = await supabase.from('products').select('category');
     if (error) throw error;
 
@@ -143,6 +150,8 @@ app.get('/api/categories/count', async (req, res) => {
       counts[cat] = (counts[cat] || 0) + 1;
     });
 
+    cachedCategoryCounts = counts;
+    lastCategoryCountTime = now;
     res.json(counts);
   } catch (err) {
     console.error('Failed to count categories:', err);

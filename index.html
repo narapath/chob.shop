@@ -348,9 +348,6 @@
         hasMore = true;
         document.getElementById('productsGrid').innerHTML = '';
         document.getElementById('emptyState').style.display = 'none';
-
-        // Refresh counts when we reload a fresh product grid
-        loadCategoryCounts();
       }
 
       if (!hasMore) return;
@@ -560,7 +557,8 @@
     });
 
     // Load on page ready
-    loadProducts();
+    loadCategoryCounts();
+    loadProducts(true);
   </script>
 </body>
 
