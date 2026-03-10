@@ -1505,7 +1505,54 @@
                 };
                 const hasSocial = socialMedia.facebook || socialMedia.instagram || socialMedia.x || socialMedia.threads;
 
-                let confirmMsg = `พบสินค้า ${productsArray.length} รายการ กำลังนำเข้าสู่หมวดหมู่ "${importCat}"...`;
+                // --- NEW SCRAPING LOGIC BEFORE IMPORT ---
+                const totalScrape = productsArray.filter(p => p.affiliateUrl && !p.image).length;
+                if (totalScrape > 0) {
+                    showToast(`⏳ ดึงรูประหว่างนำเข้า 0/${totalScrape}... (กรุณารอสักครู่)`);
+                    let scrapedCount = 0;
+                    
+                    // Process in chunks of 3 to avoid overwhelming backend/shopee
+                    const chunkSize = 3;
+                    for (let i = 0; i < productsArray.length; i += chunkSize) {
+                        const chunk = productsArray.slice(i, i + chunkSize);
+                        const promises = chunk.map(async (product) => {
+                            if (product.affiliateUrl && !product.image) {
+                                try {
+                                    const scrapeRes = await fetchWithAuth('/api/scrape-link', {
+                                        method: 'POST',
+                                        body: JSON.stringify({ url: product.affiliateUrl })
+                                    });
+                                    const scrapeData = await scrapeRes.json();
+                                    
+                                    if (scrapeData.success) {
+                                        if (scrapeData.image) product.image = scrapeData.image;
+                                        // Update title if the parsed CSV title is very generic or empty
+                                        if (scrapeData.title && (!product.title || product.title.length < 5)) {
+                                            let cleanTitle = scrapeData.title;
+                                            if (cleanTitle.endsWith(' | Shopee Thailand')) {
+                                                cleanTitle = cleanTitle.substring(0, cleanTitle.length - 18);
+                                            }
+                                            product.title = cleanTitle;
+                                        }
+                                    }
+                                } catch (err) {
+                                    console.error('Failed to scrape auto import for url:', product.affiliateUrl, err);
+                                }
+                                scrapedCount++;
+                                showToast(`⏳ ดึงรูประหว่างนำเข้า ${scrapedCount}/${totalScrape}...`);
+                            }
+                        });
+                        
+                        await Promise.all(promises);
+                        // small delay between chunks
+                        if (i + chunkSize < productsArray.length) {
+                            await new Promise(resolve => setTimeout(resolve, 300));
+                        }
+                    }
+                }
+                // --- END SCRAPING LOGIC ---
+
+                let confirmMsg = `พบสินค้า ${productsArray.length} รายการ กำลังเตรียมบันทึกลงสู่ระบบ...`;
                 if (hasSocial) {
                     const platforms = [];
                     if (socialMedia.facebook) platforms.push('Facebook');
