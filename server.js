@@ -9,7 +9,7 @@ const { createClient } = require('@supabase/supabase-js');
 const ogs = require('open-graph-scraper');
 const {
   postToFacebook, postToInstagram, postToX, postToThreads,
-  deleteFromFacebook, deleteFromX, generateAICaption
+  deleteFromFacebook, deleteFromX, generateAICaption, categorizeProduct
 } = require('./socialMedia');
 
 const app = express();
@@ -495,6 +495,19 @@ app.put('/api/settings', requireAuth, (req, res) => {
   } catch (err) {
     console.error('Settings update error:', err);
     res.status(500).json({ error: 'Failed to update settings', detail: err.message });
+  }
+});
+
+// --- POST categorize via AI ---
+app.post('/api/categorize', requireAuth, async (req, res) => {
+  const { title } = req.body;
+  if (!title) return res.status(400).json({ error: 'Title is required' });
+
+  try {
+    const category = await categorizeProduct(title);
+    res.json({ success: true, category });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

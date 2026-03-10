@@ -1505,17 +1505,38 @@
                 };
                 const hasSocial = socialMedia.facebook || socialMedia.instagram || socialMedia.x || socialMedia.threads;
 
-                // --- NEW SCRAPING LOGIC BEFORE IMPORT ---
-                const totalScrape = productsArray.filter(p => p.affiliateUrl && !p.image).length;
-                if (totalScrape > 0) {
-                    showToast(`⏳ ดึงรูประหว่างนำเข้า 0/${totalScrape}... (กรุณารอสักครู่)`);
-                    let scrapedCount = 0;
+                // --- NEW SCRAPING & AI CATEGORIZATION LOGIC ---
+                const needsScrape = productsArray.filter(p => p.affiliateUrl && !p.image);
+                const needsAICat = importCat === 'auto';
+                
+                if (needsScrape.length > 0 || needsAICat) {
+                    const totalTasks = productsArray.length;
+                    showToast(`⏳ เริ่มต้นการดึงข้อมูลและจัดหมวดหมู่ AI... (0/${totalTasks})`);
+                    let processedCount = 0;
                     
-                    // Process in chunks of 3 to avoid overwhelming backend/shopee
+                    // Process in chunks of 3 to avoid overwhelming backend
                     const chunkSize = 3;
                     for (let i = 0; i < productsArray.length; i += chunkSize) {
                         const chunk = productsArray.slice(i, i + chunkSize);
                         const promises = chunk.map(async (product) => {
+                            // 1. AI Categorization (Call first so we have accurate category for hashtags later if needed)
+                            if (needsAICat) {
+                                try {
+                                    const catRes = await fetchWithAuth('/api/categorize', {
+                                        method: 'POST',
+                                        body: JSON.stringify({ title: product.title })
+                                    });
+                                    const catData = await catRes.json();
+                                    if (catData.success && catData.category) {
+                                        product.category = catData.category;
+                                    }
+                                } catch (err) {
+                                    console.error('AI Categorization failed:', err);
+                                    // fall back to keyword logic was already done by parseShopeeCSV
+                                }
+                            }
+
+                            // 2. Image Scraping
                             if (product.affiliateUrl && !product.image) {
                                 try {
                                     const scrapeRes = await fetchWithAuth('/api/scrape-link', {
@@ -1526,7 +1547,6 @@
                                     
                                     if (scrapeData.success) {
                                         if (scrapeData.image) product.image = scrapeData.image;
-                                        // Update title if the parsed CSV title is very generic or empty
                                         if (scrapeData.title && (!product.title || product.title.length < 5)) {
                                             let cleanTitle = scrapeData.title;
                                             if (cleanTitle.endsWith(' | Shopee Thailand')) {
@@ -1536,21 +1556,21 @@
                                         }
                                     }
                                 } catch (err) {
-                                    console.error('Failed to scrape auto import for url:', product.affiliateUrl, err);
+                                    console.error('Scraping failed:', err);
                                 }
-                                scrapedCount++;
-                                showToast(`⏳ ดึงรูประหว่างนำเข้า ${scrapedCount}/${totalScrape}...`);
                             }
+                            
+                            processedCount++;
+                            showToast(`⏳ กำลังจัดการสินค้า ${processedCount}/${totalTasks}...`);
                         });
                         
                         await Promise.all(promises);
-                        // small delay between chunks
                         if (i + chunkSize < productsArray.length) {
                             await new Promise(resolve => setTimeout(resolve, 300));
                         }
                     }
                 }
-                // --- END SCRAPING LOGIC ---
+                // --- END ENHANCED PROCESSING ---
 
                 let confirmMsg = `พบสินค้า ${productsArray.length} รายการ กำลังเตรียมบันทึกลงสู่ระบบ...`;
                 if (hasSocial) {

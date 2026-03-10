@@ -662,6 +662,64 @@ async function postToSocialMedia(product, platforms = {}) {
     return results;
 }
 
+/**
+ * Use Gemini AI to categorize a product based on its title.
+ */
+async function categorizeProduct(title) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return null;
+
+    const categories = [
+        "เสื้อผ้าผู้หญิง", "เสื้อผ้าผู้ชาย", "กระเป๋า", "รองเท้าผู้หญิง", "รองเท้าผู้ชาย",
+        "เครื่องประดับ", "นาฬิกาและแว่นตา", "โทรศัพท์มือถือและอุปกรณ์เสริม",
+        "คอมพิวเตอร์และแล็ปท็อป", "เครื่องใช้ไฟฟ้าในบ้าน", "กล้องและอุปกรณ์ถ่ายภาพ",
+        "เครื่องเสียง", "Gaming และอุปกรณ์เกม", "ความงาม", "สุขภาพ", "ผลิตภัณฑ์ดูแลผิว",
+        "บ้านและสวน", "เครื่องใช้ในบ้าน", "อาหารและเครื่องดื่ม", "ของเล่น สินค้างานอดิเรก",
+        "แม่และเด็ก", "เสื้อผ้าเด็ก", "กีฬาและกิจกรรมกลางแจ้ง", "การเดินทางและกระเป๋าเดินทาง",
+        "สัตว์เลี้ยง", "ยานยนต์", "หนังสือและสื่อบันเทิง", "ตั๋วและบัตรกำนัล",
+        "เครื่องเขียนและอุปกรณ์สำนักงาน", "อื่นๆ"
+    ];
+
+    try {
+        const prompt = `คุณคือผู้เชี่ยวชาญด้านการจัดหมวดหมู่สินค้าอีคอมเมิร์ซ จงวิเคราะห์ชื่อสินค้าต่อไปนี้และเลือก "หมวดหมู่ที่เหมาะสมที่สุดเพียงหมวดหมู่เดียว" จากรายการที่กำหนดให้เท่านั้น
+
+ชื่อสินค้า: "${title}"
+
+รายการหมวดหมู่ที่อนุญาต:
+${categories.map(c => `- ${c}`).join('\n')}
+
+กฎเหล็ก:
+1. ตอบ "เฉพาะชื่อหมวดหมู่" ที่เลือกมาเท่านั้น ห้ามมีคำอธิบายอื่น
+2. หากไม่แน่ใจจริงๆ ให้ตอบว่า "อื่นๆ"
+3. เลือกจากรายการด้านบนเท่านั้น ห้ามคิดหมวดหมู่ใหม่เอง
+
+หมวดหมู่ที่เลือกคือ:`;
+
+        const response = await axios.post(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+            {
+                contents: [{ parts: [{ text: prompt }] }]
+            }
+        );
+
+        const aiText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        
+        // Clean up the response (sometimes AI adds quotes or markdown)
+        const cleanedText = aiText ? aiText.replace(/["'#*]/g, '').trim() : null;
+
+        // Validate that the returned category is in our allowed list
+        if (categories.includes(cleanedText)) {
+            return cleanedText;
+        }
+
+        console.warn(`⚠️ Gemini returned invalid category: "${cleanedText}" for title: "${title}"`);
+        return null; // Fallback to keyword-based logic on the client/caller side
+    } catch (err) {
+        console.error('⚠️ Gemini Categorization Error:', err.message);
+        return null;
+    }
+}
+
 module.exports = {
     postToFacebook,
     postToInstagram,
@@ -670,5 +728,6 @@ module.exports = {
     deleteFromFacebook,
     deleteFromX,
     generateAICaption,
-    buildPostContent
+    buildPostContent,
+    categorizeProduct
 };
