@@ -667,6 +667,7 @@ async function postToSocialMedia(product, platforms = {}) {
  */
 async function categorizeProduct(title) {
     const apiKey = process.env.GEMINI_API_KEY;
+    console.log(`🤖 AI Categorization: Key present? ${!!apiKey}`);
     if (!apiKey) return null;
 
     const categories = [
@@ -696,13 +697,14 @@ ${categories.map(c => `- ${c}`).join('\n')}
 หมวดหมู่ที่เลือกคือ:`;
 
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
                 contents: [{ parts: [{ text: prompt }] }]
             }
         );
 
         const aiText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        console.log(`🤖 AI Result: "${aiText}"`);
         
         // Clean up the response (sometimes AI adds quotes or markdown)
         const cleanedText = aiText ? aiText.replace(/["'#*]/g, '').trim() : null;
