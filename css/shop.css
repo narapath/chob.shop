@@ -860,7 +860,7 @@ body {
 .card-img-wrapper {
   position: relative;
   width: 100%;
-  background: var(--bg-secondary);
+  background: #f5f5f5;
   overflow: hidden;
   display: flex;
   align-items: center;
