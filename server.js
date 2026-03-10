@@ -512,11 +512,29 @@ app.post('/api/categorize', requireAuth, async (req, res) => {
 });
 
 // --- Health Check ---
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
   const supabaseConfigured = !!(supabaseUrl && supabaseKey && supabase);
+  let supabaseValid = false;
+  let supabaseError = null;
+
+  if (supabaseConfigured) {
+    try {
+      const { data, error } = await supabase.from('products').select('id').limit(1);
+      if (error) {
+        supabaseError = error.message;
+      } else {
+        supabaseValid = true;
+      }
+    } catch (err) {
+      supabaseError = err.message;
+    }
+  }
+
   res.json({
     status: 'ok',
     supabase: supabaseConfigured,
+    supabaseValid,
+    supabaseError,
     timestamp: new Date().toISOString()
   });
 });

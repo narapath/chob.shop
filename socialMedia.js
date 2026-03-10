@@ -667,7 +667,6 @@ async function postToSocialMedia(product, platforms = {}) {
  */
 async function categorizeProduct(title) {
     const apiKey = process.env.GEMINI_API_KEY;
-    console.log(`🤖 AI Categorization: Key present? ${!!apiKey}`);
     if (!apiKey) return null;
 
     const categories = [
@@ -704,7 +703,6 @@ ${categories.map(c => `- ${c}`).join('\n')}
         );
 
         const aiText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        console.log(`🤖 AI Result: "${aiText}"`);
         
         // Clean up the response (sometimes AI adds quotes or markdown)
         const cleanedText = aiText ? aiText.replace(/["'#*]/g, '').trim() : null;
