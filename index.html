@@ -381,6 +381,16 @@
 
       } catch (e) {
         console.error('Failed to load products:', e);
+        const grid = document.getElementById('productsGrid');
+        if (grid && ALL_PRODUCTS.length === 0) {
+          grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#a0a0b8;">
+            <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+            <h3 style="color:#e94560;margin-bottom:8px;">ไม่สามารถโหลดสินค้าได้</h3>
+            <p style="font-size:14px;margin-bottom:4px;">ไม่สามารถเชื่อมต่อกับ API ได้ กรุณาลองใหม่อีกครั้ง</p>
+            <p style="font-size:12px;color:#6c6c8a;">${e.message || 'Network error'}</p>
+            <button onclick="loadProducts(true)" style="margin-top:20px;padding:10px 24px;background:#e94560;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;">ลองใหม่</button>
+          </div>`;
+        }
       } finally {
         isLoading = false;
         if (btn) {

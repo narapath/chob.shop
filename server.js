@@ -498,7 +498,22 @@ app.put('/api/settings', requireAuth, (req, res) => {
   }
 });
 
+// --- Health Check ---
+app.get('/api/health', (req, res) => {
+  const supabaseConfigured = !!(supabaseUrl && supabaseKey && supabase);
+  res.json({
+    status: 'ok',
+    supabase: supabaseConfigured,
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🛍️  Chob.Shop server running at http://0.0.0.0:${PORT}`);
   console.log(`📋  Admin panel: http://0.0.0.0:${PORT}/admin.html`);
+  if (supabase) {
+    console.log(`✅  Supabase connected: ${supabaseUrl}`);
+  } else {
+    console.warn(`⚠️  WARNING: Supabase is NOT configured! Set SUPABASE_URL and SUPABASE_KEY environment variables on Railway.`);
+  }
 });
