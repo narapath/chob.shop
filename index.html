@@ -314,7 +314,7 @@
     // --- APPLY THEME ---
     async function applyTheme() {
       try {
-        const res = await fetch(`${API_BASE}/api/settings`);
+        const res = await fetch(`${API_BASE}/api/theme`);
         const data = await res.json();
         const theme = data.CARD_THEME || 'theme-white';
         const grid = document.getElementById('productsGrid');

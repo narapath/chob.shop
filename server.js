@@ -447,6 +447,12 @@ app.get('/api/settings', requireAuth, (req, res) => {
   });
 });
 
+app.get('/api/theme', (req, res) => {
+  res.json({
+    CARD_THEME: process.env.CARD_THEME || 'theme-white'
+  });
+});
+
 app.put('/api/settings', requireAuth, (req, res) => {
   try {
     const allowedKeys = ['FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN', 'GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_KEY', 'CARD_THEME'];
