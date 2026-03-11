@@ -91,6 +91,7 @@ body {
 .hero-emoji {
   display: inline-block;
   animation: heroEmojiFloat 3s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes heroEmojiFloat {
@@ -1506,9 +1507,17 @@ body {
   background: var(--bg-card);
   border-radius: 4px;
 }
+/* GPU Acceleration for smooth interactions */
+.cat-card, .card, .shopee-btn, .nav-dd-panel {
+  will-change: transform, opacity;
+}
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
+/* Optimization for low-end devices */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* ===== ANIMATIONS ===== */
@@ -1558,4 +1567,50 @@ body {
 
 .product-card:nth-child(8) {
   animation-delay: 0.4s;
+}
+
+/* ===== PERFORMANCE & SMOOTHNESS ===== */
+
+/* Skeleton Loader */
+.skeleton {
+  background: linear-gradient(
+    90deg, 
+    var(--bg-card) 25%, 
+    rgba(255, 255, 255, 0.05) 50%, 
+    var(--bg-card) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: var(--radius-md);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-card {
+  height: 380px;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-img { height: 240px; }
+.skeleton-title { height: 20px; width: 80%; margin: 20px; }
+.skeleton-price { height: 24px; width: 40%; margin: 0 20px 20px; }
+
+/* Image Fade-in */
+.card-img {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+  will-change: opacity;
+}
+
+.card-img.loaded {
+  opacity: 1;
 }

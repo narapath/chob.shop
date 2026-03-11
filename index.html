@@ -346,7 +346,7 @@
         currentPage = 1;
         ALL_PRODUCTS = [];
         hasMore = true;
-        document.getElementById('productsGrid').innerHTML = '';
+        renderSkeletons(); // Show skeletons immediately
         document.getElementById('emptyState').style.display = 'none';
       }
 
@@ -377,7 +377,7 @@
           initCategoryPills();
           isCatPillsInitialized = true;
         }
-        renderProducts();
+        renderProducts(reset);
 
       } catch (e) {
         console.error('Failed to load products:', e);
@@ -508,21 +508,30 @@
       window.open(url, '_blank');
     }
 
-    function renderProducts() {
+    function renderSkeletons() {
       const grid = document.getElementById('productsGrid');
-      const empty = document.getElementById('emptyState');
+      if (!grid) return;
+      
+      const skeletonHTML = Array(8).fill(0).map(() => `
+        <div class="skeleton-card">
+          <div class="skeleton-img skeleton"></div>
+          <div class="skeleton-title skeleton"></div>
+          <div class="skeleton-price skeleton"></div>
+        </div>
+      `).join('');
+      
+      grid.innerHTML = skeletonHTML;
+    }
 
-      if (ALL_PRODUCTS.length === 0) {
-        grid.innerHTML = '';
-        empty.style.display = 'block';
-        return;
-      }
-      empty.style.display = 'none';
-
-      grid.innerHTML = ALL_PRODUCTS.map(product => `
+    function createProductHTML(product) {
+      return `
         <a href="${product.affiliateUrl}" target="_blank" rel="noopener noreferrer" class="card" onclick="trackClickAndRedirect(event, '${product.id}', '${product.affiliateUrl}')">
           <div class="card-img-wrapper">
-            <img src="${product.image || 'https://placehold.co/300x300/1a1a2e/e94560?text=Chob.Shop'}" alt="${product.title}" loading="lazy" class="card-img" />
+            <img src="${product.image || 'https://placehold.co/300x300/1a1a2e/e94560?text=Chob.Shop'}" 
+                 alt="${product.title}" 
+                 loading="lazy" 
+                 class="card-img" 
+                 onload="this.classList.add('loaded')" />
             ${product.discount ? `<span class="discount-badge">ลด ${product.discount}%</span>` : ''}
           </div>
           <div class="card-body">
@@ -539,7 +548,29 @@
             </div>
           </div>
         </a>
-      `).join('');
+      `;
+    }
+
+    function renderProducts(reset = true) {
+      const grid = document.getElementById('productsGrid');
+      const empty = document.getElementById('emptyState');
+
+      if (ALL_PRODUCTS.length === 0) {
+        grid.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      if (reset) {
+        grid.innerHTML = ALL_PRODUCTS.map(p => createProductHTML(p)).join('');
+      } else {
+        // Only append NEW products
+        const lastBatchCount = 20; // limit per page
+        const newProducts = ALL_PRODUCTS.slice(-lastBatchCount);
+        const html = newProducts.map(p => createProductHTML(p)).join('');
+        grid.insertAdjacentHTML('beforeend', html);
+      }
     }
 
     // Search handler (with debounce)
