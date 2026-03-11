@@ -1909,12 +1909,13 @@
             try {
                 const res = await fetchWithAuth('/api/settings');
                 const data = await res.json();
-                document.getElementById('fbTokenInput').value = data.FB_PAGE_ACCESS_TOKEN ? '***' : '';
-                document.getElementById('threadsUserIdInput').value = data.THREADS_USER_ID ? '***' : '';
-                document.getElementById('threadsTokenInput').value = data.THREADS_ACCESS_TOKEN ? '***' : '';
-                document.getElementById('geminiKeyInput').value = data.GEMINI_API_KEY ? '***' : '';
-                document.getElementById('supabaseUrlInput').value = data.SUPABASE_URL ? '***' : '';
-                document.getElementById('supabaseKeyInput').value = data.SUPABASE_KEY ? '***' : '';
+                const MARKER = '●●●●●●●●';
+                document.getElementById('fbTokenInput').value = data.FB_PAGE_ACCESS_TOKEN ? MARKER : '';
+                document.getElementById('threadsUserIdInput').value = data.THREADS_USER_ID ? data.THREADS_USER_ID : ''; // User ID is usually not sensitive
+                document.getElementById('threadsTokenInput').value = data.THREADS_ACCESS_TOKEN ? MARKER : '';
+                document.getElementById('geminiKeyInput').value = data.GEMINI_API_KEY ? MARKER : '';
+                document.getElementById('supabaseUrlInput').value = data.SUPABASE_URL ? MARKER : '';
+                document.getElementById('supabaseKeyInput').value = data.SUPABASE_KEY ? MARKER : '';
             } catch (e) {
                 console.error('Failed to load settings:', e);
             }
@@ -1934,9 +1935,10 @@
                 SUPABASE_KEY: document.getElementById('supabaseKeyInput').value
             };
 
-            // If the fields are unchanged (still showing ***), don't send them
+            const MARKER = '●●●●●●●●';
+            // If the fields are unchanged (still showing MARKER), don't send them
             Object.keys(payload).forEach(k => {
-                if (payload[k].includes('***') || payload[k] === '') {
+                if (payload[k] === MARKER || payload[k] === '') {
                     delete payload[k];
                 }
             });

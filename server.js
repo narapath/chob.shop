@@ -432,9 +432,8 @@ app.get('/api/settings', requireAuth, (req, res) => {
 
   const formatOutput = (val) => {
     if (!val) return '';
-    if (isRaw) return val; // Return actual value if raw=true is requested
-    if (val.length <= 10) return '***';
-    return val.substring(0, 6) + '...' + val.substring(val.length - 6);
+    if (isRaw) return val;
+    return '●●●●●●●●'; // Use a consistent identifiable marker
   };
 
   res.json({
@@ -452,9 +451,10 @@ app.put('/api/settings', requireAuth, (req, res) => {
     const allowedKeys = ['FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN', 'GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_KEY'];
     const updates = req.body;
 
+    const SECRET_MARKER = '●●●●●●●●';
     let updatedCount = 0;
     for (const key of allowedKeys) {
-      if (updates[key] !== undefined && updates[key] !== '') {
+      if (updates[key] !== undefined && updates[key] !== '' && updates[key] !== SECRET_MARKER) {
         process.env[key] = updates[key];
         updatedCount++;
       }
@@ -465,7 +465,7 @@ app.put('/api/settings', requireAuth, (req, res) => {
       try {
         let envContent = fs.readFileSync(envPath, 'utf-8');
         for (const key of allowedKeys) {
-          if (updates[key] !== undefined && updates[key] !== '') {
+          if (updates[key] !== undefined && updates[key] !== '' && updates[key] !== SECRET_MARKER) {
             const regex = new RegExp(`^${key}=.*$`, 'm');
             if (envContent.match(regex)) {
               envContent = envContent.replace(regex, `${key}=${updates[key]}`);
