@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="th">
 
 <head>
@@ -272,11 +272,8 @@
                 <div class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
                     <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
                 </div>
-                <div class="nav-item" data-tab="add-product" onclick="switchTab('add-product')">
-                    <span class="nav-icon">➕</span><span class="nav-label">เพิ่มสินค้า</span>
-                </div>
                 <div class="nav-item" data-tab="products" onclick="switchTab('products')">
-                    <span class="nav-icon">📦</span><span class="nav-label">รายการสินค้า</span>
+                    <span class="nav-icon">📦</span><span class="nav-label">ชัดการสินค้า</span>
                 </div>
                 <div class="nav-divider"></div>
                 <div class="nav-item" data-tab="csv-import" onclick="switchTab('csv-import')">
@@ -337,118 +334,73 @@
                 </div>
             </div>
 
-            <!-- ========== TAB: ADD PRODUCT ========== -->
-            <div class="tab-panel" id="tab-add-product">
-                <div class="tab-header">
-                    <h2>➕ เพิ่มสินค้าใหม่</h2>
-                    <p>กรอกข้อมูลสินค้าหรือวาง Shopee Affiliate Link</p>
-                </div>
-                <div style="max-width: 700px;">
-                    <div class="panel">
-                        <div class="link-input-area">
-                            <div style="font-size:24px;margin-bottom:8px;">🔗</div>
-                            <input type="text" id="affiliateUrl" placeholder="วาง Shopee Affiliate Link ที่นี่..." />
-                            <p class="hint">เช่น https://s.shopee.co.th/xxxxx หรือ https://affiliate.shopee.co.th/...</p>
-                        </div>
-                        <form id="productForm">
-                            <div class="form-group">
-                                <label>ชื่อสินค้า *</label>
-                                <input type="text" id="productTitle" placeholder="เช่น หูฟังไร้สาย Bluetooth 5.0" required />
-                            </div>
-                            <div class="form-grid-3">
-                                <div class="form-group">
-                                    <label>ราคา (฿) *</label>
-                                    <input type="number" id="productPrice" placeholder="299" required />
-                                </div>
-                                <div class="form-group">
-                                    <label>ราคาเต็ม (฿)</label>
-                                    <input type="number" id="productOriginalPrice" placeholder="599" />
-                                </div>
-                                <div class="form-group">
-                                    <label>ส่วนลด (%)</label>
-                                    <input type="number" id="productDiscount" placeholder="50" />
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>หมวดหมู่</label>
-                                <select id="productCategory">
-                                    <optgroup label="👗 แฟชั่นและเครื่องแต่งกาย">
-                                        <option value="เสื้อผ้าผู้หญิง">เสื้อผ้าผู้หญิง</option>
-                                        <option value="เสื้อผ้าผู้ชาย">เสื้อผ้าผู้ชาย</option>
-                                        <option value="กระเป๋า">กระเป๋า</option>
-                                        <option value="รองเท้าผู้หญิง">รองเท้าผู้หญิง</option>
-                                        <option value="รองเท้าผู้ชาย">รองเท้าผู้ชาย</option>
-                                        <option value="เครื่องประดับ">เครื่องประดับ</option>
-                                        <option value="นาฬิกาและแว่นตา">นาฬิกาและแว่นตา</option>
-                                    </optgroup>
-                                    <optgroup label="📱 อิเล็กทรอนิกส์">
-                                        <option value="โทรศัพท์มือถือและอุปกรณ์เสริม">โทรศัพท์มือถือและอุปกรณ์เสริม</option>
-                                        <option value="คอมพิวเตอร์และแล็ปท็อป">คอมพิวเตอร์และแล็ปท็อป</option>
-                                        <option value="เครื่องใช้ไฟฟ้าในบ้าน">เครื่องใช้ไฟฟ้าในบ้าน</option>
-                                        <option value="กล้องและอุปกรณ์ถ่ายภาพ">กล้องและอุปกรณ์ถ่ายภาพ</option>
-                                        <option value="เครื่องเสียง">เครื่องเสียง</option>
-                                        <option value="Gaming และอุปกรณ์เกม">Gaming และอุปกรณ์เกม</option>
-                                    </optgroup>
-                                    <optgroup label="💄 ความงามและสุขภาพ">
-                                        <option value="ความงาม">ความงาม</option>
-                                        <option value="สุขภาพ">สุขภาพ</option>
-                                        <option value="ผลิตภัณฑ์ดูแลผิว">ผลิตภัณฑ์ดูแลผิว</option>
-                                    </optgroup>
-                                    <optgroup label="🏠 บ้านและไลฟ์สไตล์">
-                                        <option value="บ้านและสวน">บ้านและสวน</option>
-                                        <option value="เครื่องใช้ในบ้าน">เครื่องใช้ในบ้าน</option>
-                                        <option value="อาหารและเครื่องดื่ม">อาหารและเครื่องดื่ม</option>
-                                        <option value="ของเล่น สินค้างานอดิเรก">ของเล่น สินค้างานอดิเรก</option>
-                                    </optgroup>
-                                    <optgroup label="👶 แม่และเด็ก">
-                                        <option value="แม่และเด็ก">แม่และเด็ก</option>
-                                        <option value="เสื้อผ้าเด็ก">เสื้อผ้าเด็ก</option>
-                                    </optgroup>
-                                    <optgroup label="⚽ กีฬาและกิจกรรม">
-                                        <option value="กีฬาและกิจกรรมกลางแจ้ง">กีฬาและกิจกรรมกลางแจ้ง</option>
-                                        <option value="การเดินทางและกระเป๋าเดินทาง">การเดินทางและกระเป๋าเดินทาง</option>
-                                    </optgroup>
-                                    <optgroup label="🐾 อื่นๆ">
-                                        <option value="สัตว์เลี้ยง">สัตว์เลี้ยง</option>
-                                        <option value="ยานยนต์">ยานยนต์</option>
-                                        <option value="หนังสือและสื่อบันเทิง">หนังสือและสื่อบันเทิง</option>
-                                        <option value="ตั๋วและบัตรกำนัล">ตั๋วและบัตรกำนัล</option>
-                                        <option value="เครื่องเขียนและอุปกรณ์สำนักงาน">เครื่องเขียนและอุปกรณ์สำนักงาน</option>
-                                        <option value="อื่นๆ">อื่นๆ</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>รูปภาพ URL</label>
-                                <input type="text" id="productImage" placeholder="https://... หรือวาง URL รูปภาพ" />
-                            </div>
-                            <div class="image-preview" id="imagePreview">
-                                <span class="placeholder">🖼️</span>
-                            </div>
-                            <div class="form-group">
-                                <label>คำอธิบาย</label>
-                                <textarea id="productDescription" placeholder="รายละเอียดสินค้าเพิ่มเติม..."></textarea>
-                            </div>
-                            <input type="hidden" id="editProductId" value="">
-                            <div style="display: flex; gap: 10px;">
-                                <button type="submit" class="btn btn-primary" id="submitBtn" style="flex: 1;">
-                                    🛒 เพิ่มสินค้า
-                                </button>
-                                <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display: none; padding: 0 16px;">
-                                    ยกเลิก
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ========== TAB: PRODUCTS LIST ========== -->
+                        <!-- ========== TAB: MANAGE PRODUCTS (Merged) ========== -->
             <div class="tab-panel" id="tab-products">
-                <div class="tab-header">
-                    <h2>📦 รายการสินค้า</h2>
-                    <p>จัดการ ค้นหา และแก้ไขสินค้าทั้งหมด</p>
+                <div class="manage-products-header">
+                    <div class="tab-header" style="margin-bottom:0;">
+                        <h2>📦 ชัดการสินค้า</h2>
+                        <p>ชัดการ แก้ไข แหละเพิ่มสินค้าใหม่ในหน้าเดียว</p>
+                    </div>
+                    <button class="btn btn-primary" id="toggleFormBtn" onclick="toggleProductForm()" style="width:auto; padding: 10px 20px;">
+                        ➚ เพิ่มสินค้าใหม่
+                    </button>
                 </div>
+
+                <div id="productFormCollapsible" class="collapsible-form">
+                    <div class="panel-title" id="formTitle">➚ เพิ่มสินค้าใหม่</div>
+                    <div class="link-input-area">
+                        <div style="font-size:24px;margin-bottom:8px;">🔗</div>
+                        <input type="text" id="affiliateUrl" placeholder="วาง Shopee Affiliate Link ที่นี่..." />
+                        <p class="hint">เช่น https://s.shopee.co.th/xxxxx หรือ https://affiliate.shopee.co.th/...</p>
+                    </div>
+                    <form id="productForm">
+                        <div class="form-group">
+                            <label>ชื่อสินค้า *</label>
+                            <input type="text" id="productTitle" placeholder="เช่น หูฟังไร้สาย Bluetooth 5.0" required />
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label>ราคา (B) *</label>
+                                <input type="number" id="productPrice" placeholder="299" required />
+                            </div>
+                            <div class="form-group">
+                                <label>ราคาเต็ม (B)</label>
+                                <input type="number" id="productOriginalPrice" placeholder="599" />
+                            </div>
+                            <div class="form-group">
+                                <label>ส่วนลด (%)</label>
+                                <input type="number" id="productDiscount" placeholder="50" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>หมวดหมู่</label>
+                            <select id="productCategory">
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>รูปภาพ URL</label>
+                            <input type="text" id="productImage" placeholder="https://... หรือ วาง URL รูปภาพ" />
+                        </div>
+                        <div class="image-preview" id="imagePreview">
+                            <span class="placeholder">🖼</span>
+                        </div>
+                        <div class="form-group">
+                            <label>คำอธิบาย</label>
+                            <textarea id="productDescription" placeholder="รายละเอียดสินค้าเพิ่มเติม..."></textarea>
+                        </div>
+                        <input type="hidden" id="editProductId" value="">
+                        <div class="form-actions-sticky">
+                            <button type="submit" class="btn btn-primary" id="submitBtn" style="flex: 2;">
+                                🛒 เพิ่มสินค้าใหม่
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="cancelEditBtn" onclick="toggleProductForm(false)" style="flex: 1;">
+                                ยกเลิก
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
                 <div class="stats-bar">
                     <div class="stat-card">
                         <div class="num" id="totalProducts2">0</div>
@@ -459,6 +411,33 @@
                         <div class="label">หมวดหมู่</div>
                     </div>
                 </div>
+                <div class="panel">
+                    <div class="filter-controls">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <input type="text" id="adminSearch" placeholder="🔍 ค้นหาชื่อสินค้า หรือรายละเอียด..." />
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <select id="adminCategoryFilter">
+                                <option value="ทั้งหมด">📁 ทั้งหมด</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="bulk-actions-bar" id="bulkActionsBar">
+                        <div style="font-size: 14px; font-weight: 500;">เลืสกอยู่ <span id="selectedCount" style="color: var(--accent); font-weight: 700;">0</span> รายการ</div>
+                        <button class="btn-danger" onclick="bulkDelete()" style="padding: 8px 16px; font-size: 13px;">🗑 ลบที่เลืสก</button>
+                    </div>
+                    <div class="select-all-row">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
+                        <label for="selectAll" style="cursor: pointer;">เลืสกทั้งหมด</label>
+                    </div>
+                    <div class="product-list" id="productList">
+                        <div class="empty-list">
+                            <div class="icon">📣</div>
+                            <p>ยังไม่มีสินค้า — เพิ่มสินค้าแรกได้เลย!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
                 <div class="panel">
                     <div class="filter-controls">
                         <div class="form-group" style="margin-bottom: 0;">
@@ -1087,12 +1066,41 @@
             }, 500); // Debounce 500ms
         });
 
+                // === Toggle Product Form ===
+        function toggleProductForm(show) {
+            const container = document.getElementById('productFormCollapsible');
+            const toggleBtn = document.getElementById('toggleFormBtn');
+            const editId = document.getElementById('editProductId').value;
+            
+            if (show === undefined) show = !container.classList.contains('open');
+
+            if (show) {
+                container.classList.add('open');
+                toggleBtn.innerHTML = '❌ ปิดฟอร์ม';
+                toggleBtn.classList.replace('btn-primary', 'btn-secondary');
+            } else {
+                container.classList.remove('open');
+                toggleBtn.innerHTML = '➚ เพิ่มสินค้าใหม่';
+                toggleBtn.classList.replace('btn-secondary', 'btn-primary');
+                if (editId) resetProductForm();
+            }
+        }
+
+        function resetProductForm() {
+            document.getElementById('productForm').reset();
+            document.getElementById('editProductId').value = '';
+            document.getElementById('submitBtn').innerHTML = '🛒 เพิ่มสินค้า';
+            document.getElementById('formTitle').innerHTML = '➚ เพิ่มสินค้าใหม่';
+            document.getElementById('imagePreview').innerHTML = '<span class="placeholder">' + U("\ud83d\uddbc") + '</span>';
+        }
+
         // === Add/Edit product ===
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
+            const editId = document.getElementById('editProductId').value;
             btn.disabled = true;
-            btn.textContent = '⏳ กำลังเพิ่ม...';
+            btn.textContent = '⏳ กำลังบันทึก...';
 
             const title = document.getElementById('productTitle').value.trim();
             const price = document.getElementById('productPrice').value;
@@ -1102,7 +1110,6 @@
             const image = document.getElementById('productImage').value;
             const affiliateUrl = document.getElementById('affiliateUrl').value;
             const description = document.getElementById('productDescription').value;
-            const editId = document.getElementById('editProductId').value;
 
             if (!affiliateUrl) {
                 alert('กรุณาใส่ Shopee Affiliate Link ก่อนเพิ่มสินค้า');
@@ -1115,7 +1122,7 @@
                 title, price, originalPrice, discount, category, image, affiliateUrl, description
             };
 
-            const url = editId ? `/api/products/${editId}` : '/api/products';
+            const url = editId ? /api/products/\ : '/api/products';
             const method = editId ? 'PUT' : 'POST';
 
             try {
@@ -1126,14 +1133,11 @@
                 const data = await res.json();
                 if (data.success) {
                     showToast(editId ? '✅ แก้ไขสินค้าสำเร็จ!' : '✅ เพิ่มสินค้าสำเร็จ!');
-                    document.getElementById('productForm').reset();
-                    document.getElementById('editProductId').value = '';
-                    document.getElementById('submitBtn').innerHTML = '🛒 เพิ่มสินค้า';
-                    document.getElementById('cancelEditBtn').style.display = 'none';
-                    document.getElementById('imagePreview').innerHTML = '<span class="placeholder">🖼️</span>';
+                    resetProductForm();
+                    toggleProductForm(false);
                     await loadProducts();
                 } else {
-                    showToast('❌ เกิดข้อผิดพลาด');
+                    showToast('❌ เกิดขโอผิดพลาด');
                 }
             } catch (e) {
                 if (e.message !== 'Unauthorized') {
@@ -1161,23 +1165,14 @@
 
             document.getElementById('editProductId').value = product.id;
             document.getElementById('submitBtn').innerHTML = '💾 บันทึกการแก้ไข';
-            document.getElementById('cancelEditBtn').style.display = 'block';
-
-            // Trigger image preview
+            document.getElementById('formTitle').innerHTML = '📝 แก้ไขสินค้า';
+            
             document.getElementById('productImage').dispatchEvent(new Event('input'));
+            toggleProductForm(true);
 
-            // Scroll to top
+            document.querySelector('.admin-main').scrollTo({ top: 0, behavior: 'smooth' });
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
-        // === Cancel Edit ===
-        document.getElementById('cancelEditBtn').addEventListener('click', () => {
-            document.getElementById('productForm').reset();
-            document.getElementById('editProductId').value = '';
-            document.getElementById('submitBtn').innerHTML = '🛒 เพิ่มสินค้า';
-            document.getElementById('cancelEditBtn').style.display = 'none';
-            document.getElementById('imagePreview').innerHTML = '<span class="placeholder">🖼️</span>';
-        });
 
         // === Delete product ===
         async function deleteProduct(id) {
