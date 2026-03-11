@@ -915,6 +915,112 @@ body {
   box-shadow: 0 0 20px #00ffcc;
 }
 
+/* 4. Sweet Pastel — Soft & Cute */
+.theme-pastel .card {
+  --card-bg: #fff0f5;
+  --card-text: #594a4e;
+  --card-border: #f8cdda;
+  --card-shadow: 0 8px 24px rgba(248, 205, 218, 0.3);
+  --card-hover-bg: #ffe4e1;
+  --card-hover-border: #ffb6c1;
+  --card-hover-shadow: 0 15px 35px rgba(255, 182, 193, 0.4);
+}
+.theme-pastel .card .card-price {
+  background: linear-gradient(135deg, #ff758c, #ff7eb3);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.theme-pastel .card .shopee-btn {
+  background: linear-gradient(135deg, #ff758c, #ff7eb3) !important;
+  box-shadow: 0 4px 14px rgba(255, 117, 140, 0.3) !important;
+}
+.theme-pastel .card .shopee-btn:hover {
+  background: linear-gradient(135deg, #ff7eb3, #ff758c) !important;
+  box-shadow: 0 6px 20px rgba(255, 117, 140, 0.5) !important;
+}
+
+/* 5. Deep Ocean — Cool & Fresh */
+.theme-ocean .card {
+  --card-bg: #e0f7fa;
+  --card-text: #004d40;
+  --card-border: #b2ebf2;
+  --card-shadow: 0 8px 24px rgba(0, 150, 136, 0.15);
+  --card-hover-bg: #e0f2f1;
+  --card-hover-border: #4db6ac;
+  --card-hover-shadow: 0 15px 35px rgba(0, 150, 136, 0.25);
+}
+.theme-ocean .card .card-price {
+  background: linear-gradient(135deg, #00838f, #00bcd4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.theme-ocean .card .shopee-btn {
+  background: linear-gradient(135deg, #009688, #4db6ac) !important;
+  box-shadow: 0 4px 14px rgba(0, 150, 136, 0.3) !important;
+}
+.theme-ocean .card .shopee-btn:hover {
+  background: linear-gradient(135deg, #4db6ac, #009688) !important;
+  box-shadow: 0 6px 20px rgba(0, 150, 136, 0.5) !important;
+}
+
+/* 6. Sunset Vibes — Warm & Energetic */
+.theme-sunset .card {
+  --card-bg: #fff5e6;
+  --card-text: #4a2511;
+  --card-border: #ffe0b2;
+  --card-shadow: 0 8px 24px rgba(255, 152, 0, 0.15);
+  --card-hover-bg: #fff0e0;
+  --card-hover-border: #ffb74d;
+  --card-hover-shadow: 0 15px 35px rgba(255, 152, 0, 0.3);
+}
+.theme-sunset .card .card-price {
+  background: linear-gradient(135deg, #e65100, #ff9800);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.theme-sunset .card .shopee-btn {
+  background: linear-gradient(135deg, #ff5722, #ff9800) !important;
+  box-shadow: 0 4px 14px rgba(255, 87, 34, 0.3) !important;
+}
+.theme-sunset .card .shopee-btn:hover {
+  background: linear-gradient(135deg, #ff9800, #ff5722) !important;
+  box-shadow: 0 6px 20px rgba(255, 87, 34, 0.5) !important;
+}
+
+/* 7. Pure Minimal — Clean & Elegant */
+.theme-minimal .card {
+  --card-bg: #ffffff;
+  --card-text: #333333;
+  --card-border: transparent;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --card-hover-bg: #fafafa;
+  --card-hover-border: rgba(0, 0, 0, 0.08);
+  --card-hover-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+.theme-minimal .card .card-body {
+  background: transparent;
+  border-top: none;
+}
+.theme-minimal .card .card-price {
+  color: #111;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: initial;
+}
+.theme-minimal .card .shopee-btn {
+  background: #111 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+.theme-minimal .card .shopee-btn:hover {
+  background: #333 !important;
+  transform: translateY(-2px);
+}
+
 .card:hover::after {
   opacity: 1;
 }
