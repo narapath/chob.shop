@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 
 <head>
@@ -273,7 +273,7 @@
                     <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
                 </div>
                 <div class="nav-item" data-tab="products" onclick="switchTab('products')">
-                    <span class="nav-icon">📦</span><span class="nav-label">ชัดการสินค้า</span>
+                    <span class="nav-icon">📦</span><span class="nav-label">จัดการสินค้า</span>
                 </div>
                 <div class="nav-divider"></div>
                 <div class="nav-item" data-tab="csv-import" onclick="switchTab('csv-import')">
@@ -338,8 +338,8 @@
             <div class="tab-panel" id="tab-products">
                 <div class="manage-products-header">
                     <div class="tab-header" style="margin-bottom:0;">
-                        <h2>📦 ชัดการสินค้า</h2>
-                        <p>ชัดการ แก้ไข แหละเพิ่มสินค้าใหม่ในหน้าเดียว</p>
+                        <h2>📦 จัดการสินค้า</h2>
+                        <p>จัดการ แก้ไข และเพิ่มสินค้าใหม่ในหน้าเดียว</p>
                     </div>
                     <button class="btn btn-primary" id="toggleFormBtn" onclick="toggleProductForm()" style="width:auto; padding: 10px 20px;">
                         ➚ เพิ่มสินค้าใหม่
@@ -438,33 +438,7 @@
                     </div>
                 </div>
             </div>
-                <div class="panel">
-                    <div class="filter-controls">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <input type="text" id="adminSearch" placeholder="🔍 ค้นหาชื่อสินค้า หรือรายละเอียด..." />
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <select id="adminCategoryFilter">
-                                <option value="ทั้งหมด">📁 ทั้งหมด</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="bulk-actions-bar" id="bulkActionsBar">
-                        <div style="font-size: 14px; font-weight: 500;">เลือกอยู่ <span id="selectedCount" style="color: var(--accent); font-weight: 700;">0</span> รายการ</div>
-                        <button class="btn-danger" onclick="bulkDelete()" style="padding: 8px 16px; font-size: 13px;">🗑 ลบที่เลือก</button>
-                    </div>
-                    <div class="select-all-row">
-                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
-                        <label for="selectAll" style="cursor: pointer;">เลือกทั้งหมด</label>
-                    </div>
-                    <div class="product-list" id="productList">
-                        <div class="empty-list">
-                            <div class="icon">📭</div>
-                            <p>ยังไม่มีสินค้า — เพิ่มสินค้าแรกได้เลย!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
             <!-- ========== TAB: CSV IMPORT ========== -->
             <div class="tab-panel" id="tab-csv-import">
@@ -1091,7 +1065,7 @@
             document.getElementById('editProductId').value = '';
             document.getElementById('submitBtn').innerHTML = '🛒 เพิ่มสินค้า';
             document.getElementById('formTitle').innerHTML = '➚ เพิ่มสินค้าใหม่';
-            document.getElementById('imagePreview').innerHTML = '<span class="placeholder">' + U("\ud83d\uddbc") + '</span>';
+            document.getElementById('imagePreview').innerHTML = '<span class="placeholder">' + "\ud83d\uddbc" + '</span>';
         }
 
         // === Add/Edit product ===
@@ -1122,7 +1096,7 @@
                 title, price, originalPrice, discount, category, image, affiliateUrl, description
             };
 
-            const url = editId ? /api/products/\ : '/api/products';
+            const url = editId ? `/api/products/${editId}` : '/api/products';
             const method = editId ? 'PUT' : 'POST';
 
             try {
