@@ -442,13 +442,14 @@ app.get('/api/settings', requireAuth, (req, res) => {
     THREADS_ACCESS_TOKEN: formatOutput(process.env.THREADS_ACCESS_TOKEN),
     GEMINI_API_KEY: formatOutput(process.env.GEMINI_API_KEY),
     SUPABASE_URL: formatOutput(process.env.SUPABASE_URL),
-    SUPABASE_KEY: formatOutput(process.env.SUPABASE_KEY)
+    SUPABASE_KEY: formatOutput(process.env.SUPABASE_KEY),
+    CARD_THEME: process.env.CARD_THEME || 'theme-white'
   });
 });
 
 app.put('/api/settings', requireAuth, (req, res) => {
   try {
-    const allowedKeys = ['FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN', 'GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_KEY'];
+    const allowedKeys = ['FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN', 'GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_KEY', 'CARD_THEME'];
     const updates = req.body;
 
     const SECRET_MARKER = '●●●●●●●●';

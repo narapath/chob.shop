@@ -822,18 +822,27 @@ body {
 }
 
 .card {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 20px;
+  --card-bg: #ffffff;
+  --card-text: inherit;
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --card-hover-bg: #fff9f9;
+  --card-hover-border: rgba(233, 69, 96, 0.4);
+  --card-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 0 25px rgba(233, 69, 96, 0.2);
+  --card-radius: 20px;
+
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
   overflow: hidden;
   text-decoration: none;
-  color: inherit;
+  color: var(--card-text);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: flex;
   flex-direction: column;
   position: relative;
   height: 100%;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--card-shadow);
 }
 
 .card::after {
@@ -849,9 +858,61 @@ body {
 
 .card:hover {
   transform: translateY(-8px);
-  border-color: rgba(233, 69, 96, 0.4);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 0 25px rgba(233, 69, 96, 0.2);
-  background: #fff9f9;
+  border-color: var(--card-hover-border);
+  box-shadow: var(--card-hover-shadow);
+  background: var(--card-hover-bg);
+}
+
+/* ===== THEME DEFINITIONS ===== */
+
+/* 1. Midnight Noir — Premium Dark */
+.theme-dark .card {
+  --card-bg: #1a1a2e;
+  --card-text: #e0e0e0;
+  --card-border: rgba(255, 255, 255, 0.05);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --card-hover-bg: #16213e;
+  --card-hover-border: rgba(233, 69, 96, 0.6);
+  --card-hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(233, 69, 96, 0.3);
+}
+
+/* 2. Modern Glass — Glassmorphism */
+.theme-glass .card {
+  --card-bg: rgba(255, 255, 255, 0.1);
+  --card-text: #ffffff;
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  --card-hover-bg: rgba(255, 255, 255, 0.15);
+  --card-hover-border: rgba(233, 69, 96, 0.5);
+  --card-hover-shadow: 0 15px 45px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.theme-glass .card .info h4 { color: #fff !important; }
+.theme-glass .card .shopee-btn { background: rgba(233, 69, 96, 0.8) !important; }
+
+/* 3. Cyber Neon — Gaming Style */
+.theme-neon .card {
+  --card-bg: #0d0d0d;
+  --card-text: #00ffcc;
+  --card-border: #00ffcc33;
+  --card-shadow: 0 0 10px rgba(0, 255, 204, 0.1);
+  --card-hover-bg: #000;
+  --card-hover-border: #00ffcc;
+  --card-hover-shadow: 0 0 20px rgba(0, 255, 204, 0.4), 0 0 40px rgba(233, 69, 96, 0.2);
+}
+.theme-neon .card .info h4 { color: #00ffcc !important; text-shadow: 0 0 5px #00ffcc66; }
+.theme-neon .card .price-tag { color: #ff00ff !important; font-weight: 800; }
+.theme-neon .card .shopee-btn { 
+  background: transparent !important; 
+  border: 1px solid #00ffcc !important; 
+  color: #00ffcc !important;
+  box-shadow: inset 0 0 10px #00ffcc33;
+}
+.theme-neon .card .shopee-btn:hover {
+  background: #00ffcc !important;
+  color: #000 !important;
+  box-shadow: 0 0 20px #00ffcc;
 }
 
 .card:hover::after {

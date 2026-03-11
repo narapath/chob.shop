@@ -311,6 +311,23 @@
     let isCatPillsInitialized = false;
     let isLoading = false;
 
+    // --- APPLY THEME ---
+    async function applyTheme() {
+      try {
+        const res = await fetch(`${API_BASE}/api/settings`);
+        const data = await res.json();
+        const theme = data.CARD_THEME || 'theme-white';
+        const grid = document.getElementById('productsGrid');
+        if (grid) {
+          // Remove existing theme classes
+          grid.classList.remove('theme-white', 'theme-dark', 'theme-glass', 'theme-neon');
+          grid.classList.add(theme);
+        }
+      } catch (err) {
+        console.error("Failed to apply theme", err);
+      }
+    }
+
     // --- LOAD CATEGORY COUNTS ---
     async function loadCategoryCounts() {
       try {
@@ -599,6 +616,7 @@
 
     // Load on page ready
     loadCategoryCounts();
+    applyTheme();
     loadProducts(true);
   </script>
 </body>
