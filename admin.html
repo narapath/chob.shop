@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chob.Shop Admin â€” à¸ˆà¸±à¸”à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸²</title>
+    <title>Chob.Shop Admin — จัดการสินค้า</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -222,9 +222,9 @@
     <!-- LOGIN PANEL (Visible by default until authed) -->
     <div id="loginPanel">
         <div class="login-box">
-            <div style="font-size: 48px; margin-bottom: 16px;">ðŸ”</div>
+            <div style="font-size: 48px; margin-bottom: 16px;">🔐</div>
             <h1>Chob.Shop Admin</h1>
-            <p>à¸à¸£à¸¸à¸“à¸²à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸šà¹€à¸žà¸·à¹ˆà¸­à¸ˆà¸±à¸”à¸à¸²à¸£à¸£à¹‰à¸²à¸™à¸„à¹‰à¸²</p>
+            <p>กรุณาเข้าสู่ระบบเพื่อจัดการร้านค้า</p>
 
             <form id="loginForm">
                 <div class="form-group">
@@ -233,13 +233,13 @@
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="loginPass" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required />
+                    <input type="password" id="loginPass" placeholder="••••••••" required />
                 </div>
-                <button type="submit" class="btn btn-primary" id="loginBtn">à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸š</button>
-                <div class="login-error" id="loginError">à¸Šà¸·à¹ˆà¸­à¸œà¸¹à¹‰à¹ƒà¸Šà¹‰à¸«à¸£à¸·à¸­à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¹„à¸¡à¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡</div>
+                <button type="submit" class="btn btn-primary" id="loginBtn">เข้าสู่ระบบ</button>
+                <div class="login-error" id="loginError">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
             </form>
             <div style="margin-top: 20px;">
-                <a href="/" class="back-link" style="justify-content: center;">â† à¸à¸¥à¸±à¸šà¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™</a>
+                <a href="/" class="back-link" style="justify-content: center;">← กลับหน้าร้าน</a>
             </div>
         </div>
     </div>
@@ -250,16 +250,16 @@
         <!-- HEADER -->
         <header class="admin-header">
             <div class="admin-header-left">
-                <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">â˜°</button>
+                <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">☰</button>
                 <div class="admin-brand">
-                    <span class="icon">âš™ï¸</span>
+                    <span class="icon">⚙️</span>
                     <h1>Chob.Shop</h1>
                     <span class="badge">ADMIN</span>
                 </div>
             </div>
             <div class="user-menu">
-                <a href="/" class="back-link">â† à¸à¸¥à¸±à¸šà¸«à¸™à¹‰à¸²à¸£à¹‰à¸²à¸™</a>
-                <button class="btn-secondary" style="padding: 6px 14px; font-size: 12px; width:auto;" onclick="logout()">à¸­à¸­à¸à¸ˆà¸²à¸à¸£à¸°à¸šà¸š</button>
+                <a href="/" class="back-link">← กลับหน้าร้าน</a>
+                <button class="btn-secondary" style="padding: 6px 14px; font-size: 12px; width:auto;" onclick="logout()">ออกจากระบบ</button>
             </div>
         </header>
 
@@ -270,24 +270,24 @@
         <nav class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-nav">
                 <div class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
-                    <span class="nav-icon">ðŸ“Š</span><span class="nav-label">Dashboard</span>
+                    <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
                 </div>
                 <div class="nav-item" data-tab="add-product" onclick="switchTab('add-product')">
-                    <span class="nav-icon">âž•</span><span class="nav-label">à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²</span>
+                    <span class="nav-icon">➕</span><span class="nav-label">เพิ่มสินค้า</span>
                 </div>
                 <div class="nav-item" data-tab="products" onclick="switchTab('products')">
-                    <span class="nav-icon">ðŸ“¦</span><span class="nav-label">à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸²</span>
+                    <span class="nav-icon">📦</span><span class="nav-label">รายการสินค้า</span>
                 </div>
                 <div class="nav-divider"></div>
                 <div class="nav-item" data-tab="csv-import" onclick="switchTab('csv-import')">
-                    <span class="nav-icon">ðŸ“</span><span class="nav-label">à¸™à¸³à¹€à¸‚à¹‰à¸² CSV</span>
+                    <span class="nav-icon">📁</span><span class="nav-label">นำเข้า CSV</span>
                 </div>
                 <div class="nav-item" data-tab="backup" onclick="switchTab('backup')">
-                    <span class="nav-icon">ðŸ’¾</span><span class="nav-label">Backup & Restore</span>
+                    <span class="nav-icon">💾</span><span class="nav-label">Backup & Restore</span>
                 </div>
                 <div class="nav-divider"></div>
                 <div class="nav-item" data-tab="settings" onclick="switchTab('settings')">
-                    <span class="nav-icon">âš™ï¸</span><span class="nav-label">à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²</span>
+                    <span class="nav-icon">⚙️</span><span class="nav-label">ตั้งค่า</span>
                 </div>
             </div>
         </nav>
@@ -298,41 +298,41 @@
             <!-- ========== TAB: DASHBOARD ========== -->
             <div class="tab-panel active" id="tab-dashboard">
                 <div class="tab-header">
-                    <h2>ðŸ“Š Dashboard</h2>
-                    <p>à¸ à¸²à¸žà¸£à¸§à¸¡à¸£à¹‰à¸²à¸™à¸„à¹‰à¸²à¸‚à¸­à¸‡à¸„à¸¸à¸“</p>
+                    <h2>📊 Dashboard</h2>
+                    <p>ภาพรวมร้านค้าของคุณ</p>
                 </div>
                 <div class="dash-stats">
                     <div class="dash-card">
-                        <div class="card-icon">ðŸ“¦</div>
+                        <div class="card-icon">📦</div>
                         <div class="card-num gradient" id="totalProducts">0</div>
-                        <div class="card-label">à¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</div>
+                        <div class="card-label">สินค้าทั้งหมด</div>
                     </div>
                     <div class="dash-card">
-                        <div class="card-icon">ðŸ“‚</div>
+                        <div class="card-icon">📂</div>
                         <div class="card-num gradient" id="totalCategories">0</div>
-                        <div class="card-label">à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ</div>
+                        <div class="card-label">หมวดหมู่</div>
                     </div>
                     <div class="dash-card">
-                        <div class="card-icon">ðŸ‘ï¸</div>
+                        <div class="card-icon">👁️</div>
                         <div class="card-num gradient" id="totalClicks">0</div>
-                        <div class="card-label">à¸„à¸¥à¸´à¸à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</div>
+                        <div class="card-label">คลิกทั้งหมด</div>
                     </div>
                     <div class="dash-card">
-                        <div class="card-icon">ðŸ·ï¸</div>
+                        <div class="card-icon">🏷️</div>
                         <div class="card-num gradient" id="avgDiscount">0%</div>
-                        <div class="card-label">à¸ªà¹ˆà¸§à¸™à¸¥à¸”à¹€à¸‰à¸¥à¸µà¹ˆà¸¢</div>
+                        <div class="card-label">ส่วนลดเฉลี่ย</div>
                     </div>
                 </div>
                 <div class="dash-section">
-                    <h3>ðŸ”¥ Top 5 à¸ªà¸´à¸™à¸„à¹‰à¸²à¸¢à¸­à¸”à¸„à¸¥à¸´à¸</h3>
+                    <h3>🔥 Top 5 สินค้ายอดคลิก</h3>
                     <div id="topClicksList" class="product-list" style="gap:8px;">
-                        <div class="empty-list"><div class="icon">ðŸ“Š</div><p>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸‚à¹‰à¸­à¸¡à¸¹à¸¥</p></div>
+                        <div class="empty-list"><div class="icon">📊</div><p>ยังไม่มีข้อมูล</p></div>
                     </div>
                 </div>
                 <div class="dash-section">
-                    <h3>ðŸ• à¸ªà¸´à¸™à¸„à¹‰à¸²à¹€à¸žà¸´à¹ˆà¸¡à¸¥à¹ˆà¸²à¸ªà¸¸à¸”</h3>
+                    <h3>🕐 สินค้าเพิ่มล่าสุด</h3>
                     <div id="recentProductsList" class="product-list" style="gap:8px;">
-                        <div class="empty-list"><div class="icon">ðŸ“Š</div><p>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸‚à¹‰à¸­à¸¡à¸¹à¸¥</p></div>
+                        <div class="empty-list"><div class="icon">📊</div><p>ยังไม่มีข้อมูล</p></div>
                     </div>
                 </div>
             </div>
@@ -340,102 +340,102 @@
             <!-- ========== TAB: ADD PRODUCT ========== -->
             <div class="tab-panel" id="tab-add-product">
                 <div class="tab-header">
-                    <h2>âž• à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²à¹ƒà¸«à¸¡à¹ˆ</h2>
-                    <p>à¸à¸£à¸­à¸à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸´à¸™à¸„à¹‰à¸²à¸«à¸£à¸·à¸­à¸§à¸²à¸‡ Shopee Affiliate Link</p>
+                    <h2>➕ เพิ่มสินค้าใหม่</h2>
+                    <p>กรอกข้อมูลสินค้าหรือวาง Shopee Affiliate Link</p>
                 </div>
                 <div style="max-width: 700px;">
                     <div class="panel">
                         <div class="link-input-area">
-                            <div style="font-size:24px;margin-bottom:8px;">ðŸ”—</div>
-                            <input type="text" id="affiliateUrl" placeholder="à¸§à¸²à¸‡ Shopee Affiliate Link à¸—à¸µà¹ˆà¸™à¸µà¹ˆ..." />
-                            <p class="hint">à¹€à¸Šà¹ˆà¸™ https://s.shopee.co.th/xxxxx à¸«à¸£à¸·à¸­ https://affiliate.shopee.co.th/...</p>
+                            <div style="font-size:24px;margin-bottom:8px;">🔗</div>
+                            <input type="text" id="affiliateUrl" placeholder="วาง Shopee Affiliate Link ที่นี่..." />
+                            <p class="hint">เช่น https://s.shopee.co.th/xxxxx หรือ https://affiliate.shopee.co.th/...</p>
                         </div>
                         <form id="productForm">
                             <div class="form-group">
-                                <label>à¸Šà¸·à¹ˆà¸­à¸ªà¸´à¸™à¸„à¹‰à¸² *</label>
-                                <input type="text" id="productTitle" placeholder="à¹€à¸Šà¹ˆà¸™ à¸«à¸¹à¸Ÿà¸±à¸‡à¹„à¸£à¹‰à¸ªà¸²à¸¢ Bluetooth 5.0" required />
+                                <label>ชื่อสินค้า *</label>
+                                <input type="text" id="productTitle" placeholder="เช่น หูฟังไร้สาย Bluetooth 5.0" required />
                             </div>
                             <div class="form-grid-3">
                                 <div class="form-group">
-                                    <label>à¸£à¸²à¸„à¸² (à¸¿) *</label>
+                                    <label>ราคา (฿) *</label>
                                     <input type="number" id="productPrice" placeholder="299" required />
                                 </div>
                                 <div class="form-group">
-                                    <label>à¸£à¸²à¸„à¸²à¹€à¸•à¹‡à¸¡ (à¸¿)</label>
+                                    <label>ราคาเต็ม (฿)</label>
                                     <input type="number" id="productOriginalPrice" placeholder="599" />
                                 </div>
                                 <div class="form-group">
-                                    <label>à¸ªà¹ˆà¸§à¸™à¸¥à¸” (%)</label>
+                                    <label>ส่วนลด (%)</label>
                                     <input type="number" id="productDiscount" placeholder="50" />
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label>à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ</label>
+                                <label>หมวดหมู่</label>
                                 <select id="productCategory">
-                                    <optgroup label="ðŸ‘— à¹à¸Ÿà¸Šà¸±à¹ˆà¸™à¹à¸¥à¸°à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹à¸•à¹ˆà¸‡à¸à¸²à¸¢">
-                                        <option value="à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡">à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡</option>
-                                        <option value="à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸œà¸¹à¹‰à¸Šà¸²à¸¢">à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸œà¸¹à¹‰à¸Šà¸²à¸¢</option>
-                                        <option value="à¸à¸£à¸°à¹€à¸›à¹‹à¸²">à¸à¸£à¸°à¹€à¸›à¹‹à¸²</option>
-                                        <option value="à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡">à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡</option>
-                                        <option value="à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸œà¸¹à¹‰à¸Šà¸²à¸¢">à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸œà¸¹à¹‰à¸Šà¸²à¸¢</option>
-                                        <option value="à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸›à¸£à¸°à¸”à¸±à¸š">à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸›à¸£à¸°à¸”à¸±à¸š</option>
-                                        <option value="à¸™à¸²à¸¬à¸´à¸à¸²à¹à¸¥à¸°à¹à¸§à¹ˆà¸™à¸•à¸²">à¸™à¸²à¸¬à¸´à¸à¸²à¹à¸¥à¸°à¹à¸§à¹ˆà¸™à¸•à¸²</option>
+                                    <optgroup label="👗 แฟชั่นและเครื่องแต่งกาย">
+                                        <option value="เสื้อผ้าผู้หญิง">เสื้อผ้าผู้หญิง</option>
+                                        <option value="เสื้อผ้าผู้ชาย">เสื้อผ้าผู้ชาย</option>
+                                        <option value="กระเป๋า">กระเป๋า</option>
+                                        <option value="รองเท้าผู้หญิง">รองเท้าผู้หญิง</option>
+                                        <option value="รองเท้าผู้ชาย">รองเท้าผู้ชาย</option>
+                                        <option value="เครื่องประดับ">เครื่องประดับ</option>
+                                        <option value="นาฬิกาและแว่นตา">นาฬิกาและแว่นตา</option>
                                     </optgroup>
-                                    <optgroup label="ðŸ“± à¸­à¸´à¹€à¸¥à¹‡à¸à¸—à¸£à¸­à¸™à¸´à¸à¸ªà¹Œ">
-                                        <option value="à¹‚à¸—à¸£à¸¨à¸±à¸žà¸—à¹Œà¸¡à¸·à¸­à¸–à¸·à¸­à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸ªà¸£à¸´à¸¡">à¹‚à¸—à¸£à¸¨à¸±à¸žà¸—à¹Œà¸¡à¸·à¸­à¸–à¸·à¸­à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸ªà¸£à¸´à¸¡</option>
-                                        <option value="à¸„à¸­à¸¡à¸žà¸´à¸§à¹€à¸•à¸­à¸£à¹Œà¹à¸¥à¸°à¹à¸¥à¹‡à¸›à¸—à¹‡à¸­à¸›">à¸„à¸­à¸¡à¸žà¸´à¸§à¹€à¸•à¸­à¸£à¹Œà¹à¸¥à¸°à¹à¸¥à¹‡à¸›à¸—à¹‡à¸­à¸›</option>
-                                        <option value="à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹ƒà¸Šà¹‰à¹„à¸Ÿà¸Ÿà¹‰à¸²à¹ƒà¸™à¸šà¹‰à¸²à¸™">à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹ƒà¸Šà¹‰à¹„à¸Ÿà¸Ÿà¹‰à¸²à¹ƒà¸™à¸šà¹‰à¸²à¸™</option>
-                                        <option value="à¸à¸¥à¹‰à¸­à¸‡à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸–à¹ˆà¸²à¸¢à¸ à¸²à¸ž">à¸à¸¥à¹‰à¸­à¸‡à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸–à¹ˆà¸²à¸¢à¸ à¸²à¸ž</option>
-                                        <option value="à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹€à¸ªà¸µà¸¢à¸‡">à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹€à¸ªà¸µà¸¢à¸‡</option>
-                                        <option value="Gaming à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸à¸¡">Gaming à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸à¸¡</option>
+                                    <optgroup label="📱 อิเล็กทรอนิกส์">
+                                        <option value="โทรศัพท์มือถือและอุปกรณ์เสริม">โทรศัพท์มือถือและอุปกรณ์เสริม</option>
+                                        <option value="คอมพิวเตอร์และแล็ปท็อป">คอมพิวเตอร์และแล็ปท็อป</option>
+                                        <option value="เครื่องใช้ไฟฟ้าในบ้าน">เครื่องใช้ไฟฟ้าในบ้าน</option>
+                                        <option value="กล้องและอุปกรณ์ถ่ายภาพ">กล้องและอุปกรณ์ถ่ายภาพ</option>
+                                        <option value="เครื่องเสียง">เครื่องเสียง</option>
+                                        <option value="Gaming และอุปกรณ์เกม">Gaming และอุปกรณ์เกม</option>
                                     </optgroup>
-                                    <optgroup label="ðŸ’„ à¸„à¸§à¸²à¸¡à¸‡à¸²à¸¡à¹à¸¥à¸°à¸ªà¸¸à¸‚à¸ à¸²à¸ž">
-                                        <option value="à¸„à¸§à¸²à¸¡à¸‡à¸²à¸¡">à¸„à¸§à¸²à¸¡à¸‡à¸²à¸¡</option>
-                                        <option value="à¸ªà¸¸à¸‚à¸ à¸²à¸ž">à¸ªà¸¸à¸‚à¸ à¸²à¸ž</option>
-                                        <option value="à¸œà¸¥à¸´à¸•à¸ à¸±à¸“à¸‘à¹Œà¸”à¸¹à¹à¸¥à¸œà¸´à¸§">à¸œà¸¥à¸´à¸•à¸ à¸±à¸“à¸‘à¹Œà¸”à¸¹à¹à¸¥à¸œà¸´à¸§</option>
+                                    <optgroup label="💄 ความงามและสุขภาพ">
+                                        <option value="ความงาม">ความงาม</option>
+                                        <option value="สุขภาพ">สุขภาพ</option>
+                                        <option value="ผลิตภัณฑ์ดูแลผิว">ผลิตภัณฑ์ดูแลผิว</option>
                                     </optgroup>
-                                    <optgroup label="ðŸ  à¸šà¹‰à¸²à¸™à¹à¸¥à¸°à¹„à¸¥à¸Ÿà¹Œà¸ªà¹„à¸•à¸¥à¹Œ">
-                                        <option value="à¸šà¹‰à¸²à¸™à¹à¸¥à¸°à¸ªà¸§à¸™">à¸šà¹‰à¸²à¸™à¹à¸¥à¸°à¸ªà¸§à¸™</option>
-                                        <option value="à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹ƒà¸Šà¹‰à¹ƒà¸™à¸šà¹‰à¸²à¸™">à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹ƒà¸Šà¹‰à¹ƒà¸™à¸šà¹‰à¸²à¸™</option>
-                                        <option value="à¸­à¸²à¸«à¸²à¸£à¹à¸¥à¸°à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸”à¸·à¹ˆà¸¡">à¸­à¸²à¸«à¸²à¸£à¹à¸¥à¸°à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸”à¸·à¹ˆà¸¡</option>
-                                        <option value="à¸‚à¸­à¸‡à¹€à¸¥à¹ˆà¸™ à¸ªà¸´à¸™à¸„à¹‰à¸²à¸‡à¸²à¸™à¸­à¸”à¸´à¹€à¸£à¸">à¸‚à¸­à¸‡à¹€à¸¥à¹ˆà¸™ à¸ªà¸´à¸™à¸„à¹‰à¸²à¸‡à¸²à¸™à¸­à¸”à¸´à¹€à¸£à¸</option>
+                                    <optgroup label="🏠 บ้านและไลฟ์สไตล์">
+                                        <option value="บ้านและสวน">บ้านและสวน</option>
+                                        <option value="เครื่องใช้ในบ้าน">เครื่องใช้ในบ้าน</option>
+                                        <option value="อาหารและเครื่องดื่ม">อาหารและเครื่องดื่ม</option>
+                                        <option value="ของเล่น สินค้างานอดิเรก">ของเล่น สินค้างานอดิเรก</option>
                                     </optgroup>
-                                    <optgroup label="ðŸ‘¶ à¹à¸¡à¹ˆà¹à¸¥à¸°à¹€à¸”à¹‡à¸">
-                                        <option value="à¹à¸¡à¹ˆà¹à¸¥à¸°à¹€à¸”à¹‡à¸">à¹à¸¡à¹ˆà¹à¸¥à¸°à¹€à¸”à¹‡à¸</option>
-                                        <option value="à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¹€à¸”à¹‡à¸">à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¹€à¸”à¹‡à¸</option>
+                                    <optgroup label="👶 แม่และเด็ก">
+                                        <option value="แม่และเด็ก">แม่และเด็ก</option>
+                                        <option value="เสื้อผ้าเด็ก">เสื้อผ้าเด็ก</option>
                                     </optgroup>
-                                    <optgroup label="âš½ à¸à¸µà¸¬à¸²à¹à¸¥à¸°à¸à¸´à¸ˆà¸à¸£à¸£à¸¡">
-                                        <option value="à¸à¸µà¸¬à¸²à¹à¸¥à¸°à¸à¸´à¸ˆà¸à¸£à¸£à¸¡à¸à¸¥à¸²à¸‡à¹à¸ˆà¹‰à¸‡">à¸à¸µà¸¬à¸²à¹à¸¥à¸°à¸à¸´à¸ˆà¸à¸£à¸£à¸¡à¸à¸¥à¸²à¸‡à¹à¸ˆà¹‰à¸‡</option>
-                                        <option value="à¸à¸²à¸£à¹€à¸”à¸´à¸™à¸—à¸²à¸‡à¹à¸¥à¸°à¸à¸£à¸°à¹€à¸›à¹‹à¸²à¹€à¸”à¸´à¸™à¸—à¸²à¸‡">à¸à¸²à¸£à¹€à¸”à¸´à¸™à¸—à¸²à¸‡à¹à¸¥à¸°à¸à¸£à¸°à¹€à¸›à¹‹à¸²à¹€à¸”à¸´à¸™à¸—à¸²à¸‡</option>
+                                    <optgroup label="⚽ กีฬาและกิจกรรม">
+                                        <option value="กีฬาและกิจกรรมกลางแจ้ง">กีฬาและกิจกรรมกลางแจ้ง</option>
+                                        <option value="การเดินทางและกระเป๋าเดินทาง">การเดินทางและกระเป๋าเดินทาง</option>
                                     </optgroup>
-                                    <optgroup label="ðŸ¾ à¸­à¸·à¹ˆà¸™à¹†">
-                                        <option value="à¸ªà¸±à¸•à¸§à¹Œà¹€à¸¥à¸µà¹‰à¸¢à¸‡">à¸ªà¸±à¸•à¸§à¹Œà¹€à¸¥à¸µà¹‰à¸¢à¸‡</option>
-                                        <option value="à¸¢à¸²à¸™à¸¢à¸™à¸•à¹Œ">à¸¢à¸²à¸™à¸¢à¸™à¸•à¹Œ</option>
-                                        <option value="à¸«à¸™à¸±à¸‡à¸ªà¸·à¸­à¹à¸¥à¸°à¸ªà¸·à¹ˆà¸­à¸šà¸±à¸™à¹€à¸—à¸´à¸‡">à¸«à¸™à¸±à¸‡à¸ªà¸·à¸­à¹à¸¥à¸°à¸ªà¸·à¹ˆà¸­à¸šà¸±à¸™à¹€à¸—à¸´à¸‡</option>
-                                        <option value="à¸•à¸±à¹‹à¸§à¹à¸¥à¸°à¸šà¸±à¸•à¸£à¸à¸³à¸™à¸±à¸¥">à¸•à¸±à¹‹à¸§à¹à¸¥à¸°à¸šà¸±à¸•à¸£à¸à¸³à¸™à¸±à¸¥</option>
-                                        <option value="à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹€à¸‚à¸µà¸¢à¸™à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™">à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹€à¸‚à¸µà¸¢à¸™à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™</option>
-                                        <option value="à¸­à¸·à¹ˆà¸™à¹†">à¸­à¸·à¹ˆà¸™à¹†</option>
+                                    <optgroup label="🐾 อื่นๆ">
+                                        <option value="สัตว์เลี้ยง">สัตว์เลี้ยง</option>
+                                        <option value="ยานยนต์">ยานยนต์</option>
+                                        <option value="หนังสือและสื่อบันเทิง">หนังสือและสื่อบันเทิง</option>
+                                        <option value="ตั๋วและบัตรกำนัล">ตั๋วและบัตรกำนัล</option>
+                                        <option value="เครื่องเขียนและอุปกรณ์สำนักงาน">เครื่องเขียนและอุปกรณ์สำนักงาน</option>
+                                        <option value="อื่นๆ">อื่นๆ</option>
                                     </optgroup>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>à¸£à¸¹à¸›à¸ à¸²à¸ž URL</label>
-                                <input type="text" id="productImage" placeholder="https://... à¸«à¸£à¸·à¸­à¸§à¸²à¸‡ URL à¸£à¸¹à¸›à¸ à¸²à¸ž" />
+                                <label>รูปภาพ URL</label>
+                                <input type="text" id="productImage" placeholder="https://... หรือวาง URL รูปภาพ" />
                             </div>
                             <div class="image-preview" id="imagePreview">
-                                <span class="placeholder">ðŸ–¼ï¸</span>
+                                <span class="placeholder">🖼️</span>
                             </div>
                             <div class="form-group">
-                                <label>à¸„à¸³à¸­à¸˜à¸´à¸šà¸²à¸¢</label>
-                                <textarea id="productDescription" placeholder="à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”à¸ªà¸´à¸™à¸„à¹‰à¸²à¹€à¸žà¸´à¹ˆà¸¡à¹€à¸•à¸´à¸¡..."></textarea>
+                                <label>คำอธิบาย</label>
+                                <textarea id="productDescription" placeholder="รายละเอียดสินค้าเพิ่มเติม..."></textarea>
                             </div>
                             <input type="hidden" id="editProductId" value="">
                             <div style="display: flex; gap: 10px;">
                                 <button type="submit" class="btn btn-primary" id="submitBtn" style="flex: 1;">
-                                    ðŸ›’ à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²
+                                    🛒 เพิ่มสินค้า
                                 </button>
                                 <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display: none; padding: 0 16px;">
-                                    à¸¢à¸à¹€à¸¥à¸´à¸
+                                    ยกเลิก
                                 </button>
                             </div>
                         </form>
@@ -446,42 +446,42 @@
             <!-- ========== TAB: PRODUCTS LIST ========== -->
             <div class="tab-panel" id="tab-products">
                 <div class="tab-header">
-                    <h2>ðŸ“¦ à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸²</h2>
-                    <p>à¸ˆà¸±à¸”à¸à¸²à¸£ à¸„à¹‰à¸™à¸«à¸² à¹à¸¥à¸°à¹à¸à¹‰à¹„à¸‚à¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</p>
+                    <h2>📦 รายการสินค้า</h2>
+                    <p>จัดการ ค้นหา และแก้ไขสินค้าทั้งหมด</p>
                 </div>
                 <div class="stats-bar">
                     <div class="stat-card">
                         <div class="num" id="totalProducts2">0</div>
-                        <div class="label">à¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</div>
+                        <div class="label">สินค้าทั้งหมด</div>
                     </div>
                     <div class="stat-card">
                         <div class="num" id="totalCategories2">0</div>
-                        <div class="label">à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ</div>
+                        <div class="label">หมวดหมู่</div>
                     </div>
                 </div>
                 <div class="panel">
                     <div class="filter-controls">
                         <div class="form-group" style="margin-bottom: 0;">
-                            <input type="text" id="adminSearch" placeholder="ðŸ” à¸„à¹‰à¸™à¸«à¸²à¸Šà¸·à¹ˆà¸­à¸ªà¸´à¸™à¸„à¹‰à¸² à¸«à¸£à¸·à¸­à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”..." />
+                            <input type="text" id="adminSearch" placeholder="🔍 ค้นหาชื่อสินค้า หรือรายละเอียด..." />
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <select id="adminCategoryFilter">
-                                <option value="à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”">ðŸ“ à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</option>
+                                <option value="ทั้งหมด">📁 ทั้งหมด</option>
                             </select>
                         </div>
                     </div>
                     <div class="bulk-actions-bar" id="bulkActionsBar">
-                        <div style="font-size: 14px; font-weight: 500;">à¹€à¸¥à¸·à¸­à¸à¸­à¸¢à¸¹à¹ˆ <span id="selectedCount" style="color: var(--accent); font-weight: 700;">0</span> à¸£à¸²à¸¢à¸à¸²à¸£</div>
-                        <button class="btn-danger" onclick="bulkDelete()" style="padding: 8px 16px; font-size: 13px;">ðŸ—‘ à¸¥à¸šà¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸</button>
+                        <div style="font-size: 14px; font-weight: 500;">เลือกอยู่ <span id="selectedCount" style="color: var(--accent); font-weight: 700;">0</span> รายการ</div>
+                        <button class="btn-danger" onclick="bulkDelete()" style="padding: 8px 16px; font-size: 13px;">🗑 ลบที่เลือก</button>
                     </div>
                     <div class="select-all-row">
                         <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
-                        <label for="selectAll" style="cursor: pointer;">à¹€à¸¥à¸·à¸­à¸à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</label>
+                        <label for="selectAll" style="cursor: pointer;">เลือกทั้งหมด</label>
                     </div>
                     <div class="product-list" id="productList">
                         <div class="empty-list">
-                            <div class="icon">ðŸ“­</div>
-                            <p>à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¸´à¸™à¸„à¹‰à¸² â€” à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²à¹à¸£à¸à¹„à¸”à¹‰à¹€à¸¥à¸¢!</p>
+                            <div class="icon">📭</div>
+                            <p>ยังไม่มีสินค้า — เพิ่มสินค้าแรกได้เลย!</p>
                         </div>
                     </div>
                 </div>
@@ -490,78 +490,78 @@
             <!-- ========== TAB: CSV IMPORT ========== -->
             <div class="tab-panel" id="tab-csv-import">
                 <div class="tab-header">
-                    <h2>ðŸ“ à¸™à¸³à¹€à¸‚à¹‰à¸²à¸ªà¸´à¸™à¸„à¹‰à¸²à¸ˆà¸²à¸ Shopee CSV</h2>
-                    <p>à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¹„à¸Ÿà¸¥à¹Œ CSV à¸—à¸µà¹ˆà¸ªà¹ˆà¸‡à¸­à¸­à¸à¸ˆà¸²à¸ Shopee Affiliate à¹€à¸žà¸·à¹ˆà¸­à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²à¸«à¸¥à¸²à¸¢à¸£à¸²à¸¢à¸à¸²à¸£à¸žà¸£à¹‰à¸­à¸¡à¸à¸±à¸™</p>
+                    <h2>📁 นำเข้าสินค้าจาก Shopee CSV</h2>
+                    <p>อัปโหลดไฟล์ CSV ที่ส่งออกจาก Shopee Affiliate เพื่อเพิ่มสินค้าหลายรายการพร้อมกัน</p>
                 </div>
                 <div style="max-width: 700px;">
                     <div class="panel">
                         <div class="form-group" style="margin-bottom: 16px;">
-                            <label>à¹€à¸¥à¸·à¸­à¸à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆà¸ªà¸³à¸«à¸£à¸±à¸šà¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸µà¹ˆà¸™à¸³à¹€à¸‚à¹‰à¸²</label>
+                            <label>เลือกหมวดหมู่สำหรับสินค้าที่นำเข้า</label>
                             <select id="importCategory" class="form-control">
-                                <option value="auto" selected>âœ¨ à¸ˆà¸±à¸”à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆà¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´ (à¹à¸™à¸°à¸™à¸³)</option>
-                                <option value="à¸—à¸±à¹ˆà¸§à¹„à¸›">ðŸ“ à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ (à¸—à¸±à¹ˆà¸§à¹„à¸›)</option>
-                                <optgroup label="ðŸ‘— à¹à¸Ÿà¸Šà¸±à¹ˆà¸™à¹à¸¥à¸°à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹à¸•à¹ˆà¸‡à¸à¸²à¸¢">
-                                    <option value="à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡">à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡</option>
-                                    <option value="à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸œà¸¹à¹‰à¸Šà¸²à¸¢">à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸œà¸¹à¹‰à¸Šà¸²à¸¢</option>
-                                    <option value="à¸à¸£à¸°à¹€à¸›à¹‹à¸²">à¸à¸£à¸°à¹€à¸›à¹‹à¸²</option>
-                                    <option value="à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡">à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡</option>
-                                    <option value="à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸œà¸¹à¹‰à¸Šà¸²à¸¢">à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸œà¸¹à¹‰à¸Šà¸²à¸¢</option>
-                                    <option value="à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸›à¸£à¸°à¸”à¸±à¸š">à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸›à¸£à¸°à¸”à¸±à¸š</option>
-                                    <option value="à¸™à¸²à¸¬à¸´à¸à¸²à¹à¸¥à¸°à¹à¸§à¹ˆà¸™à¸•à¸²">à¸™à¸²à¸¬à¸´à¸à¸²à¹à¸¥à¸°à¹à¸§à¹ˆà¸™à¸•à¸²</option>
+                                <option value="auto" selected>✨ จัดหมวดหมู่อัตโนมัติ (แนะนำ)</option>
+                                <option value="ทั่วไป">📁 ไม่ระบุหมวดหมู่ (ทั่วไป)</option>
+                                <optgroup label="👗 แฟชั่นและเครื่องแต่งกาย">
+                                    <option value="เสื้อผ้าผู้หญิง">เสื้อผ้าผู้หญิง</option>
+                                    <option value="เสื้อผ้าผู้ชาย">เสื้อผ้าผู้ชาย</option>
+                                    <option value="กระเป๋า">กระเป๋า</option>
+                                    <option value="รองเท้าผู้หญิง">รองเท้าผู้หญิง</option>
+                                    <option value="รองเท้าผู้ชาย">รองเท้าผู้ชาย</option>
+                                    <option value="เครื่องประดับ">เครื่องประดับ</option>
+                                    <option value="นาฬิกาและแว่นตา">นาฬิกาและแว่นตา</option>
                                 </optgroup>
-                                <optgroup label="ðŸ“± à¸­à¸´à¹€à¸¥à¹‡à¸à¸—à¸£à¸­à¸™à¸´à¸à¸ªà¹Œ">
-                                    <option value="à¹‚à¸—à¸£à¸¨à¸±à¸žà¸—à¹Œà¸¡à¸·à¸­à¸–à¸·à¸­à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸ªà¸£à¸´à¸¡">à¹‚à¸—à¸£à¸¨à¸±à¸žà¸—à¹Œà¸¡à¸·à¸­à¸–à¸·à¸­à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸ªà¸£à¸´à¸¡</option>
-                                    <option value="à¸„à¸­à¸¡à¸žà¸´à¸§à¹€à¸•à¸­à¸£à¹Œà¹à¸¥à¸°à¹à¸¥à¹‡à¸›à¸—à¹‡à¸­à¸›">à¸„à¸­à¸¡à¸žà¸´à¸§à¹€à¸•à¸­à¸£à¹Œà¹à¸¥à¸°à¹à¸¥à¹‡à¸›à¸—à¹‡à¸­à¸›</option>
-                                    <option value="à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹ƒà¸Šà¹‰à¹„à¸Ÿà¸Ÿà¹‰à¸²à¹ƒà¸™à¸šà¹‰à¸²à¸™">à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹ƒà¸Šà¹‰à¹„à¸Ÿà¸Ÿà¹‰à¸²à¹ƒà¸™à¸šà¹‰à¸²à¸™</option>
-                                    <option value="à¸à¸¥à¹‰à¸­à¸‡à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸–à¹ˆà¸²à¸¢à¸ à¸²à¸ž">à¸à¸¥à¹‰à¸­à¸‡à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸–à¹ˆà¸²à¸¢à¸ à¸²à¸ž</option>
-                                    <option value="à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹€à¸ªà¸µà¸¢à¸‡">à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹€à¸ªà¸µà¸¢à¸‡</option>
-                                    <option value="Gaming à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸à¸¡">Gaming à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸à¸¡</option>
+                                <optgroup label="📱 อิเล็กทรอนิกส์">
+                                    <option value="โทรศัพท์มือถือและอุปกรณ์เสริม">โทรศัพท์มือถือและอุปกรณ์เสริม</option>
+                                    <option value="คอมพิวเตอร์และแล็ปท็อป">คอมพิวเตอร์และแล็ปท็อป</option>
+                                    <option value="เครื่องใช้ไฟฟ้าในบ้าน">เครื่องใช้ไฟฟ้าในบ้าน</option>
+                                    <option value="กล้องและอุปกรณ์ถ่ายภาพ">กล้องและอุปกรณ์ถ่ายภาพ</option>
+                                    <option value="เครื่องเสียง">เครื่องเสียง</option>
+                                    <option value="Gaming และอุปกรณ์เกม">Gaming และอุปกรณ์เกม</option>
                                 </optgroup>
-                                <optgroup label="ðŸ’„ à¸„à¸§à¸²à¸¡à¸‡à¸²à¸¡à¹à¸¥à¸°à¸ªà¸¸à¸‚à¸ à¸²à¸ž">
-                                    <option value="à¸„à¸§à¸²à¸¡à¸‡à¸²à¸¡">à¸„à¸§à¸²à¸¡à¸‡à¸²à¸¡</option>
-                                    <option value="à¸ªà¸¸à¸‚à¸ à¸²à¸ž">à¸ªà¸¸à¸‚à¸ à¸²à¸ž</option>
-                                    <option value="à¸œà¸¥à¸´à¸•à¸ à¸±à¸“à¸‘à¹Œà¸”à¸¹à¹à¸¥à¸œà¸´à¸§">à¸œà¸¥à¸´à¸•à¸ à¸±à¸“à¸‘à¹Œà¸”à¸¹à¹à¸¥à¸œà¸´à¸§</option>
+                                <optgroup label="💄 ความงามและสุขภาพ">
+                                    <option value="ความงาม">ความงาม</option>
+                                    <option value="สุขภาพ">สุขภาพ</option>
+                                    <option value="ผลิตภัณฑ์ดูแลผิว">ผลิตภัณฑ์ดูแลผิว</option>
                                 </optgroup>
-                                <optgroup label="ðŸ  à¸šà¹‰à¸²à¸™à¹à¸¥à¸°à¹„à¸¥à¸Ÿà¹Œà¸ªà¹„à¸•à¸¥à¹Œ">
-                                    <option value="à¸šà¹‰à¸²à¸™à¹à¸¥à¸°à¸ªà¸§à¸™">à¸šà¹‰à¸²à¸™à¹à¸¥à¸°à¸ªà¸§à¸™</option>
-                                    <option value="à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹ƒà¸Šà¹‰à¹ƒà¸™à¸šà¹‰à¸²à¸™">à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹ƒà¸Šà¹‰à¹ƒà¸™à¸šà¹‰à¸²à¸™</option>
-                                    <option value="à¸­à¸²à¸«à¸²à¸£à¹à¸¥à¸°à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸”à¸·à¹ˆà¸¡">à¸­à¸²à¸«à¸²à¸£à¹à¸¥à¸°à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸”à¸·à¹ˆà¸¡</option>
-                                    <option value="à¸‚à¸­à¸‡à¹€à¸¥à¹ˆà¸™ à¸ªà¸´à¸™à¸„à¹‰à¸²à¸‡à¸²à¸™à¸­à¸”à¸´à¹€à¸£à¸">à¸‚à¸­à¸‡à¹€à¸¥à¹ˆà¸™ à¸ªà¸´à¸™à¸„à¹‰à¸²à¸‡à¸²à¸™à¸­à¸”à¸´à¹€à¸£à¸</option>
+                                <optgroup label="🏠 บ้านและไลฟ์สไตล์">
+                                    <option value="บ้านและสวน">บ้านและสวน</option>
+                                    <option value="เครื่องใช้ในบ้าน">เครื่องใช้ในบ้าน</option>
+                                    <option value="อาหารและเครื่องดื่ม">อาหารและเครื่องดื่ม</option>
+                                    <option value="ของเล่น สินค้างานอดิเรก">ของเล่น สินค้างานอดิเรก</option>
                                 </optgroup>
                             </select>
                         </div>
                         <div style="border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px; text-align: center; cursor: pointer; transition: 0.2s;"
                             id="csvDropzone" onclick="document.getElementById('csvFileInput').click()">
-                            <div style="font-size: 32px; margin-bottom: 8px;">ðŸ“„</div>
-                            <p style="color: var(--text2); margin: 0;">à¸„à¸¥à¸´à¸à¹€à¸žà¸·à¹ˆà¸­à¸­à¸±à¸›à¹‚à¸«à¸¥à¸” à¸«à¸£à¸·à¸­ à¸¥à¸²à¸à¹„à¸Ÿà¸¥à¹Œ .csv à¸¡à¸²à¸§à¸²à¸‡à¸—à¸µà¹ˆà¸™à¸µà¹ˆ</p>
+                            <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
+                            <p style="color: var(--text2); margin: 0;">คลิกเพื่ออัปโหลด หรือ ลากไฟล์ .csv มาวางที่นี่</p>
                             <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
                         </div>
                     </div>
 
                     <div class="panel">
                         <div class="social-toggles" style="margin-top:0;">
-                            <h3>ðŸ“¢ à¹‚à¸žà¸ªà¸•à¹Œà¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´à¹€à¸¡à¸·à¹ˆà¸­à¸™à¸³à¹€à¸‚à¹‰à¸² CSV</h3>
+                            <h3>📢 โพสต์อัตโนมัติเมื่อนำเข้า CSV</h3>
                             <div class="toggle-row">
-                                <span class="toggle-label"><span class="platform-icon">ðŸ“˜</span> Facebook Page</span>
+                                <span class="toggle-label"><span class="platform-icon">📘</span> Facebook Page</span>
                                 <label class="toggle-switch"><input type="checkbox" id="toggleFacebook" checked><span class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
-                                <span class="toggle-label"><span class="platform-icon">ðŸ“·</span> Instagram</span>
+                                <span class="toggle-label"><span class="platform-icon">📷</span> Instagram</span>
                                 <label class="toggle-switch"><input type="checkbox" id="toggleInstagram"><span class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
-                                <span class="toggle-label"><span class="platform-icon">âœ¨</span> X (Twitter)</span>
+                                <span class="toggle-label"><span class="platform-icon">✨</span> X (Twitter)</span>
                                 <label class="toggle-switch"><input type="checkbox" id="toggleX" checked><span class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
-                                <span class="toggle-label"><span class="platform-icon">ðŸ§µ</span> Threads</span>
+                                <span class="toggle-label"><span class="platform-icon">🧵</span> Threads</span>
                                 <label class="toggle-switch"><input type="checkbox" id="toggleThreads" checked><span class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row" style="border-color: var(--accent); background: rgba(233,69,96,0.05);">
-                                <span class="toggle-label"><span class="platform-icon">ðŸ¤–</span> à¹ƒà¸Šà¹‰ AI à¹€à¸‚à¸µà¸¢à¸™à¹‚à¸žà¸ªà¸•à¹Œ (à¸ªà¸²à¸¢à¸›à¹‰à¸²à¸¢à¸¢à¸²)</span>
+                                <span class="toggle-label"><span class="platform-icon">🤖</span> ใช้ AI เขียนโพสต์ (สายป้ายยา)</span>
                                 <label class="toggle-switch"><input type="checkbox" id="toggleAI" checked><span class="toggle-slider"></span></label>
                             </div>
-                            <p class="hint" style="margin-top: 4px;">à¹€à¸›à¸´à¸”à¸ªà¸§à¸´à¸•à¸Šà¹Œà¹€à¸žà¸·à¹ˆà¸­à¹‚à¸žà¸ªà¸•à¹Œà¸ªà¸´à¸™à¸„à¹‰à¸²à¸¥à¸‡à¹‚à¸‹à¹€à¸Šà¸µà¸¢à¸¥à¸¡à¸µà¹€à¸”à¸µà¸¢à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´à¹€à¸¡à¸·à¹ˆà¸­à¸™à¸³à¹€à¸‚à¹‰à¸² CSV (à¸•à¹‰à¸­à¸‡à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸² API Key à¹ƒà¸™à¸«à¸™à¹‰à¸² Settings à¸à¹ˆà¸­à¸™)</p>
+                            <p class="hint" style="margin-top: 4px;">เปิดสวิตช์เพื่อโพสต์สินค้าลงโซเชียลมีเดียอัตโนมัติเมื่อนำเข้า CSV (ต้องตั้งค่า API Key ในหน้า Settings ก่อน)</p>
                         </div>
                     </div>
                 </div>
@@ -570,16 +570,16 @@
             <!-- ========== TAB: BACKUP ========== -->
             <div class="tab-panel" id="tab-backup">
                 <div class="tab-header">
-                    <h2>ðŸ’¾ à¸ªà¸³à¸£à¸­à¸‡/à¸à¸¹à¹‰à¸„à¸·à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥</h2>
-                    <p>à¸”à¸²à¸§à¸™à¹Œà¹‚à¸«à¸¥à¸”à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”à¹€à¸à¹‡à¸šà¹„à¸§à¹‰ à¸«à¸£à¸·à¸­à¸à¸¹à¹‰à¸„à¸·à¸™à¸ˆà¸²à¸à¹„à¸Ÿà¸¥à¹Œ Backup (.json)</p>
+                    <h2>💾 สำรอง/กู้คืนข้อมูล</h2>
+                    <p>ดาวน์โหลดข้อมูลสินค้าทั้งหมดเก็บไว้ หรือกู้คืนจากไฟล์ Backup (.json)</p>
                 </div>
                 <div style="max-width: 600px;">
                     <div class="panel">
-                        <h2 class="panel-title">ðŸ’¾ Backup & Restore</h2>
-                        <p class="hint" style="margin-bottom: 20px;">à¸£à¸°à¸šà¸šà¸ˆà¸°à¸£à¸§à¸¡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸´à¸™à¸„à¹‰à¸²à¹à¸¥à¸°à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸² API à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”à¹„à¸§à¹‰à¹ƒà¸™à¹„à¸Ÿà¸¥à¹Œà¹€à¸”à¸µà¸¢à¸§</p>
+                        <h2 class="panel-title">💾 Backup & Restore</h2>
+                        <p class="hint" style="margin-bottom: 20px;">ระบบจะรวมข้อมูลสินค้าและการตั้งค่า API ทั้งหมดไว้ในไฟล์เดียว</p>
                         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                            <button class="btn btn-secondary" onclick="exportBackup()" style="flex: 1; min-width: 200px;">â¬‡ï¸ à¸”à¸²à¸§à¸™à¹Œà¹‚à¸«à¸¥à¸” Backup (JSON)</button>
-                            <button class="btn btn-primary" onclick="document.getElementById('importBackupInput').click()" style="flex: 1; min-width: 200px;">â¬†ï¸ à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¹„à¸Ÿà¸¥à¹Œà¸à¸¹à¹‰à¸„à¸·à¸™</button>
+                            <button class="btn btn-secondary" onclick="exportBackup()" style="flex: 1; min-width: 200px;">⬇️ ดาวน์โหลด Backup (JSON)</button>
+                            <button class="btn btn-primary" onclick="document.getElementById('importBackupInput').click()" style="flex: 1; min-width: 200px;">⬆️ อัปโหลดไฟล์กู้คืน</button>
                             <input type="file" id="importBackupInput" accept=".json" style="display: none;" onchange="importBackup(event)">
                         </div>
                     </div>
@@ -589,29 +589,29 @@
             <!-- ========== TAB: SETTINGS ========== -->
             <div class="tab-panel" id="tab-settings">
                 <div class="tab-header">
-                    <h2>âš™ï¸ à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸² API Keys</h2>
-                    <p>à¸­à¸±à¸›à¹€à¸”à¸• API Token à¹„à¸”à¹‰à¸—à¸µà¹ˆà¸™à¸µà¹ˆ à¸£à¸°à¸šà¸šà¸ˆà¸°à¸šà¸±à¸™à¸—à¸¶à¸à¹à¸¥à¸°à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸—à¸±à¸™à¸—à¸µà¹‚à¸”à¸¢à¹„à¸¡à¹ˆà¸•à¹‰à¸­à¸‡ restart server</p>
+                    <h2>⚙️ ตั้งค่า API Keys</h2>
+                    <p>อัปเดต API Token ได้ที่นี่ ระบบจะบันทึกและใช้งานทันทีโดยไม่ต้อง restart server</p>
                 </div>
                 <div class="settings-grid">
                     <div class="setting-group" style="grid-column: 1 / -1;">
-                        <h3>ðŸŽ¨ Appearance Settings</h3>
+                        <h3>🎨 Appearance Settings</h3>
                         <div class="form-group">
                             <label>Product Card Theme</label>
                             <select id="cardThemeInput" class="form-control">
-                                <option value="theme-white">â„ï¸ Snow White (Default)</option>
-                                <option value="theme-dark">ðŸŒ‘ Midnight Noir</option>
-                                <option value="theme-glass">ðŸ’Ž Modern Glass</option>
-                                <option value="theme-neon">ðŸŒˆ Cyber Neon</option>
-                                <option value="theme-pastel">ðŸŒ¸ Sweet Pastel</option>
-                                <option value="theme-ocean">ðŸŒŠ Deep Ocean</option>
-                                <option value="theme-sunset">ðŸŒ… Sunset Vibes</option>
-                                <option value="theme-minimal">âœ¨ Pure Minimal</option>
+                                <option value="theme-white">❄️ Snow White (Default)</option>
+                                <option value="theme-dark">🌑 Midnight Noir</option>
+                                <option value="theme-glass">💎 Modern Glass</option>
+                                <option value="theme-neon">🌈 Cyber Neon</option>
+                                <option value="theme-pastel">🌸 Sweet Pastel</option>
+                                <option value="theme-ocean">🌊 Deep Ocean</option>
+                                <option value="theme-sunset">🌅 Sunset Vibes</option>
+                                <option value="theme-minimal">✨ Pure Minimal</option>
                             </select>
                             <small class="hint">Choose the visual style for the product cards on your homepage.</small>
                         </div>
                     </div>
                     <div class="setting-group" style="grid-column: 1 / -1;">
-                        <h3>ðŸ—„ï¸ Supabase Database Settings</h3>
+                        <h3>🗄️ Supabase Database Settings</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Supabase Project URL</label>
@@ -626,15 +626,15 @@
                         </div>
                     </div>
                     <div class="setting-group">
-                        <h3>ðŸ“˜ Facebook API</h3>
+                        <h3>📘 Facebook API</h3>
                         <div class="form-group">
                             <label>Page Access Token</label>
                             <input type="password" id="fbTokenInput" placeholder="EAABw...">
-                            <small class="hint">à¹ƒà¸Šà¹‰à¸ªà¸³à¸«à¸£à¸±à¸šà¹‚à¸žà¸ªà¸•à¹Œà¸¥à¸‡ Facebook Page à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´</small>
+                            <small class="hint">ใช้สำหรับโพสต์ลง Facebook Page อัตโนมัติ</small>
                         </div>
                     </div>
                     <div class="setting-group">
-                        <h3>ðŸ§µ Threads API</h3>
+                        <h3>🧵 Threads API</h3>
                         <div class="form-group">
                             <label>Threads User ID</label>
                             <input type="text" id="threadsUserIdInput" placeholder="123456789">
@@ -645,16 +645,16 @@
                         </div>
                     </div>
                     <div class="setting-group" style="grid-column: 1 / -1;">
-                        <h3>ðŸ¤– Google Gemini AI (Auto Post)</h3>
+                        <h3>🤖 Google Gemini AI (Auto Post)</h3>
                         <div class="form-group">
                             <label>Gemini API Key</label>
                             <input type="password" id="geminiKeyInput" placeholder="AIzaSy...">
-                            <small class="hint">à¹ƒà¸Šà¹‰à¹€à¸žà¸·à¹ˆà¸­à¸ªà¸£à¹‰à¸²à¸‡à¹à¸„à¸›à¸Šà¸±à¹ˆà¸™à¸£à¸µà¸§à¸´à¸§à¹€à¸—à¹ˆà¹† à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´à¹€à¸§à¸¥à¸²à¹‚à¸žà¸ªà¸•à¹Œà¸¥à¸‡ Social</small>
+                            <small class="hint">ใช้เพื่อสร้างแคปชั่นรีวิวเท่ๆ อัตโนมัติเวลาโพสต์ลง Social</small>
                         </div>
                     </div>
                 </div>
                 <div style="margin-top: 20px; max-width: 300px;">
-                    <button class="btn btn-primary" onclick="saveSettings()" id="saveSettingsBtn">ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²</button>
+                    <button class="btn btn-primary" onclick="saveSettings()" id="saveSettingsBtn">💾 บันทึกการตั้งค่า</button>
                 </div>
             </div>
 
@@ -663,7 +663,7 @@
 
 
     <!-- TOAST -->
-    <div class="toast" id="toast">âœ… à¸ªà¸³à¹€à¸£à¹‡à¸ˆ!</div>
+    <div class="toast" id="toast">✅ สำเร็จ!</div>
 
     <script>
         const API_BASE = '';
@@ -752,7 +752,7 @@
                                 <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px;">${p.title}</div>
                                 <div style="font-size:11px; color:var(--text3);">${p.category}</div>
                             </div>
-                            <div style="font-size:11px;">à¸¿${p.price}</div>
+                            <div style="font-size:11px;">฿${p.price}</div>
                         </div>
                     `).join('');
                 }
@@ -761,7 +761,7 @@
 
         function updateStats() {
             const count = products.length;
-            const categories = [...new Set(products.map(p => p.category).filter(c => c && c !== 'à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”'))];
+            const categories = [...new Set(products.map(p => p.category).filter(c => c && c !== 'ทั้งหมด'))];
             
             // Update Dashboard Stats
             if(document.getElementById('totalProducts')) document.getElementById('totalProducts').textContent = count;
@@ -775,7 +775,7 @@
             const filter = document.getElementById('adminCategoryFilter');
             if (filter) {
                 const currentValue = filter.value;
-                let options = '<option value="à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”">ðŸ“ à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</option>';
+                let options = '<option value="ทั้งหมด">📁 ทั้งหมด</option>';
                 categories.sort().forEach(cat => {
                     options += `<option value="${cat}">${cat}</option>`;
                 });
@@ -784,7 +784,7 @@
                 if (categories.includes(currentValue)) {
                     filter.value = currentValue;
                 } else {
-                    filter.value = 'à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”';
+                    filter.value = 'ทั้งหมด';
                 }
             }
             
@@ -812,7 +812,7 @@
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             loginBtn.disabled = true;
-            loginBtn.textContent = 'à¸à¸³à¸¥à¸±à¸‡à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š...';
+            loginBtn.textContent = 'กำลังตรวจสอบ...';
             loginError.style.display = 'none';
 
             const username = document.getElementById('loginUser').value;
@@ -834,12 +834,12 @@
                     loginError.style.display = 'block';
                 }
             } catch (err) {
-                loginError.textContent = 'à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”à¹ƒà¸™à¸à¸²à¸£à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­';
+                loginError.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
                 loginError.style.display = 'block';
             }
 
             loginBtn.disabled = false;
-            loginBtn.textContent = 'à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸š';
+            loginBtn.textContent = 'เข้าสู่ระบบ';
         });
 
         function logout() {
@@ -865,7 +865,7 @@
             if (response.status === 401) {
                 // Token invalid or expired
                 logout();
-                showToast('à¹€à¸‹à¸ªà¸Šà¸±à¹ˆà¸™à¸«à¸¡à¸”à¸­à¸²à¸¢à¸¸ à¸à¸£à¸¸à¸“à¸²à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸šà¹ƒà¸«à¸¡à¹ˆ');
+                showToast('เซสชั่นหมดอายุ กรุณาเข้าสู่ระบบใหม่');
                 throw new Error('Unauthorized');
             }
 
@@ -895,15 +895,15 @@
                 const matchesSearch = !searchQuery ||
                     p.title.toLowerCase().includes(searchQuery) ||
                     (p.description && p.description.toLowerCase().includes(searchQuery));
-                const matchesCategory = categoryFilter === 'à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”' || p.category === categoryFilter;
+                const matchesCategory = categoryFilter === 'ทั้งหมด' || p.category === categoryFilter;
                 return matchesSearch && matchesCategory;
             });
 
             if (filteredProducts.length === 0) {
                 list.innerHTML = `
           <div class="empty-list">
-            <div class="icon">ðŸ“­</div>
-            <p>${products.length === 0 ? 'à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¸´à¸™à¸„à¹‰à¸² â€” à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²à¹à¸£à¸à¹„à¸”à¹‰à¹€à¸¥à¸¢!' : 'à¹„à¸¡à¹ˆà¸žà¸šà¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸µà¹ˆà¸•à¸£à¸‡à¸•à¸²à¸¡à¹€à¸‡à¸·à¹ˆà¸­à¸™à¹„à¸‚'}</p>
+            <div class="icon">📭</div>
+            <p>${products.length === 0 ? 'ยังไม่มีสินค้า — เพิ่มสินค้าแรกได้เลย!' : 'ไม่พบสินค้าที่ตรงตามเงื่อนไข'}</p>
           </div>`;
                 return;
             }
@@ -911,16 +911,16 @@
         <div class="product-item" id="admin-product-${p.id}">
           <input type="checkbox" class="product-checkbox" data-id="${p.id}" onchange="updateSelection()">
           <div class="thumb">
-            <img src="${p.image || 'https://placehold.co/64x64/1a1a2e/e94560?text=ðŸ“¦'}" alt="${p.title}" />
+            <img src="${p.image || 'https://placehold.co/64x64/1a1a2e/e94560?text=📦'}" alt="${p.title}" />
           </div>
           <div class="info">
             <h4>${p.title}</h4>
-            <span class="price-tag">à¸¿${Number(p.price).toLocaleString()}</span>
-            <span class="meta"> Â· <span style="color: var(--accent); font-weight: bold;">ðŸ‘ï¸ ${p.clicks || 0}</span> Â· ${p.category || 'à¹„à¸¡à¹ˆà¸£à¸°à¸šà¸¸'}</span>
+            <span class="price-tag">฿${Number(p.price).toLocaleString()}</span>
+            <span class="meta"> · <span style="color: var(--accent); font-weight: bold;">👁️ ${p.clicks || 0}</span> · ${p.category || 'ไม่ระบุ'}</span>
           </div>
           <div class="actions">
-            <button class="btn-secondary" onclick="editProduct('${p.id}')" style="margin-right: 8px;">âœï¸ à¹à¸à¹‰à¹„à¸‚</button>
-            <button class="btn-danger" onclick="deleteProduct('${p.id}')">ðŸ—‘ à¸¥à¸š</button>
+            <button class="btn-secondary" onclick="editProduct('${p.id}')" style="margin-right: 8px;">✏️ แก้ไข</button>
+            <button class="btn-danger" onclick="deleteProduct('${p.id}')">🗑 ลบ</button>
           </div>
         </div>
       `).join('');
@@ -970,7 +970,7 @@
             const ids = Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
 
             if (ids.length === 0) return;
-            if (!confirm(`à¸„à¸¸à¸“à¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸¥à¸šà¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸à¸—à¸±à¹‰à¸‡ ${ids.length} à¸£à¸²à¸¢à¸à¸²à¸£à¸«à¸£à¸·à¸­à¹„à¸¡à¹ˆ? (à¸£à¸°à¸šà¸šà¸ˆà¸°à¸¥à¸šà¹‚à¸žà¸ªà¸•à¹Œà¹ƒà¸™ Facebook à¸—à¸µà¹ˆà¹€à¸à¸µà¹ˆà¸¢à¸§à¸‚à¹‰à¸­à¸‡à¸”à¹‰à¸§à¸¢)`)) return;
+            if (!confirm(`คุณต้องการลบสินค้าที่เลือกทั้ง ${ids.length} รายการหรือไม่? (ระบบจะลบโพสต์ใน Facebook ที่เกี่ยวข้องด้วย)`)) return;
 
             try {
                 const res = await fetchWithAuth('/api/products/bulk-delete', {
@@ -979,14 +979,14 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast(`ðŸ—‘ à¸¥à¸šà¸ªà¸´à¸™à¸„à¹‰à¸² ${data.count} à¸£à¸²à¸¢à¸à¸²à¸£à¹à¸¥à¹‰à¸§`);
+                    showToast(`🗑 ลบสินค้า ${data.count} รายการแล้ว`);
                     await loadProducts();
                 } else {
-                    showToast('âŒ à¸¥à¸šà¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ');
+                    showToast('❌ ลบไม่สำเร็จ');
                 }
             } catch (e) {
                 if (e.message !== 'Unauthorized') {
-                    showToast('âŒ à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸à¸±à¸šà¹€à¸‹à¸´à¸£à¹Œà¸Ÿà¹€à¸§à¸­à¸£à¹Œ');
+                    showToast('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
                 }
             }
         }
@@ -994,7 +994,7 @@
         // === Update stats ===
         function updateStats() {
             document.getElementById('totalProducts').textContent = products.length;
-            const categories = [...new Set(products.map(p => p.category).filter(c => c && c !== 'à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”'))];
+            const categories = [...new Set(products.map(p => p.category).filter(c => c && c !== 'ทั้งหมด'))];
             document.getElementById('totalCategories').textContent = categories.length;
 
             // Update category filter dropdown
@@ -1002,7 +1002,7 @@
             const currentValue = filter.value;
 
             // Keep "All" as first option
-            let options = '<option value="à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”">ðŸ“ à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</option>';
+            let options = '<option value="ทั้งหมด">📁 ทั้งหมด</option>';
             categories.sort().forEach(cat => {
                 options += `<option value="${cat}">${cat}</option>`;
             });
@@ -1012,7 +1012,7 @@
             if (categories.includes(currentValue)) {
                 filter.value = currentValue;
             } else {
-                filter.value = 'à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”';
+                filter.value = 'ทั้งหมด';
             }
         }
 
@@ -1043,7 +1043,7 @@
             // Add a small loading indicator
             const hint = e.target.nextElementSibling;
             const originalHint = hint.textContent;
-            hint.textContent = 'â³ à¸à¸³à¸¥à¸±à¸‡à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸´à¸™à¸„à¹‰à¸²à¸ˆà¸²à¸à¸¥à¸´à¸‡à¸à¹Œ...';
+            hint.textContent = '⏳ กำลังดึงข้อมูลสินค้าจากลิงก์...';
             hint.style.color = 'var(--accent)';
 
             scrapeTimeout = setTimeout(async () => {
@@ -1067,15 +1067,15 @@
                             // Trigger preview update
                             imageInput.dispatchEvent(new Event('input'));
                         }
-                        hint.textContent = 'âœ… à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸³à¹€à¸£à¹‡à¸ˆ!';
+                        hint.textContent = '✅ ดึงข้อมูลสำเร็จ!';
                         hint.style.color = '#4CAF50';
                     } else {
-                        hint.textContent = 'âŒ à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ à¸à¸£à¸¸à¸“à¸²à¸à¸£à¸­à¸à¹€à¸­à¸‡';
+                        hint.textContent = '❌ ดึงข้อมูลไม่สำเร็จ กรุณากรอกเอง';
                         hint.style.color = '#f44336';
                     }
                 } catch (err) {
                     console.error('Error scraping link:', err);
-                    hint.textContent = 'âŒ à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ';
+                    hint.textContent = '❌ ดึงข้อมูลไม่สำเร็จ';
                     hint.style.color = '#f44336';
                 }
                 
@@ -1092,7 +1092,7 @@
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.textContent = 'â³ à¸à¸³à¸¥à¸±à¸‡à¹€à¸žà¸´à¹ˆà¸¡...';
+            btn.textContent = '⏳ กำลังเพิ่ม...';
 
             const title = document.getElementById('productTitle').value.trim();
             const price = document.getElementById('productPrice').value;
@@ -1105,9 +1105,9 @@
             const editId = document.getElementById('editProductId').value;
 
             if (!affiliateUrl) {
-                alert('à¸à¸£à¸¸à¸“à¸²à¹ƒà¸ªà¹ˆ Shopee Affiliate Link à¸à¹ˆà¸­à¸™à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²');
+                alert('กรุณาใส่ Shopee Affiliate Link ก่อนเพิ่มสินค้า');
                 btn.disabled = false;
-                btn.textContent = editId ? 'ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¹à¸à¹‰à¹„à¸‚' : 'ðŸ›’ à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²';
+                btn.textContent = editId ? '💾 บันทึกการแก้ไข' : '🛒 เพิ่มสินค้า';
                 return;
             }
 
@@ -1125,24 +1125,24 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast(editId ? 'âœ… à¹à¸à¹‰à¹„à¸‚à¸ªà¸´à¸™à¸„à¹‰à¸²à¸ªà¸³à¹€à¸£à¹‡à¸ˆ!' : 'âœ… à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²à¸ªà¸³à¹€à¸£à¹‡à¸ˆ!');
+                    showToast(editId ? '✅ แก้ไขสินค้าสำเร็จ!' : '✅ เพิ่มสินค้าสำเร็จ!');
                     document.getElementById('productForm').reset();
                     document.getElementById('editProductId').value = '';
-                    document.getElementById('submitBtn').innerHTML = 'ðŸ›’ à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²';
+                    document.getElementById('submitBtn').innerHTML = '🛒 เพิ่มสินค้า';
                     document.getElementById('cancelEditBtn').style.display = 'none';
-                    document.getElementById('imagePreview').innerHTML = '<span class="placeholder">ðŸ–¼ï¸</span>';
+                    document.getElementById('imagePreview').innerHTML = '<span class="placeholder">🖼️</span>';
                     await loadProducts();
                 } else {
-                    showToast('âŒ à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”');
+                    showToast('❌ เกิดข้อผิดพลาด');
                 }
             } catch (e) {
                 if (e.message !== 'Unauthorized') {
-                    showToast('âŒ à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸à¸±à¸šà¹€à¸‹à¸´à¸£à¹Œà¸Ÿà¹€à¸§à¸­à¸£à¹Œ');
+                    showToast('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
                 }
             }
 
             btn.disabled = false;
-            btn.textContent = editId ? 'ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¹à¸à¹‰à¹„à¸‚' : 'ðŸ›’ à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²';
+            btn.textContent = editId ? '💾 บันทึกการแก้ไข' : '🛒 เพิ่มสินค้า';
         });
 
         // === Edit product ===
@@ -1154,13 +1154,13 @@
             document.getElementById('productPrice').value = product.price || '';
             document.getElementById('productOriginalPrice').value = product.originalPrice || '';
             document.getElementById('productDiscount').value = product.discount || '';
-            document.getElementById('productCategory').value = product.category || 'à¸—à¸±à¹ˆà¸§à¹„à¸›';
+            document.getElementById('productCategory').value = product.category || 'ทั่วไป';
             document.getElementById('productImage').value = product.image || '';
             document.getElementById('affiliateUrl').value = product.affiliateUrl || '';
             document.getElementById('productDescription').value = product.description || '';
 
             document.getElementById('editProductId').value = product.id;
-            document.getElementById('submitBtn').innerHTML = 'ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¹à¸à¹‰à¹„à¸‚';
+            document.getElementById('submitBtn').innerHTML = '💾 บันทึกการแก้ไข';
             document.getElementById('cancelEditBtn').style.display = 'block';
 
             // Trigger image preview
@@ -1174,21 +1174,21 @@
         document.getElementById('cancelEditBtn').addEventListener('click', () => {
             document.getElementById('productForm').reset();
             document.getElementById('editProductId').value = '';
-            document.getElementById('submitBtn').innerHTML = 'ðŸ›’ à¹€à¸žà¸´à¹ˆà¸¡à¸ªà¸´à¸™à¸„à¹‰à¸²';
+            document.getElementById('submitBtn').innerHTML = '🛒 เพิ่มสินค้า';
             document.getElementById('cancelEditBtn').style.display = 'none';
-            document.getElementById('imagePreview').innerHTML = '<span class="placeholder">ðŸ–¼ï¸</span>';
+            document.getElementById('imagePreview').innerHTML = '<span class="placeholder">🖼️</span>';
         });
 
         // === Delete product ===
         async function deleteProduct(id) {
-            if (!confirm('à¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸¥à¸šà¸ªà¸´à¸™à¸„à¹‰à¸²à¸™à¸µà¹‰à¸«à¸£à¸·à¸­à¹„à¸¡à¹ˆ?')) return;
+            if (!confirm('ต้องการลบสินค้านี้หรือไม่?')) return;
             try {
                 await fetchWithAuth(`/api/products/${id}`, { method: 'DELETE' });
-                showToast('ðŸ—‘ à¸¥à¸šà¸ªà¸´à¸™à¸„à¹‰à¸²à¹à¸¥à¹‰à¸§');
+                showToast('🗑 ลบสินค้าแล้ว');
                 await loadProducts();
             } catch (e) {
                 if (e.message !== 'Unauthorized') {
-                    showToast('âŒ à¸¥à¸šà¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ');
+                    showToast('❌ ลบไม่สำเร็จ');
                 }
             }
         }
@@ -1197,18 +1197,18 @@
         const csvFileInput = document.getElementById('csvFileInput');
         csvFileInput.addEventListener('change', handleCSVUpload);
 
-        // Helper to parse Thai price abbreviations like '56.9à¸žà¸±à¸™'
+        // Helper to parse Thai price abbreviations like '56.9พัน'
         function parseShopeePrice(priceStr) {
             if (!priceStr) return '0';
             let p = priceStr.toString().replace(/,/g, ''); // Remove commas first
-            if (p.includes('à¸žà¸±à¸™')) {
-                p = parseFloat(p.replace('à¸žà¸±à¸™', '')) * 1000;
-            } else if (p.includes('à¸«à¸¡à¸·à¹ˆà¸™')) {
-                p = parseFloat(p.replace('à¸«à¸¡à¸·à¹ˆà¸™', '')) * 10000;
-            } else if (p.includes('à¹à¸ªà¸™')) {
-                p = parseFloat(p.replace('à¹à¸ªà¸™', '')) * 100000;
-            } else if (p.includes('à¸¥à¹‰à¸²à¸™')) {
-                p = parseFloat(p.replace('à¸¥à¹‰à¸²à¸™', '')) * 1000000;
+            if (p.includes('พัน')) {
+                p = parseFloat(p.replace('พัน', '')) * 1000;
+            } else if (p.includes('หมื่น')) {
+                p = parseFloat(p.replace('หมื่น', '')) * 10000;
+            } else if (p.includes('แสน')) {
+                p = parseFloat(p.replace('แสน', '')) * 100000;
+            } else if (p.includes('ล้าน')) {
+                p = parseFloat(p.replace('ล้าน', '')) * 1000000;
             }
             // Ensure it's a valid number string, remove any non-numeric except dot
             return p.toString().replace(/[^0-9.]/g, '');
@@ -1229,7 +1229,7 @@
                 const productsArray = parseShopeeCSV(text, importCat);
 
                 if (productsArray.length === 0) {
-                    alert('à¹„à¸¡à¹ˆà¸žà¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸µà¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡à¹ƒà¸™à¹„à¸Ÿà¸¥à¹Œ à¸«à¸£à¸·à¸­à¸£à¸¹à¸›à¹à¸šà¸š CSV à¹„à¸¡à¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡ (à¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸„à¸­à¸¥à¸±à¸¡à¸™à¹Œ à¸Šà¸·à¹ˆà¸­à¸ªà¸´à¸™à¸„à¹‰à¸² à¹à¸¥à¸° à¸¥à¸´à¸‡à¸à¹Œà¸‚à¹‰à¸­à¹€à¸ªà¸™à¸­)');
+                    alert('ไม่พบข้อมูลสินค้าที่ถูกต้องในไฟล์ หรือรูปแบบ CSV ไม่ถูกต้อง (ต้องการคอลัมน์ ชื่อสินค้า และ ลิงก์ข้อเสนอ)');
                     return;
                 }
 
@@ -1248,7 +1248,7 @@
                 
                 if (needsScrape.length > 0 || needsAICat) {
                     const totalTasks = productsArray.length;
-                    showToast(`â³ à¹€à¸£à¸´à¹ˆà¸¡à¸•à¹‰à¸™à¸à¸²à¸£à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹à¸¥à¸°à¸ˆà¸±à¸”à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ AI... (0/${totalTasks})`);
+                    showToast(`⏳ เริ่มต้นการดึงข้อมูลและจัดหมวดหมู่ AI... (0/${totalTasks})`);
                     let processedCount = 0;
                     
                     // Process in chunks of 3 to avoid overwhelming backend
@@ -1298,7 +1298,7 @@
                             }
                             
                             processedCount++;
-                            showToast(`â³ à¸à¸³à¸¥à¸±à¸‡à¸ˆà¸±à¸”à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸² ${processedCount}/${totalTasks}...`);
+                            showToast(`⏳ กำลังจัดการสินค้า ${processedCount}/${totalTasks}...`);
                         });
                         
                         await Promise.all(promises);
@@ -1309,14 +1309,14 @@
                 }
                 // --- END ENHANCED PROCESSING ---
 
-                let confirmMsg = `à¸žà¸šà¸ªà¸´à¸™à¸„à¹‰à¸² ${productsArray.length} à¸£à¸²à¸¢à¸à¸²à¸£ à¸à¸³à¸¥à¸±à¸‡à¹€à¸•à¸£à¸µà¸¢à¸¡à¸šà¸±à¸™à¸—à¸¶à¸à¸¥à¸‡à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸š...`;
+                let confirmMsg = `พบสินค้า ${productsArray.length} รายการ กำลังเตรียมบันทึกลงสู่ระบบ...`;
                 if (hasSocial) {
                     const platforms = [];
                     if (socialMedia.facebook) platforms.push('Facebook');
                     if (socialMedia.instagram) platforms.push('Instagram');
                     if (socialMedia.x) platforms.push('X');
                     if (socialMedia.threads) platforms.push('Threads');
-                    confirmMsg += ` (à¸žà¸£à¹‰à¸­à¸¡à¹‚à¸žà¸ªà¸•à¹Œà¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´à¹„à¸›à¸¢à¸±à¸‡: ${platforms.join(', ')})`;
+                    confirmMsg += ` (พร้อมโพสต์อัตโนมัติไปยัง: ${platforms.join(', ')})`;
                 }
 
                 showToast(confirmMsg);
@@ -1341,23 +1341,23 @@
                     });
                     const data = await res.json();
                     if (data.success) {
-                        let msg = `âœ… à¸™à¸³à¹€à¸‚à¹‰à¸²à¸ªà¸³à¹€à¸£à¹‡à¸ˆ ${data.count} à¸£à¸²à¸¢à¸à¸²à¸£!`;
+                        let msg = `✅ นำเข้าสำเร็จ ${data.count} รายการ!`;
                         if (data.backgroundPosting) {
-                            msg += ` ðŸ“¢ à¹€à¸£à¸´à¹ˆà¸¡à¸à¸²à¸£à¹‚à¸žà¸ªà¸•à¹Œà¹ƒà¸™à¸žà¸·à¹‰à¸™à¸«à¸¥à¸±à¸‡à¹à¸¥à¹‰à¸§...`;
+                            msg += ` 📢 เริ่มการโพสต์ในพื้นหลังแล้ว...`;
                         } else if (data.socialResults && data.socialResults.length > 0) {
                             const successCount = data.socialResults.filter(r => r.facebook?.success || r.instagram?.success || r.x?.success).length;
-                            msg += ` ðŸ“¢ à¹‚à¸žà¸ªà¸•à¹Œà¹à¸¥à¹‰à¸§ ${successCount} à¸£à¸²à¸¢à¸à¸²à¸£`;
+                            msg += ` 📢 โพสต์แล้ว ${successCount} รายการ`;
                         }
                         showToast(msg);
                         await loadProducts();
                     } else {
                         console.error('Import Error Data:', data);
-                        showToast('âŒ à¸™à¸³à¹€à¸‚à¹‰à¸²à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: ' + (data.detail || data.error || 'à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”à¹ƒà¸™à¸à¸²à¸£à¸™à¸³à¹€à¸‚à¹‰à¸²'));
+                        showToast('❌ นำเข้าไม่สำเร็จ: ' + (data.detail || data.error || 'เกิดข้อผิดพลาดในการนำเข้า'));
                     }
                 } catch (err) {
                     console.error('Catch Error:', err);
                     if (err.message !== 'Unauthorized') {
-                        showToast('âŒ à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸à¸±à¸šà¹€à¸‹à¸´à¸£à¹Œà¸Ÿà¹€à¸§à¸­à¸£à¹Œ');
+                        showToast('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
                     }
                 }
             };
@@ -1366,42 +1366,42 @@
 
         // Auto-categorize based on Shopee official dictionary keywords
         function autoCategorize(title) {
-            if (!title) return 'à¸—à¸±à¹ˆà¸§à¹„à¸›';
+            if (!title) return 'ทั่วไป';
             const t = title.toLowerCase();
 
             // Shopee Mapping Dictionary (Categories & Sub-keywords from image)
             const shopeeDict = {
                 // --- PRIORITIZED IT & GADGETS (Check these first to avoid false fashion matches) ---
-                'à¹‚à¸—à¸£à¸¨à¸±à¸žà¸—à¹Œà¸¡à¸·à¸­à¸–à¸·à¸­à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸ªà¸£à¸´à¸¡': ['à¹‚à¸—à¸£à¸¨à¸±à¸žà¸—à¹Œà¸¡à¸·à¸­à¸–à¸·à¸­', 'à¸ªà¸¡à¸²à¸£à¹Œà¸—à¹‚à¸Ÿà¸™', 'à¹à¸—à¹‡à¸šà¹€à¸¥à¹‡à¸•', 'à¸¡à¸·à¸­à¸–à¸·à¸­', 'iphone', 'samsung', 'oppo', 'vivo', 'à¹€à¸„à¸ª', 'à¸Ÿà¸´à¸¥à¹Œà¸¡', 'à¸«à¸±à¸§à¸Šà¸²à¸£à¹Œà¸ˆ', 'powerbank', 'à¹à¸šà¸•à¸ªà¸³à¸£à¸­à¸‡'],
-                'à¸„à¸­à¸¡à¸žà¸´à¸§à¹€à¸•à¸­à¸£à¹Œà¹à¸¥à¸°à¹à¸¥à¹‡à¸›à¸—à¹‡à¸­à¸›': ['à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸ªà¸£à¸´à¸¡à¸„à¸­à¸¡à¸žà¸´à¸§à¹€à¸•à¸­à¸£à¹Œ', 'à¹à¸¥à¹‡à¸›à¸—à¹‡à¸­à¸›', 'à¸„à¸­à¸¡à¸•à¸±à¹‰à¸‡à¹‚à¸•à¹Šà¸°', 'à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸ˆà¸±à¸”à¹€à¸à¹‡à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥', 'à¸›à¸£à¸´à¹‰à¸™à¹€à¸•à¸­à¸£à¹Œ', 'à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸™à¹‡à¸•à¹€à¸§à¸´à¸£à¹Œà¸„', 'à¸‹à¸­à¸Ÿà¸•à¹Œà¹à¸§à¸£à¹Œ', 'à¸Šà¸´à¹‰à¸™à¸ªà¹ˆà¸§à¸™à¸„à¸­à¸¡à¸žà¸´à¸§à¹€à¸•à¸­à¸£à¹Œ', 'à¹‚à¸™à¹Šà¸•à¸šà¸¸à¹Šà¸„', 'notebook', 'ipad', 'à¹€à¸¡à¸²à¸ªà¹Œ', 'à¸„à¸µà¸¢à¹Œà¸šà¸­à¸£à¹Œà¸”'],
-                'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹€à¸ªà¸µà¸¢à¸‡': ['à¸¥à¸³à¹‚à¸žà¸‡', 'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹€à¸ªà¸µà¸¢à¸‡', 'à¸«à¸¹à¸Ÿà¸±à¸‡', 'media player', 'à¹„à¸¡à¸„à¹Œ', 'earbuds', 'headphone', 'microphone', 'à¹„à¸¡à¹‚à¸„à¸£à¹‚à¸Ÿà¸™', 'à¸Šà¸¸à¸”à¸¥à¸³à¹‚à¸žà¸‡'],
-                'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹ƒà¸Šà¹‰à¹„à¸Ÿà¸Ÿà¹‰à¸²à¹ƒà¸™à¸šà¹‰à¸²à¸™': ['à¹„à¸¡à¹‚à¸„à¸£à¹€à¸§à¸Ÿ', 'à¹€à¸•à¸²à¸­à¸š', 'à¸•à¸¹à¹‰à¹€à¸¢à¹‡à¸™', 'à¹€à¸•à¸²à¹à¸à¹Šà¸ª', 'à¹€à¸•à¸²à¹„à¸Ÿà¸Ÿà¹‰à¸²', 'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸Ÿà¸­à¸à¸­à¸²à¸à¸²à¸¨', 'à¸žà¸±à¸”à¸¥à¸¡', 'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸›à¸£à¸±à¸šà¸­à¸²à¸à¸²à¸¨', 'à¹à¸­à¸£à¹Œ', 'à¹€à¸•à¸²à¸£à¸µà¸”', 'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸‹à¸±à¸à¸œà¹‰à¸²', 'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸­à¸šà¸œà¹‰à¸²', 'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸”à¸¹à¸”à¸à¸¸à¹ˆà¸™', 'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸—à¸³à¸™à¹‰à¸³à¸­à¸¸à¹ˆà¸™', 'à¸«à¸¡à¹‰à¸­à¸—à¸­à¸”'],
-                'à¸à¸¥à¹‰à¸­à¸‡à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸–à¹ˆà¸²à¸¢à¸ à¸²à¸ž': ['à¸à¸¥à¹‰à¸­à¸‡', 'à¸à¸¥à¹‰à¸­à¸‡à¹à¸­à¸„à¸Šà¸±à¹ˆà¸™', 'à¸à¸¥à¹‰à¸­à¸‡à¸§à¸‡à¸ˆà¸£à¸›à¸´à¸”', 'à¹€à¸¥à¸™à¸ªà¹Œ', 'à¹€à¸¡à¸¡à¹‚à¸¡à¸£à¸µà¹ˆà¸à¸²à¸£à¹Œà¸”', 'à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸ªà¸£à¸´à¸¡à¸à¸¥à¹‰à¸­à¸‡', 'à¸‚à¸²à¸•à¸±à¹‰à¸‡'],
-                'Gaming à¹à¸¥à¸°à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸à¸¡': ['à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¹€à¸ªà¸£à¸´à¸¡à¹€à¸à¸¡', 'à¹à¸œà¹ˆà¸™à¹€à¸à¸¡', 'à¸•à¸¥à¸±à¸šà¹€à¸à¸¡', 'ps5', 'nintendo', 'switch', 'à¸ˆà¸­à¸¢'],
+                'โทรศัพท์มือถือและอุปกรณ์เสริม': ['โทรศัพท์มือถือ', 'สมาร์ทโฟน', 'แท็บเล็ต', 'มือถือ', 'iphone', 'samsung', 'oppo', 'vivo', 'เคส', 'ฟิล์ม', 'หัวชาร์จ', 'powerbank', 'แบตสำรอง'],
+                'คอมพิวเตอร์และแล็ปท็อป': ['อุปกรณ์เสริมคอมพิวเตอร์', 'แล็ปท็อป', 'คอมตั้งโต๊ะ', 'อุปกรณ์จัดเก็บข้อมูล', 'ปริ้นเตอร์', 'อุปกรณ์เน็ตเวิร์ค', 'ซอฟต์แวร์', 'ชิ้นส่วนคอมพิวเตอร์', 'โน๊ตบุ๊ค', 'notebook', 'ipad', 'เมาส์', 'คีย์บอร์ด'],
+                'เครื่องเสียง': ['ลำโพง', 'เครื่องเสียง', 'หูฟัง', 'media player', 'ไมค์', 'earbuds', 'headphone', 'microphone', 'ไมโครโฟน', 'ชุดลำโพง'],
+                'เครื่องใช้ไฟฟ้าในบ้าน': ['ไมโครเวฟ', 'เตาอบ', 'ตู้เย็น', 'เตาแก๊ส', 'เตาไฟฟ้า', 'เครื่องฟอกอากาศ', 'พัดลม', 'เครื่องปรับอากาศ', 'แอร์', 'เตารีด', 'เครื่องซักผ้า', 'เครื่องอบผ้า', 'เครื่องดูดฝุ่น', 'เครื่องทำน้ำอุ่น', 'หม้อทอด'],
+                'กล้องและอุปกรณ์ถ่ายภาพ': ['กล้อง', 'กล้องแอคชั่น', 'กล้องวงจรปิด', 'เลนส์', 'เมมโมรี่การ์ด', 'อุปกรณ์เสริมกล้อง', 'ขาตั้ง'],
+                'Gaming และอุปกรณ์เกม': ['อุปกรณ์เสริมเกม', 'แผ่นเกม', 'ตลับเกม', 'ps5', 'nintendo', 'switch', 'จอย'],
 
                 // --- FASHION & ACCESSORIES (With refined keywords) ---
-                'à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡': [' à¹€à¸ªà¸·à¹‰à¸­ ', 'à¹€à¸ªà¸·à¹‰à¸­à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡', 'à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡', 'à¹€à¸”à¸£à¸ª', 'à¸à¸²à¸‡à¹€à¸à¸‡', 'à¸à¸£à¸°à¹‚à¸›à¸£à¸‡', 'à¸œà¹‰à¸²à¸¢à¸µà¸™à¸ªà¹Œ', 'à¸ˆà¸±à¹Šà¸¡à¸ªà¸¹à¸—', 'à¸Šà¸¸à¸”à¸Šà¸±à¹‰à¸™à¹ƒà¸™', 'à¸Šà¸¸à¸”à¸™à¸­à¸™', 'à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸ªà¸²à¸§à¸­à¸§à¸š'],
-                'à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¸œà¸¹à¹‰à¸Šà¸²à¸¢': ['à¹€à¸ªà¸·à¹‰à¸­à¹€à¸Šà¸´à¹‰à¸•', 'à¹€à¸ªà¸·à¹‰à¸­à¹‚à¸›à¹‚à¸¥', 'à¹€à¸ªà¸·à¹‰à¸­à¸¢à¸·à¸”à¹à¸‚à¸™à¸ªà¸±à¹‰à¸™', 'à¸à¸²à¸‡à¹€à¸à¸‡à¸‚à¸²à¸ªà¸±à¹‰à¸™', 'à¸à¸²à¸‡à¹€à¸à¸‡à¸‚à¸²à¸¢à¸²à¸§', 'à¸Šà¸¸à¸”à¸Šà¸±à¹‰à¸™à¹ƒà¸™à¸Šà¸²à¸¢'],
-                'à¸à¸£à¸°à¹€à¸›à¹‹à¸²': ['à¸à¸£à¸°à¹€à¸›à¹‹à¸²à¸–à¸·à¸­', 'à¸à¸£à¸°à¹€à¸›à¹‹à¸²à¸ªà¸°à¸žà¸²à¸¢à¸‚à¹‰à¸²à¸‡', 'à¸à¸£à¸°à¹€à¸›à¹‹à¸²à¸ªà¸•à¸²à¸‡à¸„à¹Œ', 'à¸à¸£à¸°à¹€à¸›à¹‹à¸²à¸œà¹‰à¸²', 'à¸à¸£à¸°à¹€à¸›à¹‹à¸²à¸„à¸²à¸”à¸­à¸', 'à¸à¸£à¸°à¹€à¸›à¹‹à¸²à¹€à¸›à¹‰', 'à¸à¸£à¸°à¹€à¸›à¹‹à¸²à¹€à¸”à¸´à¸™à¸—à¸²à¸‡'],
-                'à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡': ['à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸ªà¹‰à¸™à¸ªà¸¹à¸‡', 'à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸ªà¹‰à¸™à¹à¸šà¸™', 'à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸œà¹‰à¸²à¹ƒà¸š', 'à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸šà¸¹à¸—', 'à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¹à¸•à¸°à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡'],
-                'à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸œà¸¹à¹‰à¸Šà¸²à¸¢': ['à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸«à¸™à¸±à¸‡', 'à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¹€à¸‹à¸Ÿà¸•à¸µà¹‰', 'à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¹à¸•à¸°à¸œà¸¹à¹‰à¸Šà¸²à¸¢'],
-                'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸›à¸£à¸°à¸”à¸±à¸š': ['à¹à¸«à¸§à¸™', 'à¸ªà¸£à¹‰à¸­à¸¢à¸„à¸­', 'à¸•à¹ˆà¸²à¸‡à¸«à¸¹', 'à¸œà¹‰à¸²à¸žà¸±à¸™à¸„à¸­', 'à¸«à¸¡à¸§à¸', 'à¹€à¸‚à¹‡à¸¡à¸‚à¸±à¸”', 'à¸à¸³à¹„à¸¥'],
-                'à¸™à¸²à¸¬à¸´à¸à¸²à¹à¸¥à¸°à¹à¸§à¹ˆà¸™à¸•à¸²': ['à¹à¸§à¹ˆà¸™à¸•à¸²', 'à¹à¸§à¹ˆà¸™à¸•à¸²à¸à¸±à¸™à¹à¸”à¸”', 'à¸™à¸²à¸¬à¸´à¸à¸²à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡', 'à¸™à¸²à¸¬à¸´à¸à¸²à¸œà¸¹à¹‰à¸Šà¸²à¸¢'],
+                'เสื้อผ้าผู้หญิง': [' เสื้อ ', 'เสื้อผู้หญิง', 'เสื้อผ้าผู้หญิง', 'เดรส', 'กางเกง', 'กระโปรง', 'ผ้ายีนส์', 'จั๊มสูท', 'ชุดชั้นใน', 'ชุดนอน', 'เสื้อผ้าสาวอวบ'],
+                'เสื้อผ้าผู้ชาย': ['เสื้อเชิ้ต', 'เสื้อโปโล', 'เสื้อยืดแขนสั้น', 'กางเกงขาสั้น', 'กางเกงขายาว', 'ชุดชั้นในชาย'],
+                'กระเป๋า': ['กระเป๋าถือ', 'กระเป๋าสะพายข้าง', 'กระเป๋าสตางค์', 'กระเป๋าผ้า', 'กระเป๋าคาดอก', 'กระเป๋าเป้', 'กระเป๋าเดินทาง'],
+                'รองเท้าผู้หญิง': ['รองเท้าส้นสูง', 'รองเท้าส้นแบน', 'รองเท้าผ้าใบ', 'รองเท้าบูท', 'รองเท้าแตะผู้หญิง'],
+                'รองเท้าผู้ชาย': ['รองเท้าหนัง', 'รองเท้าเซฟตี้', 'รองเท้าแตะผู้ชาย'],
+                'เครื่องประดับ': ['แหวน', 'สร้อยคอ', 'ต่างหู', 'ผ้าพันคอ', 'หมวก', 'เข็มขัด', 'กำไล'],
+                'นาฬิกาและแว่นตา': ['แว่นตา', 'แว่นตากันแดด', 'นาฬิกาผู้หญิง', 'นาฬิกาผู้ชาย'],
 
                 // --- OTHERS ---
-                'à¸„à¸§à¸²à¸¡à¸‡à¸²à¸¡': ['à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸ªà¸³à¸­à¸²à¸‡', 'à¸¥à¸´à¸›', 'à¹à¸•à¹ˆà¸‡à¸«à¸™à¹‰à¸²', 'à¸™à¹‰à¸³à¸«à¸­à¸¡', 'à¹à¸›à¹‰à¸‡', 'à¸£à¸­à¸‡à¸žà¸·à¹‰à¸™'],
-                'à¸œà¸¥à¸´à¸•à¸ à¸±à¸“à¸‘à¹Œà¸”à¸¹à¹à¸¥à¸œà¸´à¸§': ['à¸œà¸´à¸§à¸«à¸™à¹‰à¸²', 'à¸œà¸´à¸§à¸à¸²à¸¢', 'à¸”à¸¹à¹à¸¥à¸œà¸¡', 'à¹€à¸¥à¹‡à¸š', 'à¹€à¸‹à¸£à¸±à¹ˆà¸¡', 'à¸„à¸£à¸µà¸¡', 'à¸à¸±à¸™à¹à¸”à¸”', 'à¸ªà¸šà¸¹à¹ˆ', 'à¹à¸Šà¸¡à¸žà¸¹'],
-                'à¸ªà¸¸à¸‚à¸ à¸²à¸ž': ['à¸­à¸²à¸«à¸²à¸£à¹€à¸ªà¸£à¸´à¸¡', 'à¸§à¸´à¸•à¸²à¸¡à¸´à¸™', 'à¸„à¸­à¸¥à¸¥à¸²à¹€à¸ˆà¸™', 'à¹€à¸§à¸¢à¹Œ', 'à¹à¸¡à¸ªà¸à¹Œ', 'à¸«à¸™à¹‰à¸²à¸à¸²à¸à¸­à¸™à¸²à¸¡à¸±à¸¢'],
-                'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¹ƒà¸Šà¹‰à¹ƒà¸™à¸šà¹‰à¸²à¸™': ['à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸ªà¸³à¸«à¸£à¸±à¸šà¸ˆà¸±à¸”à¹€à¸à¹‡à¸š', 'à¸•à¸à¹à¸•à¹ˆà¸‡à¸šà¹‰à¸²à¸™', 'à¹€à¸Ÿà¸­à¸£à¹Œà¸™à¸´à¹€à¸ˆà¸­à¸£à¹Œ', 'à¹‚à¸„à¸¡à¹„à¸Ÿ', 'à¸—à¸´à¸Šà¸Šà¸¹à¹ˆ'],
-                'à¸šà¹‰à¸²à¸™à¹à¸¥à¸°à¸ªà¸§à¸™': ['à¸ªà¸§à¸™', 'à¸•à¹‰à¸™à¹„à¸¡à¹‰', 'à¸à¸£à¸°à¸–à¸²à¸‡'],
-                'à¸­à¸²à¸«à¸²à¸£à¹à¸¥à¸°à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸”à¸·à¹ˆà¸¡': ['à¸‚à¸™à¸¡', 'à¸­à¸²à¸«à¸²à¸£à¸ªà¸³à¹€à¸£à¹‡à¸ˆà¸£à¸¹à¸›', 'à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸”à¸·à¹ˆà¸¡'],
-                'à¸‚à¸­à¸‡à¹€à¸¥à¹ˆà¸™ à¸ªà¸´à¸™à¸„à¹‰à¸²à¸‡à¸²à¸™à¸­à¸”à¸´à¹€à¸£à¸': ['à¸‚à¸­à¸‡à¹€à¸¥à¹ˆà¸™', 'à¸‚à¸­à¸‡à¸ªà¸°à¸ªà¸¡', 'à¸•à¸¸à¹Šà¸à¸•à¸²', 'à¹‚à¸¡à¹€à¸”à¸¥', 'à¹€à¸¥à¹‚à¸à¹‰'],
-                'à¹à¸¡à¹ˆà¹à¸¥à¸°à¹€à¸”à¹‡à¸': ['à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸ªà¸³à¸«à¸£à¸±à¸šà¹€à¸”à¹‡à¸', 'à¸£à¸–à¹€à¸‚à¹‡à¸™', 'à¸œà¹‰à¸²à¸­à¹‰à¸­à¸¡', 'à¸™à¸¡à¸œà¸‡'],
-                'à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¹€à¸”à¹‡à¸': ['à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¹€à¸”à¹‡à¸à¹à¸£à¸à¹€à¸à¸´à¸”', 'à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¹€à¸”à¹‡à¸à¸œà¸¹à¹‰à¸«à¸à¸´à¸‡', 'à¹€à¸ªà¸·à¹‰à¸­à¸œà¹‰à¸²à¹€à¸”à¹‡à¸à¸œà¸¹à¹‰à¸Šà¸²à¸¢'],
-                'à¸à¸µà¸¬à¸²à¹à¸¥à¸°à¸à¸´à¸ˆà¸à¸£à¸£à¸¡à¸à¸¥à¸²à¸‡à¹à¸ˆà¹‰à¸‡': ['à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸Ÿà¸´à¸•à¹€à¸™à¸ª', 'à¸à¸²à¸£à¸­à¸­à¸à¸à¸³à¸¥à¸±à¸‡à¸à¸²à¸¢', 'à¸£à¸­à¸‡à¹€à¸—à¹‰à¸²à¸à¸µà¸¬à¸²', 'à¹à¸„à¸¡à¸›à¹Œà¸›à¸´à¹‰à¸‡', 'à¸•à¸à¸›à¸¥à¸²'],
-                'à¸¢à¸²à¸™à¸¢à¸™à¸•à¹Œ': ['à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸ à¸²à¸¢à¹ƒà¸™à¸£à¸–à¸¢à¸™à¸•à¹Œ', 'à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸ à¸²à¸¢à¸™à¸­à¸à¸£à¸–à¸¢à¸™à¸•à¹Œ', 'à¸£à¸–à¸¢à¸™à¸•à¹Œ', 'à¸¡à¸­à¹€à¸•à¸­à¸£à¹Œà¹„à¸‹à¸„à¹Œ'],
-                'à¸ªà¸±à¸•à¸§à¹Œà¹€à¸¥à¸µà¹‰à¸¢à¸‡': ['à¸­à¸²à¸«à¸²à¸£à¸ªà¸±à¸•à¸§à¹Œ', 'à¸­à¸¸à¸›à¸à¸£à¸“à¹Œà¸ªà¸³à¸«à¸£à¸±à¸šà¸ªà¸±à¸•à¸§à¹Œà¹€à¸¥à¸µà¹‰à¸¢à¸‡'],
-                'à¸­à¸·à¹ˆà¸™à¹†': []
+                'ความงาม': ['เครื่องสำอาง', 'ลิป', 'แต่งหน้า', 'น้ำหอม', 'แป้ง', 'รองพื้น'],
+                'ผลิตภัณฑ์ดูแลผิว': ['ผิวหน้า', 'ผิวกาย', 'ดูแลผม', 'เล็บ', 'เซรั่ม', 'ครีม', 'กันแดด', 'สบู่', 'แชมพู'],
+                'สุขภาพ': ['อาหารเสริม', 'วิตามิน', 'คอลลาเจน', 'เวย์', 'แมสก์', 'หน้ากากอนามัย'],
+                'เครื่องใช้ในบ้าน': ['อุปกรณ์สำหรับจัดเก็บ', 'ตกแต่งบ้าน', 'เฟอร์นิเจอร์', 'โคมไฟ', 'ทิชชู่'],
+                'บ้านและสวน': ['สวน', 'ต้นไม้', 'กระถาง'],
+                'อาหารและเครื่องดื่ม': ['ขนม', 'อาหารสำเร็จรูป', 'เครื่องดื่ม'],
+                'ของเล่น สินค้างานอดิเรก': ['ของเล่น', 'ของสะสม', 'ตุ๊กตา', 'โมเดล', 'เลโก้'],
+                'แม่และเด็ก': ['อุปกรณ์สำหรับเด็ก', 'รถเข็น', 'ผ้าอ้อม', 'นมผง'],
+                'เสื้อผ้าเด็ก': ['เสื้อผ้าเด็กแรกเกิด', 'เสื้อผ้าเด็กผู้หญิง', 'เสื้อผ้าเด็กผู้ชาย'],
+                'กีฬาและกิจกรรมกลางแจ้ง': ['อุปกรณ์ฟิตเนส', 'การออกกำลังกาย', 'รองเท้ากีฬา', 'แคมป์ปิ้ง', 'ตกปลา'],
+                'ยานยนต์': ['อุปกรณ์ภายในรถยนต์', 'อุปกรณ์ภายนอกรถยนต์', 'รถยนต์', 'มอเตอร์ไซค์'],
+                'สัตว์เลี้ยง': ['อาหารสัตว์', 'อุปกรณ์สำหรับสัตว์เลี้ยง'],
+                'อื่นๆ': []
             };
 
             // Loop through dictionary to find matching keywords
@@ -1412,14 +1412,14 @@
             }
 
             // fallback
-            return 'à¸—à¸±à¹ˆà¸§à¹„à¸›';
+            return 'ทั่วไป';
         }
 
         function parseShopeeCSV(csvText, importCategory) {
-            console.log('ðŸ“„ Starting CSV Parse...');
+            console.log('📄 Starting CSV Parse...');
             const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
             if (lines.length < 2) {
-                console.error('âŒ CSV too short');
+                console.error('❌ CSV too short');
                 return [];
             }
 
@@ -1427,7 +1427,7 @@
             if (!lines[0].includes('\t')) {
                 delimiter = ',';
             }
-            console.log('ðŸ“ Delimiter detected:', delimiter === '\t' ? 'TAB' : 'COMMA');
+            console.log('📏 Delimiter detected:', delimiter === '\t' ? 'TAB' : 'COMMA');
 
             const splitLine = (line) => {
                 if (delimiter === '\t') return line.split('\t');
@@ -1447,25 +1447,25 @@
             };
 
             const headers = splitLine(lines[0]);
-            console.log('ðŸ“‹ Headers:', headers);
+            console.log('📋 Headers:', headers);
 
-            // Shopee columns mappings (more precise to avoid matching à¸£à¸«à¸±à¸ªà¸ªà¸´à¸™à¸„à¹‰à¸²)
-            let colTitle = headers.findIndex(h => h.includes('à¸Šà¸·à¹ˆà¸­à¸ªà¸´à¸™à¸„à¹‰à¸²') || h.includes('Product Name') || h.includes('Item Name'));
-            if (colTitle === -1) colTitle = headers.findIndex(h => h.includes('à¸ªà¸´à¸™à¸„à¹‰à¸²') && !h.includes('à¸£à¸«à¸±à¸ª'));
+            // Shopee columns mappings (more precise to avoid matching รหัสสินค้า)
+            let colTitle = headers.findIndex(h => h.includes('ชื่อสินค้า') || h.includes('Product Name') || h.includes('Item Name'));
+            if (colTitle === -1) colTitle = headers.findIndex(h => h.includes('สินค้า') && !h.includes('รหัส'));
 
-            let colUrl = headers.findIndex(h => h.includes('à¸¥à¸´à¸‡à¸à¹Œà¸‚à¹‰à¸­à¹€à¸ªà¸™à¸­') || h.includes('Shopee Affiliate Link') || h.includes('Product Link') || h.includes('URL'));
+            let colUrl = headers.findIndex(h => h.includes('ลิงก์ข้อเสนอ') || h.includes('Shopee Affiliate Link') || h.includes('Product Link') || h.includes('URL'));
             if (colUrl === -1) colUrl = headers.findIndex(h => h.includes('Link'));
 
-            let colPrice = headers.findIndex(h => h.trim() === 'à¸£à¸²à¸„à¸²' || h.trim() === 'Price' || (h.includes('à¸£à¸²à¸„à¸²') && !h.includes('à¹€à¸”à¸´à¸¡') && !h.includes('à¸›à¸à¸•à¸´') && !h.includes('à¸¥à¸”')));
+            let colPrice = headers.findIndex(h => h.trim() === 'ราคา' || h.trim() === 'Price' || (h.includes('ราคา') && !h.includes('เดิม') && !h.includes('ปกติ') && !h.includes('ลด')));
             if (colPrice === -1) colPrice = headers.findIndex(h => h.includes('Price') && !h.includes('Original'));
 
-            let colImage = headers.findIndex(h => h.includes('à¸£à¸¹à¸›') || h.includes('Image') || h.includes('Photo') || h.includes('Picture'));
-            let colOriginal = headers.findIndex(h => h.includes('à¸£à¸²à¸„à¸²à¹€à¸”à¸´à¸¡') || h.includes('à¸£à¸²à¸„à¸²à¸›à¸à¸•à¸´') || h.includes('Original Price'));
+            let colImage = headers.findIndex(h => h.includes('รูป') || h.includes('Image') || h.includes('Photo') || h.includes('Picture'));
+            let colOriginal = headers.findIndex(h => h.includes('ราคาเดิม') || h.includes('ราคาปกติ') || h.includes('Original Price'));
 
-            console.log('ðŸ” Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal });
+            console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal });
 
             if (colTitle === -1 || colUrl === -1) {
-                console.error('âŒ Missing core columns (Title or Link)');
+                console.error('❌ Missing core columns (Title or Link)');
                 return [];
             }
 
@@ -1492,18 +1492,18 @@
                     description: ''
                 });
             }
-            console.log('âœ… Parsed products:', parsedProducts.length);
+            console.log('✅ Parsed products:', parsedProducts.length);
             return parsedProducts;
         }
 
         // === Backup & Restore ===
         async function exportBackup() {
             if (products.length === 0) {
-                if (!confirm('à¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¸´à¸™à¸„à¹‰à¸²à¹ƒà¸™à¸£à¸°à¸šà¸š à¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸”à¸²à¸§à¸™à¹Œà¹‚à¸«à¸¥à¸”à¹€à¸‰à¸žà¸²à¸°à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸² API à¸«à¸£à¸·à¸­à¹„à¸¡à¹ˆ?')) return;
+                if (!confirm('ไม่มีสินค้าในระบบ ต้องการดาวน์โหลดเฉพาะการตั้งค่า API หรือไม่?')) return;
             }
 
             try {
-                showToast('â³ à¸à¸³à¸¥à¸±à¸‡à¸£à¸§à¸šà¸£à¸§à¸¡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥ Backup...');
+                showToast('⏳ กำลังรวบรวมข้อมูล Backup...');
 
                 // Fetch raw settings for backup
                 const res = await fetchWithAuth('/api/settings?raw=true');
@@ -1526,10 +1526,10 @@
                 downloadAnchorNode.click();
                 downloadAnchorNode.remove();
 
-                showToast('âœ… à¸”à¸²à¸§à¸™à¹Œà¹‚à¸«à¸¥à¸”à¹„à¸Ÿà¸¥à¹Œ Backup à¸ªà¸³à¹€à¸£à¹‡à¸ˆà¹à¸¥à¹‰à¸§');
+                showToast('✅ ดาวน์โหลดไฟล์ Backup สำเร็จแล้ว');
             } catch (err) {
                 console.error("Backup Export Error:", err);
-                showToast('âŒ à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”à¹ƒà¸™à¸à¸²à¸£à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥ Settings à¹€à¸žà¸·à¹ˆà¸­ Backup');
+                showToast('❌ เกิดข้อผิดพลาดในการดึงข้อมูล Settings เพื่อ Backup');
             }
         }
 
@@ -1556,19 +1556,19 @@
                         itemsToRestore = parsedData.products;
                         settingsToRestore = parsedData.settings;
                     } else {
-                        throw new Error("à¸£à¸¹à¸›à¹à¸šà¸šà¹„à¸Ÿà¸¥à¹Œ Backup à¹„à¸¡à¹ˆà¸£à¸­à¸‡à¸£à¸±à¸š");
+                        throw new Error("รูปแบบไฟล์ Backup ไม่รองรับ");
                     }
 
                     let confirmMessage = '';
                     if (isCombinedFormat && settingsToRestore) {
-                        confirmMessage = `à¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸à¸¹à¹‰à¸„à¸·à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸´à¸™à¸„à¹‰à¸²à¸ˆà¸³à¸™à¸§à¸™ ${itemsToRestore.length} à¸£à¸²à¸¢à¸à¸²à¸£ à¹à¸¥à¸°à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸² API à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”à¸«à¸£à¸·à¸­à¹„à¸¡à¹ˆ?\n\n(à¸£à¸°à¸šà¸šà¸ˆà¸°à¸™à¸³à¹€à¸‚à¹‰à¸²à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹à¸¥à¸°à¸šà¸±à¸™à¸—à¸¶à¸à¸—à¸±à¸šà¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¹€à¸”à¸´à¸¡)`;
+                        confirmMessage = `ต้องการกู้คืนข้อมูลสินค้าจำนวน ${itemsToRestore.length} รายการ และการตั้งค่า API ทั้งหมดหรือไม่?\n\n(ระบบจะนำเข้าข้อมูลและบันทึกทับการตั้งค่าเดิม)`;
                     } else {
-                        confirmMessage = `à¸•à¹‰à¸­à¸‡à¸à¸²à¸£à¸à¸¹à¹‰à¸„à¸·à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸´à¸™à¸„à¹‰à¸²à¸ˆà¸³à¸™à¸§à¸™ ${itemsToRestore.length} à¸£à¸²à¸¢à¸à¸²à¸£à¸«à¸£à¸·à¸­à¹„à¸¡à¹ˆ?\n\n(à¸£à¸°à¸šà¸šà¸ˆà¸°à¸™à¸³à¹€à¸‚à¹‰à¸²à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹à¸¥à¸°à¸­à¸±à¸›à¹€à¸”à¸•à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¸¡à¸µ ID à¸•à¸£à¸‡à¸à¸±à¸™)`;
+                        confirmMessage = `ต้องการกู้คืนข้อมูลสินค้าจำนวน ${itemsToRestore.length} รายการหรือไม่?\n\n(ระบบจะนำเข้าข้อมูลและอัปเดตรายการที่มี ID ตรงกัน)`;
                     }
 
                     if (!confirm(confirmMessage)) return;
 
-                    showToast('â³ à¸à¸³à¸¥à¸±à¸‡à¸à¸¹à¹‰à¸„à¸·à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥...');
+                    showToast('⏳ กำลังกู้คืนข้อมูล...');
 
                     let successCount = 0;
 
@@ -1580,7 +1580,7 @@
                         });
                         const dataProducts = await resProducts.json();
                         if (!dataProducts.success) {
-                            throw new Error('à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸à¸¹à¹‰à¸„à¸·à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸´à¸™à¸„à¹‰à¸²à¹„à¸”à¹‰: ' + dataProducts.error);
+                            throw new Error('ไม่สามารถกู้คืนข้อมูลสินค้าได้: ' + dataProducts.error);
                         }
                         successCount += dataProducts.count;
                     }
@@ -1594,19 +1594,19 @@
                         });
                         const dataSettings = await resSettings.json();
                         if (!dataSettings.success) {
-                            throw new Error('à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¸à¸¹à¹‰à¸„à¸·à¸™à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²à¹„à¸”à¹‰');
+                            throw new Error('ไม่สามารถกู้คืนการตั้งค่าได้');
                         }
-                        settingsMessage = ` à¹à¸¥à¸°à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸² ${dataSettings.updatedCount} à¸£à¸²à¸¢à¸à¸²à¸£`;
+                        settingsMessage = ` และการตั้งค่า ${dataSettings.updatedCount} รายการ`;
                         // Reload local settings panel
                         await loadSettings();
                     }
 
-                    showToast(`âœ… à¸à¸¹à¹‰à¸„à¸·à¸™à¸ªà¸³à¹€à¸£à¹‡à¸ˆ: à¸ªà¸´à¸™à¸„à¹‰à¸² ${successCount} à¸£à¸²à¸¢à¸à¸²à¸£${settingsMessage}`);
+                    showToast(`✅ กู้คืนสำเร็จ: สินค้า ${successCount} รายการ${settingsMessage}`);
                     await loadProducts();
 
                 } catch (err) {
                     console.error("Restore Error:", err);
-                    showToast('âŒ à¸à¸¹à¹‰à¸„à¸·à¸™à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ: ' + err.message);
+                    showToast('❌ กู้คืนข้อมูลไม่สำเร็จ: ' + err.message);
                 }
             };
             reader.readAsText(file);
@@ -1617,9 +1617,9 @@
             const url = e.target.value.trim();
             const preview = document.getElementById('imagePreview');
             if (url) {
-                preview.innerHTML = `<img src="${url}" onerror="this.parentElement.innerHTML='<span class=placeholder>âŒ</span>'" />`;
+                preview.innerHTML = `<img src="${url}" onerror="this.parentElement.innerHTML='<span class=placeholder>❌</span>'" />`;
             } else {
-                preview.innerHTML = '<span class="placeholder">ðŸ–¼ï¸</span>';
+                preview.innerHTML = '<span class="placeholder">🖼️</span>';
             }
         });
 
@@ -1646,7 +1646,7 @@
             try {
                 const res = await fetchWithAuth('/api/settings');
                 const data = await res.json();
-                const MARKER = 'â—â—â—â—â—â—â—â—';
+                const MARKER = '●●●●●●●●';
                 document.getElementById('fbTokenInput').value = data.FB_PAGE_ACCESS_TOKEN ? MARKER : '';
                 document.getElementById('threadsUserIdInput').value = data.THREADS_USER_ID ? data.THREADS_USER_ID : ''; // User ID is usually not sensitive
                 document.getElementById('threadsTokenInput').value = data.THREADS_ACCESS_TOKEN ? MARKER : '';
@@ -1662,7 +1662,7 @@
         async function saveSettings() {
             const btn = document.getElementById('saveSettingsBtn');
             btn.disabled = true;
-            btn.textContent = 'â³ à¸à¸³à¸¥à¸±à¸‡à¸šà¸±à¸™à¸—à¸¶à¸...';
+            btn.textContent = '⏳ กำลังบันทึก...';
 
             const payload = {
                 FB_PAGE_ACCESS_TOKEN: document.getElementById('fbTokenInput').value,
@@ -1674,7 +1674,7 @@
                 CARD_THEME: document.getElementById('cardThemeInput').value
             };
 
-            const MARKER = 'â—â—â—â—â—â—â—â—';
+            const MARKER = '●●●●●●●●';
             // If the fields are unchanged (still showing MARKER), don't send them
             Object.keys(payload).forEach(k => {
                 if (payload[k] === MARKER || payload[k] === '') {
@@ -1683,9 +1683,9 @@
             });
 
             if (Object.keys(payload).length === 0) {
-                showToast('âš ï¸ à¹„à¸¡à¹ˆà¸¡à¸µà¸„à¹ˆà¸²à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¸­à¸±à¸›à¹€à¸”à¸•');
+                showToast('⚠️ ไม่มีค่าที่ต้องอัปเดต');
                 btn.disabled = false;
-                btn.textContent = 'ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²';
+                btn.textContent = '💾 บันทึกการตั้งค่า';
                 return;
             }
 
@@ -1696,7 +1696,7 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast(`âœ… à¸­à¸±à¸›à¹€à¸”à¸•à¸ªà¸³à¹€à¸£à¹‡à¸ˆ ${data.updatedCount} à¸£à¸²à¸¢à¸à¸²à¸£! (à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¹„à¸”à¹‰à¸—à¸±à¸™à¸—à¸µ)`);
+                    showToast(`✅ อัปเดตสำเร็จ ${data.updatedCount} รายการ! (ใช้งานได้ทันที)`);
                     // Clear inputs and reload current values
                     document.getElementById('fbTokenInput').value = '';
                     document.getElementById('threadsUserIdInput').value = '';
@@ -1706,16 +1706,16 @@
                     document.getElementById('supabaseKeyInput').value = '';
                     await loadSettings();
                 } else {
-                    showToast('âŒ à¸šà¸±à¸™à¸—à¸¶à¸à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ');
+                    showToast('❌ บันทึกไม่สำเร็จ');
                 }
             } catch (e) {
                 if (e.message !== 'Unauthorized') {
-                    showToast('âŒ à¹„à¸¡à¹ˆà¸ªà¸²à¸¡à¸²à¸£à¸–à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­à¸à¸±à¸šà¹€à¸‹à¸´à¸£à¹Œà¸Ÿà¹€à¸§à¸­à¸£à¹Œ');
+                    showToast('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
                 }
             }
 
             btn.disabled = false;
-            btn.textContent = 'ðŸ’¾ à¸šà¸±à¸™à¸—à¸¶à¸à¸à¸²à¸£à¸•à¸±à¹‰à¸‡à¸„à¹ˆà¸²';
+            btn.textContent = '💾 บันทึกการตั้งค่า';
         }
 
         checkAuth();
