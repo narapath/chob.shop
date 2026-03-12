@@ -443,19 +443,21 @@ app.get('/api/settings', requireAuth, (req, res) => {
     GEMINI_API_KEY: formatOutput(process.env.GEMINI_API_KEY),
     SUPABASE_URL: formatOutput(process.env.SUPABASE_URL),
     SUPABASE_KEY: formatOutput(process.env.SUPABASE_KEY),
-    CARD_THEME: process.env.CARD_THEME || 'theme-white'
+    CARD_THEME: process.env.CARD_THEME || 'theme-white',
+    STATS_THEME: process.env.STATS_THEME || 'stats-premium'
   });
 });
 
 app.get('/api/theme', (req, res) => {
   res.json({
-    CARD_THEME: process.env.CARD_THEME || 'theme-white'
+    CARD_THEME: process.env.CARD_THEME || 'theme-white',
+    STATS_THEME: process.env.STATS_THEME || 'stats-premium'
   });
 });
 
 app.put('/api/settings', requireAuth, (req, res) => {
   try {
-    const allowedKeys = ['FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN', 'GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_KEY', 'CARD_THEME'];
+    const allowedKeys = ['FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN', 'GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_KEY', 'CARD_THEME', 'STATS_THEME'];
     const updates = req.body;
 
     const SECRET_MARKER = '●●●●●●●●';

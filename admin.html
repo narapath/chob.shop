@@ -562,6 +562,16 @@
                             </select>
                             <small class="hint">Choose the visual style for the product cards on your homepage.</small>
                         </div>
+                        <div class="form-group">
+                            <label>Homepage Stats Theme</label>
+                            <select id="statsThemeInput" class="form-control">
+                                <option value="stats-premium">💎 Premium Glass (Reflective)</option>
+                                <option value="stats-cyber">🌌 Cyber Glow (Neon)</option>
+                                <option value="stats-minimal">⚪ Pure Minimal (Clean)</option>
+                                <option value="stats-gradient">🌈 Liquid Gradient (Animated)</option>
+                            </select>
+                            <small class="hint">Choose the visual style for the store overview statistics bar.</small>
+                        </div>
                     </div>
                     <div class="setting-group" style="grid-column: 1 / -1;">
                         <h3>🗄️ Supabase Database Settings</h3>
@@ -1623,6 +1633,7 @@
                 document.getElementById('supabaseUrlInput').value = data.SUPABASE_URL ? MARKER : '';
                 document.getElementById('supabaseKeyInput').value = data.SUPABASE_KEY ? MARKER : '';
                 document.getElementById('cardThemeInput').value = data.CARD_THEME || 'theme-white';
+                document.getElementById('statsThemeInput').value = data.STATS_THEME || 'stats-premium';
             } catch (e) {
                 console.error('Failed to load settings:', e);
             }
@@ -1640,7 +1651,8 @@
                 GEMINI_API_KEY: document.getElementById('geminiKeyInput').value,
                 SUPABASE_URL: document.getElementById('supabaseUrlInput').value,
                 SUPABASE_KEY: document.getElementById('supabaseKeyInput').value,
-                CARD_THEME: document.getElementById('cardThemeInput').value
+                CARD_THEME: document.getElementById('cardThemeInput').value,
+                STATS_THEME: document.getElementById('statsThemeInput').value
             };
 
             const MARKER = '●●●●●●●●';

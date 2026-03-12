@@ -219,6 +219,7 @@
     <div class="container">
       <div class="stats-grid">
         <div class="stat-card-new">
+          <div class="stat-glint"></div>
           <div class="stat-icon-wrap">📦</div>
           <div class="stat-info">
             <div class="stat-number" id="totalProducts">0</div>
@@ -226,6 +227,7 @@
           </div>
         </div>
         <div class="stat-card-new">
+          <div class="stat-glint"></div>
           <div class="stat-icon-wrap">📂</div>
           <div class="stat-info">
             <div class="stat-number" id="totalCategories">0</div>
@@ -233,6 +235,7 @@
           </div>
         </div>
         <div class="stat-card-new">
+          <div class="stat-glint"></div>
           <div class="stat-icon-wrap">✨</div>
           <div class="stat-info">
             <div class="stat-number">24/7</div>
@@ -345,15 +348,24 @@
       try {
         const res = await fetch(`${API_BASE}/api/theme`);
         const data = await res.json();
-        const theme = data.CARD_THEME || 'theme-white';
+        
+        // 1. Product Grid Theme
+        const cardTheme = data.CARD_THEME || 'theme-white';
         const grid = document.getElementById('productsGrid');
         if (grid) {
-          // Remove existing theme classes
           grid.classList.remove('theme-white', 'theme-dark', 'theme-glass', 'theme-neon', 'theme-pastel', 'theme-ocean', 'theme-sunset', 'theme-minimal');
-          grid.classList.add(theme);
+          grid.classList.add(cardTheme);
+        }
+
+        // 2. Stats Section Theme
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection && data.STATS_THEME) {
+            // Remove existing stats- themes
+            statsSection.classList.remove('stats-premium', 'stats-cyber', 'stats-minimal', 'stats-gradient');
+            statsSection.classList.add(data.STATS_THEME);
         }
       } catch (err) {
-        console.error("Failed to apply theme", err);
+        console.error("Failed to apply themes", err);
       }
     }
 
