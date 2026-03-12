@@ -117,7 +117,7 @@ body {
 
 /* --- Store Overview Stats Bar (Theme System) --- */
 .stats-section {
-  padding: 50px 0;
+  padding: 30px 0;
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border);
   position: relative;
@@ -127,26 +127,26 @@ body {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
+  gap: 20px;
 }
 
 /* Base Card Styles */
 .stat-card-new {
-  border-radius: 24px;
-  padding: 32px 24px;
+  border-radius: 20px;
+  padding: 20px 24px;
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
   transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
 .stat-icon-wrap {
-  font-size: 36px;
-  width: 72px;
-  height: 72px;
-  border-radius: 20px;
+  font-size: 28px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -155,7 +155,7 @@ body {
 }
 
 .stat-number {
-  font-size: 38px;
+  font-size: 30px;
   font-weight: 800;
   color: #fff;
   line-height: 1;
@@ -165,7 +165,7 @@ body {
 }
 
 .stat-desc {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
   letter-spacing: 0.8px;
@@ -244,9 +244,9 @@ body {
   background: rgba(255, 255, 255, 0.02);
 }
 
-.stats-minimal .stat-icon-wrap { width: 50px; height: 50px; font-size: 24px; background: transparent; }
-.stats-minimal .stat-number { font-size: 32px; letter-spacing: 0; }
-.stats-minimal .stat-desc { font-size: 12px; letter-spacing: 1px; }
+.stats-minimal .stat-icon-wrap { width: 40px; height: 40px; font-size: 20px; background: transparent; }
+.stats-minimal .stat-number { font-size: 26px; letter-spacing: 0; }
+.stats-minimal .stat-desc { font-size: 11px; letter-spacing: 1px; }
 
 /* 🌈 THEME: Liquid Gradient (Animated) */
 .stats-gradient .stat-card-new {
@@ -272,11 +272,11 @@ body {
 }
 
 @media (max-width: 600px) {
-  .stats-grid { grid-template-columns: 1fr; gap: 20px; }
+  .stats-grid { grid-template-columns: 1fr; gap: 16px; }
   .stats-grid > div:last-child { grid-column: span 1; }
-  .stat-card-new { padding: 24px; gap: 16px; }
-  .stat-icon-wrap { width: 60px; height: 60px; font-size: 28px; }
-  .stat-number { font-size: 30px; }
+  .stat-card-new { padding: 16px; gap: 12px; }
+  .stat-icon-wrap { width: 48px; height: 48px; font-size: 24px; }
+  .stat-number { font-size: 26px; }
 }
 
 .about-container-spacer {
