@@ -25,6 +25,16 @@
       <div class="hero-content">
         <h1 id="heroTitle"><span class="hero-emoji">👋</span> ยินดีต้อนรับสู่ Chob.Shop</h1>
         <p id="heroSubtitle">เลือกชมสินค้าดีลพิเศษที่เราคัดสรรมาเพื่อคุณ</p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-value" id="totalProducts">0</span>
+            <span class="stat-label">สินค้าทั้งหมด</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="totalCategories">0</span>
+            <span class="stat-label">หมวดหมู่</span>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -334,6 +344,13 @@
         const res = await fetch(`${API_BASE}/api/categories/count`);
         const counts = await res.json();
         if (counts && Object.keys(counts).length > 0) {
+          // Update Hero Stats with animation
+          const totalProds = counts.all || 0;
+          const totalCats = Object.keys(counts).filter(k => k !== 'all').length;
+          
+          animateValue("totalProducts", 0, totalProds, 1500);
+          animateValue("totalCategories", 0, totalCats, 1500);
+
           document.querySelectorAll('.cat-card').forEach(card => {
             const catName = card.dataset.cat;
             const count = counts[catName] || 0;
@@ -353,6 +370,23 @@
       } catch (err) {
         console.error("Failed to load category counts");
       }
+    }
+
+    // --- ANIMATE NUMBERS ---
+    function animateValue(id, start, end, duration) {
+      const obj = document.getElementById(id);
+      if (!obj) return;
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const current = Math.floor(progress * (end - start) + start);
+        obj.innerHTML = current.toLocaleString();
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+      window.requestAnimationFrame(step);
     }
 
     // --- LOAD PRODUCTS ---
