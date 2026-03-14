@@ -855,7 +855,11 @@
         async function loadProducts() {
             try {
                 const res = await fetch(API_BASE + '/api/products');
-                products = await res.json();
+                const data = await res.json();
+                
+                // Handle both array and object responses
+                products = Array.isArray(data) ? data : (data.products || []);
+                
                 renderProductList();
                 updateStats();
                 renderDashboard(); // Added for new UI
@@ -1115,25 +1119,35 @@
             const ids = Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
 
             if (ids.length === 0) return;
-            if (!confirm(`ต้องการให้ AI ช่วยคิด SEO ให้สินค้า ${ids.length} รายการที่เลือกหรือไม่? (อาจใช้เวลาสักครู่)`)) return;
+            if (!confirm(`ต้องการให้ AI ช่วยคิด SEO ให้สินค้า ${ids.length} รายการที่เลือกหรือไม่?`)) return;
 
-            showToast(`⏳ กำลังเริ่ม Generate SEO สำหรับ ${ids.length} รายการ...`);
+            showToast(`⏳ กำลังเตรียมการสำหรับ ${ids.length} รายการ...`);
             
-            try {
-                const res = await fetchWithAuth('/api/products/bulk/gen-seo', {
-                    method: 'POST',
-                    body: JSON.stringify({ ids })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showToast(`✅ ${data.message}`);
-                    await loadProducts();
-                } else {
-                    showToast('❌ ดำเนินการไม่สำเร็จ');
+            let success = 0;
+            let failed = 0;
+
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                // Show progress in toast for every 5 items or last item
+                if ((i + 1) % 5 === 0 || i === ids.length - 1) {
+                    showToast(`⏳ กำลังประมวลผล... (${i + 1}/${ids.length}) รายการ`);
                 }
-            } catch (e) {
-                showToast('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ');
+
+                try {
+                    const res = await fetchWithAuth(`/api/products/${id}/gen-seo`, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        success++;
+                    } else {
+                        failed++;
+                    }
+                } catch (e) {
+                    failed++;
+                }
             }
+
+            showToast(`🎯 เสร็จสิ้น: สำเร็จ ${success}, ❌ ล้มเหลว ${failed}`);
+            await loadProducts();
         }
 
         async function genMissingSEO() {
@@ -1145,28 +1159,36 @@
             const ids = missing.map(p => p.id);
             const btn = document.getElementById('fixSeoBtn');
             const originalText = btn.innerHTML;
-            btn.innerHTML = `⏳ กำลังจัดการ ${ids.length} รายการ...`;
+            btn.innerHTML = `⏳ กำลังจัดการ (0/${ids.length})...`;
             btn.disabled = true;
 
-            showToast(`⏳ กำลังเริ่ม Generate SEO สำหรับสินค้าที่เหลือ ${ids.length} รายการ...`);
-            
+            let success = 0;
+            let failed = 0;
+
             try {
-                const res = await fetchWithAuth('/api/products/bulk/gen-seo', {
-                    method: 'POST',
-                    body: JSON.stringify({ ids })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showToast(`✅ ${data.message}`);
-                    await loadProducts();
-                } else {
-                    showToast('❌ ดำเนินการไม่สำเร็จ');
+                for (let i = 0; i < ids.length; i++) {
+                    const id = ids[i];
+                    btn.innerHTML = `⏳ กำลังจัดการ (${i + 1}/${ids.length})...`;
+
+                    try {
+                        const res = await fetchWithAuth(`/api/products/${id}/gen-seo`, { method: 'POST' });
+                        const data = await res.json();
+                        if (data.success) {
+                            success++;
+                        } else {
+                            failed++;
+                        }
+                    } catch (e) {
+                        failed++;
+                    }
                 }
+                showToast(`🎯 จัดการเรียบร้อย: สำเร็จ ${success} รายการ, ❌ ล้มเหลว ${failed}`);
             } catch (e) {
-                showToast('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ');
+                showToast('❌ เกิดข้อผิดพลาดในการประมวลผล');
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
+                await loadProducts();
             }
         }
                 // === Toggle Product Form ===
