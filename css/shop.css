@@ -1065,6 +1065,7 @@ body {
   --card-hover-bg: #16213e;
   --card-hover-border: rgba(233, 69, 96, 0.6);
   --card-hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(233, 69, 96, 0.3);
+  --card-title-hover: #ffffff;
 }
 
 /* 2. Modern Glass — Glassmorphism */
@@ -1076,6 +1077,7 @@ body {
   --card-hover-bg: rgba(255, 255, 255, 0.15);
   --card-hover-border: rgba(233, 69, 96, 0.5);
   --card-hover-shadow: 0 15px 45px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.1);
+  --card-title-hover: #ffffff;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -1091,6 +1093,7 @@ body {
   --card-hover-bg: #000;
   --card-hover-border: #00ffcc;
   --card-hover-shadow: 0 0 20px rgba(0, 255, 204, 0.4), 0 0 40px rgba(233, 69, 96, 0.2);
+  --card-title-hover: #00ffcc;
 }
 .theme-neon .card .info h4 { color: #00ffcc !important; text-shadow: 0 0 5px #00ffcc66; }
 .theme-neon .card .price-tag { color: #ff00ff !important; font-weight: 800; }
@@ -1115,6 +1118,7 @@ body {
   --card-hover-bg: #ffe4e1;
   --card-hover-border: #ffb6c1;
   --card-hover-shadow: 0 15px 35px rgba(255, 182, 193, 0.4);
+  --card-title-hover: #1a1a2e;
 }
 .theme-pastel .card .card-price {
   background: linear-gradient(135deg, #ff758c, #ff7eb3);
@@ -1140,6 +1144,7 @@ body {
   --card-hover-bg: #e0f2f1;
   --card-hover-border: #4db6ac;
   --card-hover-shadow: 0 15px 35px rgba(0, 150, 136, 0.25);
+  --card-title-hover: #1a1a2e;
 }
 .theme-ocean .card .card-price {
   background: linear-gradient(135deg, #00838f, #00bcd4);
@@ -1165,6 +1170,7 @@ body {
   --card-hover-bg: #fff0e0;
   --card-hover-border: #ffb74d;
   --card-hover-shadow: 0 15px 35px rgba(255, 152, 0, 0.3);
+  --card-title-hover: #1a1a2e;
 }
 .theme-sunset .card .card-price {
   background: linear-gradient(135deg, #e65100, #ff9800);
@@ -1190,6 +1196,7 @@ body {
   --card-hover-bg: #fafafa;
   --card-hover-border: rgba(0, 0, 0, 0.08);
   --card-hover-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  --card-title-hover: #1a1a2e;
 }
 .theme-minimal .card .card-body {
   background: transparent;
@@ -1280,7 +1287,7 @@ body {
 }
 
 .card:hover .card-title {
-  color: #1a1a2e;
+  color: var(--card-title-hover, var(--text-primary));
 }
 
 .card-desc {
