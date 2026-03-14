@@ -415,6 +415,7 @@
             padding: 28px;
             box-shadow: var(--shadow-card);
             transition: var(--transition);
+            min-width: 0;
         }
 
         .dash-section h3 {
@@ -1259,10 +1260,7 @@
                     <span class="nav-icon">📦</span>
                     <span class="nav-label">จัดการสินค้า</span>
                 </div>
-                <div class="nav-item" data-tab="add-product" onclick="switchTab('add-product', this)">
-                    <span class="nav-icon">➕</span>
-                    <span class="nav-label">เพิ่มสินค้าใหม่</span>
-                </div>
+
                 <div class="nav-divider"></div>
                 <div class="nav-item" data-tab="csv-import" onclick="switchTab('csv-import', this)">
                     <span class="nav-icon">📁</span>
@@ -2127,26 +2125,32 @@
             btn.disabled = true;
 
             try {
-                // If it's an existing product, we can use the dedicated endpoint
-                // Otherwise, we might need a general "gen seo for this dummy data" endpoint 
-                // But for now, let's just use the server's gen-seo if id exists, or alert the user to save first
-                if (!editId) {
-                   showToast('💡 กรุณามันทึกสินค้าก่อนใช้ฟีเจอร์ AI SEO สำหรับสินค้าใหม่');
-                   btn.innerHTML = originalText;
-                   btn.disabled = false;
-                   return;
+                let res, data;
+                if (editId) {
+                    // For existing products, use the ID-based endpoint which also saves to database
+                    res = await fetchWithAuth(`/api/products/${editId}/gen-seo`, { method: 'POST' });
+                    data = await res.json();
+                } else {
+                    // For NEW products (not yet saved), use the generic AI endpoint
+                    res = await fetchWithAuth('/api/ai/seo', {
+                        method: 'POST',
+                        body: JSON.stringify({ title, category })
+                    });
+                    data = await res.json();
                 }
 
-                const res = await fetchWithAuth(`/api/products/${editId}/gen-seo`, { method: 'POST' });
-                const data = await res.json();
                 if (data.success) {
-                    document.getElementById('seoKeywords').value = (data.seo_keywords || []).join(', ');
-                    document.getElementById('seoDescription').value = data.seo_description || '';
-                    showToast('✅ ปรับปรุง SEO เรียบร้อยแล้ว');
+                    const keywords = Array.isArray(data.seo_keywords) ? data.seo_keywords : (data.keywords || []);
+                    const description = data.seo_description || data.description || '';
+                    
+                    document.getElementById('seoKeywords').value = keywords.join(', ');
+                    document.getElementById('seoDescription').value = description;
+                    showToast('✅ AI ช่วยสร้าง SEO ให้เรียบร้อยแล้ว');
                 } else {
-                    showToast('❌ เกิดข้อผิดพลาดจาก AI');
+                    showToast('❌ เกิดข้อผิดพลาดจาก AI: ' + (data.error || 'Unknown error'));
                 }
             } catch (e) {
+                console.error('AI SEO Error:', e);
                 showToast('❌ ไม่สามารถเชื่อมต่อกับ AI ได้');
             } finally {
                 btn.innerHTML = originalText;

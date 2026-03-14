@@ -753,15 +753,19 @@ async function generateSEOData(product) {
         const aiText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (aiText) {
             const data = JSON.parse(aiText);
+            const kws = Array.isArray(data.keywords) ? data.keywords : (data.seo_keywords || []);
+            const desc = data.description || data.seo_description || "";
             return {
-                keywords: Array.isArray(data.keywords) ? data.keywords : [],
-                description: data.description || ""
+                keywords: kws,
+                description: desc,
+                seo_keywords: kws, // Duplicate for compatibility
+                seo_description: desc
             };
         }
     } catch (err) {
         console.error('⚠️ Gemini SEO Error:', err.message);
     }
-    return { keywords: [], description: "" };
+    return { keywords: [], description: "", seo_keywords: [], seo_description: "" };
 }
 
 module.exports = {
