@@ -435,6 +435,7 @@
                                 <option value="ทั้งหมด">📁 ทั้งหมด</option>
                             </select>
                         </div>
+                        <button class="btn btn-secondary" id="fixSeoBtn" onclick="genMissingSEO()" style="height: 100%; white-space: nowrap; background: rgba(233,69,96,0.1); color: var(--accent2);">🪄 SEO Fix (รายการที่ว่าง)</button>
                     </div>
                     <div class="bulk-actions-bar" id="bulkActionsBar">
                         <div style="font-size: 14px; font-weight: 500;">เลืสกอยู่ <span id="selectedCount" style="color: var(--accent); font-weight: 700;">0</span> รายการ</div>
@@ -1132,6 +1133,40 @@
                 }
             } catch (e) {
                 showToast('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ');
+            }
+        }
+
+        async function genMissingSEO() {
+            const missing = products.filter(p => !p.seo_keywords || p.seo_keywords.length === 0);
+            if (missing.length === 0) return showToast('✨ สินค้าทุกชิ้นมี SEO ครบถ้วนแล้วครับ');
+
+            if (!confirm(`ตรวจสอบพบสินค้า ${missing.length} รายการที่ยังไม่มี SEO\nต้องการให้ AI ช่วยจัดการย้อนหลังให้หรือไม่?`)) return;
+
+            const ids = missing.map(p => p.id);
+            const btn = document.getElementById('fixSeoBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `⏳ กำลังจัดการ ${ids.length} รายการ...`;
+            btn.disabled = true;
+
+            showToast(`⏳ กำลังเริ่ม Generate SEO สำหรับสินค้าที่เหลือ ${ids.length} รายการ...`);
+            
+            try {
+                const res = await fetchWithAuth('/api/products/bulk/gen-seo', {
+                    method: 'POST',
+                    body: JSON.stringify({ ids })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`✅ ${data.message}`);
+                    await loadProducts();
+                } else {
+                    showToast('❌ ดำเนินการไม่สำเร็จ');
+                }
+            } catch (e) {
+                showToast('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         }
                 // === Toggle Product Form ===
