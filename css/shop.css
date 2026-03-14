@@ -1,29 +1,37 @@
 /* ===== Chob.Shop — Premium Design System ===== */
 
 :root {
-  /* Cyber Luxury Overhaul - Pure Deep Tones */
-  --bg-primary: #000000;
-  --bg-secondary: #050508;
-  --bg-card: #0d0d12;
-  --bg-glass: rgba(5, 5, 8, 0.75);
-  --accent: #6366f1;
-  --accent-secondary: #a855f7;
-  --accent-glow: rgba(99, 102, 241, 0.2);
+  /* Sapphire Dark Premium Palette */
+  --bg-primary: #020617; /* Deep Navy Night */
+  --bg-secondary: #0f172a; /* Slate Navy */
+  --bg-card: #1e293b; /* Premium Slate */
+  --bg-glass: rgba(15, 23, 42, 0.8);
+  
+  --accent: #6366f1; /* Indigo */
+  --accent-hover: #818cf8;
+  --accent-secondary: #a855f7; /* Purple */
+  --accent-glow: rgba(99, 102, 241, 0.3);
   --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  
   --shopee-orange: #ee4d2d;
-  --text-primary: #ffffff;
-  --text-secondary: #94a3b8;
-  --text-muted: #475569;
-  --border: rgba(255, 255, 255, 0.06);
-  --border-glow: rgba(99, 102, 241, 0.15);
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.8);
+  
+  --text-primary: #f8fafc; /* Crisp Off-white */
+  --text-secondary: #cbd5e1; /* Readable Gray */
+  --text-muted: #64748b; /* Slate Muted */
+  
+  --border: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(99, 102, 241, 0.2);
+  
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.7);
+  
   --radius-sm: 10px;
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-pill: 100px;
-  --transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1); /* Apple-like smoothness */
+  
+  --transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   --glass-blur: 24px;
 }
 
@@ -118,18 +126,19 @@ body {
 }
 
 #heroSubtitle {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 18px;
+  color: var(--text-secondary);
   margin: 0;
-  font-weight: 400;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-weight: 500;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   transition: opacity 0.3s ease;
 }
 
 /* --- Store Overview Stats Bar (Theme System) --- */
 .stats-section {
-  padding: 30px 0;
-  background: var(--bg-primary);
+  padding: 40px 0;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   position: relative;
   overflow: hidden;
@@ -176,12 +185,11 @@ body {
 }
 
 .stat-desc {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-secondary);
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  opacity: 0.8;
+  letter-spacing: 0.5px;
+  opacity: 1;
 }
 
 /* 💎 THEME: Premium Glass (Reflective) */
@@ -823,16 +831,16 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-width: 90px;
-  width: 90px;
-  height: 90px;
+  gap: 10px;
+  min-width: 100px;
+  width: 100px;
+  height: 100px;
   padding: 12px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   scroll-snap-align: start;
