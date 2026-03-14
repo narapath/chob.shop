@@ -926,10 +926,12 @@
 
             if (filteredProducts.length === 0) {
                 list.innerHTML = `
-          <div class="empty-list">
-            <div class="icon">📭</div>
-            <p>${products.length === 0 ? 'ยังไม่มีสินค้า — เพิ่มสินค้าแรกได้เลย!' : 'ไม่พบสินค้าที่ตรงตามเงื่อนไข'}</p>
-          </div>`;
+                <tr>
+                    <td colspan="7" class="empty-list">
+                        <div class="icon">📭</div>
+                        <p>${products.length === 0 ? 'ยังไม่มีสินค้า — เพิ่มสินค้าแรกได้เลย!' : 'ไม่พบสินค้าที่ตรงตามเงื่อนไข'}</p>
+                    </td>
+                </tr>`;
                 return;
             }
             list.innerHTML = filteredProducts.map(p => {
