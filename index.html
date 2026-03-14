@@ -618,6 +618,11 @@
           </div>
           <div class="card-body">
             <h3 class="card-title">${product.title}</h3>
+            ${(product.seo_keywords && product.seo_keywords.length > 0) ? `
+              <div class="card-seo-tags" style="margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px;">
+                ${product.seo_keywords.slice(0, 3).map(k => `<span style="font-size: 10px; background: rgba(233,69,96,0.05); color: var(--accent2); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(233,69,96,0.1);">${k}</span>`).join('')}
+              </div>
+            ` : ''}
             <div class="card-pricing">
               <span class="card-price">฿${Number(product.price).toLocaleString()}</span>
               ${product.originalPrice ? `<span class="card-original">฿${Number(product.originalPrice).toLocaleString()}</span>` : ''}

@@ -1138,6 +1138,13 @@
                     const data = await res.json();
                     if (data.success) {
                         success++;
+                        // Update local product data
+                        const product = products.find(p => p.id === id);
+                        if (product) {
+                            product.seo_keywords = data.seo_keywords;
+                            product.seo_description = data.seo_description;
+                            renderProductList(); // Re-render to show badge
+                        }
                     } else {
                         failed++;
                     }
@@ -1147,7 +1154,6 @@
             }
 
             showToast(`🎯 เสร็จสิ้น: สำเร็จ ${success}, ❌ ล้มเหลว ${failed}`);
-            await loadProducts();
         }
 
         async function genMissingSEO() {
@@ -1175,6 +1181,13 @@
                         const data = await res.json();
                         if (data.success) {
                             success++;
+                            // Update local product data
+                            const product = products.find(p => p.id === id);
+                            if (product) {
+                                product.seo_keywords = data.seo_keywords;
+                                product.seo_description = data.seo_description;
+                                renderProductList(); // Re-render to show badge immediately
+                            }
                         } else {
                             failed++;
                         }
@@ -1188,7 +1201,6 @@
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                await loadProducts();
             }
         }
                 // === Toggle Product Form ===
