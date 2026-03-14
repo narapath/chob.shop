@@ -1021,6 +1021,8 @@ body {
   --card-hover-border: var(--accent);
   --card-hover-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px var(--accent-glow);
   --card-radius: 24px;
+  --card-tag-bg: rgba(255, 255, 255, 0.1);
+  --card-tag-text: var(--text-secondary);
 
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -1066,6 +1068,8 @@ body {
   --card-hover-border: rgba(233, 69, 96, 0.6);
   --card-hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(233, 69, 96, 0.3);
   --card-title-hover: #ffffff;
+  --card-tag-bg: rgba(255, 255, 255, 0.08);
+  --card-tag-text: #cbd5e1;
 }
 
 /* 2. Modern Glass — Glassmorphism */
@@ -1078,6 +1082,8 @@ body {
   --card-hover-border: rgba(233, 69, 96, 0.5);
   --card-hover-shadow: 0 15px 45px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.1);
   --card-title-hover: #ffffff;
+  --card-tag-bg: rgba(255, 255, 255, 0.15);
+  --card-tag-text: #ffffff;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -1094,6 +1100,8 @@ body {
   --card-hover-border: #00ffcc;
   --card-hover-shadow: 0 0 20px rgba(0, 255, 204, 0.4), 0 0 40px rgba(233, 69, 96, 0.2);
   --card-title-hover: #00ffcc;
+  --card-tag-bg: rgba(0, 255, 204, 0.1);
+  --card-tag-text: #00ffcc;
 }
 .theme-neon .card .info h4 { color: #00ffcc !important; text-shadow: 0 0 5px #00ffcc66; }
 .theme-neon .card .price-tag { color: #ff00ff !important; font-weight: 800; }
@@ -1119,6 +1127,8 @@ body {
   --card-hover-border: #ffb6c1;
   --card-hover-shadow: 0 15px 35px rgba(255, 182, 193, 0.4);
   --card-title-hover: #1a1a2e;
+  --card-tag-bg: rgba(233, 69, 96, 0.08);
+  --card-tag-text: #e94560;
 }
 .theme-pastel .card .card-price {
   background: linear-gradient(135deg, #ff758c, #ff7eb3);
@@ -1145,6 +1155,8 @@ body {
   --card-hover-border: #4db6ac;
   --card-hover-shadow: 0 15px 35px rgba(0, 150, 136, 0.25);
   --card-title-hover: #1a1a2e;
+  --card-tag-bg: rgba(0, 131, 143, 0.08);
+  --card-tag-text: #00838f;
 }
 .theme-ocean .card .card-price {
   background: linear-gradient(135deg, #00838f, #00bcd4);
@@ -1171,6 +1183,8 @@ body {
   --card-hover-border: #ffb74d;
   --card-hover-shadow: 0 15px 35px rgba(255, 152, 0, 0.3);
   --card-title-hover: #1a1a2e;
+  --card-tag-bg: rgba(230, 81, 0, 0.08);
+  --card-tag-text: #e65100;
 }
 .theme-sunset .card .card-price {
   background: linear-gradient(135deg, #e65100, #ff9800);
@@ -1197,6 +1211,8 @@ body {
   --card-hover-border: rgba(0, 0, 0, 0.08);
   --card-hover-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
   --card-title-hover: #1a1a2e;
+  --card-tag-bg: #f5f5f5;
+  --card-tag-text: #666;
 }
 .theme-minimal .card .card-body {
   background: transparent;
@@ -1281,7 +1297,7 @@ body {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  color: var(--text-primary);
+  color: var(--card-text);
   opacity: 0.9;
   transition: var(--transition);
 }
@@ -1292,7 +1308,8 @@ body {
 
 .card-desc {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--card-text);
+  opacity: 0.7;
   margin: 0 0 12px;
   line-height: 1.5;
   display: -webkit-box;
@@ -1300,6 +1317,24 @@ body {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.card-seo-tags {
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.card-tag {
+  font-size: 10px;
+  background: var(--card-tag-bg);
+  color: var(--card-tag-text) !important;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+  letter-spacing: 0.2px;
 }
 
 .card-pricing {
@@ -1325,9 +1360,9 @@ body {
 
 .card-original {
   font-size: 13px;
-  color: #999;
+  color: var(--card-text);
+  opacity: 0.5;
   text-decoration: line-through;
-  opacity: 1;
 }
 
 .card-cta {
