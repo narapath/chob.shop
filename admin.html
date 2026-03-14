@@ -1346,10 +1346,11 @@
                 // --- NEW SCRAPING & AI CATEGORIZATION LOGIC ---
                 const needsScrape = productsArray.filter(p => p.affiliateUrl && !p.image);
                 const needsAICat = importCat === 'auto';
+                const toggleAI = document.getElementById('toggleAI').checked;
                 
-                if (needsScrape.length > 0 || needsAICat) {
+                if (needsScrape.length > 0 || needsAICat || toggleAI) {
                     const totalTasks = productsArray.length;
-                    showToast(`⏳ เริ่มต้นการดึงข้อมูลและจัดหมวดหมู่ AI... (0/${totalTasks})`);
+                    showToast(`⏳ เริ่มต้นการดึงข้อมูลและจัดการ AI... (0/${totalTasks})`);
                     let processedCount = 0;
                     
                     // Process in chunks of 3 to avoid overwhelming backend
@@ -1398,8 +1399,27 @@
                                 }
                             }
                             
+                            // 3. AI SEO Generation
+                            if (toggleAI) {
+                                try {
+                                    const seoRes = await fetchWithAuth('/api/ai/seo', {
+                                        method: 'POST',
+                                        body: JSON.stringify({ title: product.title, category: product.category })
+                                    });
+                                    const seoData = await seoRes.json();
+                                    if (seoData.success) {
+                                        product.seo_keywords = seoData.keywords;
+                                        product.seo_description = seoData.description;
+                                    }
+                                } catch (err) {
+                                    console.error('AI SEO failed during upload:', err);
+                                }
+                            }
+
                             processedCount++;
-                            showToast(`⏳ กำลังจัดการสินค้า ${processedCount}/${totalTasks}...`);
+                            let statusText = `⏳ กำลังจัดการสินค้า ${processedCount}/${totalTasks}...`;
+                            if (toggleAI) statusText += ` (AI SEO 🪄)`;
+                            showToast(statusText);
                         });
                         
                         await Promise.all(promises);

@@ -242,20 +242,6 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
       };
     });
 
-    // Generate SEO data for all in bulk if AI is on
-    if (toggleAI) {
-      console.log('⏳ Generating AI SEO data for bulk items...');
-      for (const product of itemsToAdd) {
-        try {
-          const seoData = await generateSEOData(product);
-          product.seo_keywords = seoData.keywords;
-          product.seo_description = seoData.description;
-        } catch (err) {
-          console.error(`AI SEO failed for ${product.title}:`, err);
-        }
-      }
-    }
-
     const { error } = await supabase.from('products').insert(itemsToAdd);
     if (error) throw error;
 
@@ -460,6 +446,19 @@ app.get('/sitemap.xml', async (req, res) => {
   } catch (err) {
     console.error('Sitemap error:', err);
     res.status(500).send('Error generating sitemap');
+  }
+});
+
+// --- POST generate SEO with AI (Generic) ---
+app.post('/api/ai/seo', requireAuth, async (req, res) => {
+  const { title, category } = req.body;
+  if (!title) return res.status(400).json({ error: 'Title required' });
+  
+  try {
+    const seoData = await generateSEOData({ title, category });
+    res.json({ success: true, ...seoData });
+  } catch (err) {
+    res.status(500).json({ error: 'AI SEO failed', detail: err.message });
   }
 });
 
