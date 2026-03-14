@@ -392,7 +392,10 @@
                         <div class="form-group" style="border: 1px solid var(--border); padding: 12px; border-radius: var(--radius-sm); background: rgba(233,69,96,0.02);">
                             <label style="color: var(--accent2); display: flex; align-items: center; gap: 8px;">🚀 SEO Power Metadata (AI Generated)</label>
                             <div class="form-group">
-                                <label>SEO Keywords (คั่นด้วยคอมม่า)</label>
+                                <label style="display: flex; justify-content: space-between; align-items: center;">
+                                    SEO Keywords (คั่นด้วยคอมม่า)
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="genAISEOInline()" style="font-size: 11px; padding: 4px 8px;">🪄 Gen with AI</button>
+                                </label>
                                 <input type="text" id="seoKeywords" placeholder="เช่น หูฟัง, หูฟังไร้สาย, bluetooth, ราคาถูก..." />
                             </div>
                             <div class="form-group">
@@ -435,7 +438,8 @@
                     </div>
                     <div class="bulk-actions-bar" id="bulkActionsBar">
                         <div style="font-size: 14px; font-weight: 500;">เลืสกอยู่ <span id="selectedCount" style="color: var(--accent); font-weight: 700;">0</span> รายการ</div>
-                        <button class="btn-danger" onclick="bulkDelete()" style="padding: 8px 16px; font-size: 13px;">🗑 ลบที่เลืสก</button>
+                        <button class="btn-bulk btn-danger" onclick="bulkDelete()">🗑 ลบ</button>
+                        <button class="btn-bulk btn-secondary" onclick="bulkGenSEO()" style="background: rgba(233,69,96,0.1); color: var(--accent2);">🪄 Gen SEO</button>
                     </div>
                     <div class="select-all-row">
                         <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
@@ -1061,6 +1065,71 @@
             }, 500); // Debounce 500ms
         });
 
+        async function genAISEOInline(event) {
+            const editId = document.getElementById('editProductId').value;
+            const title = document.getElementById('productTitle').value;
+            const category = document.getElementById('productCategory').value;
+
+            if (!title) return alert('กรุณาใส่ชื่อสินค้าก่อน');
+
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Processing...';
+            btn.disabled = true;
+
+            try {
+                // If it's an existing product, we can use the dedicated endpoint
+                // Otherwise, we might need a general "gen seo for this dummy data" endpoint 
+                // But for now, let's just use the server's gen-seo if id exists, or alert the user to save first
+                if (!editId) {
+                   showToast('💡 กรุณามันทึกสินค้าก่อนใช้ฟีเจอร์ AI SEO สำหรับสินค้าใหม่');
+                   btn.innerHTML = originalText;
+                   btn.disabled = false;
+                   return;
+                }
+
+                const res = await fetchWithAuth(`/api/products/${editId}/gen-seo`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('seoKeywords').value = (data.seo_keywords || []).join(', ');
+                    document.getElementById('seoDescription').value = data.seo_description || '';
+                    showToast('✅ ปรับปรุง SEO เรียบร้อยแล้ว');
+                } else {
+                    showToast('❌ เกิดข้อผิดพลาดจาก AI');
+                }
+            } catch (e) {
+                showToast('❌ ไม่สามารถเชื่อมต่อกับ AI ได้');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function bulkGenSEO() {
+            const checkboxes = document.querySelectorAll('.product-checkbox:checked');
+            const ids = Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
+
+            if (ids.length === 0) return;
+            if (!confirm(`ต้องการให้ AI ช่วยคิด SEO ให้สินค้า ${ids.length} รายการที่เลือกหรือไม่? (อาจใช้เวลาสักครู่)`)) return;
+
+            showToast(`⏳ กำลังเริ่ม Generate SEO สำหรับ ${ids.length} รายการ...`);
+            
+            try {
+                const res = await fetchWithAuth('/api/products/bulk/gen-seo', {
+                    method: 'POST',
+                    body: JSON.stringify({ ids })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`✅ ${data.message}`);
+                    await loadProducts();
+                } else {
+                    showToast('❌ ดำเนินการไม่สำเร็จ');
+                }
+            } catch (e) {
+                showToast('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ');
+            }
+        }
                 // === Toggle Product Form ===
         function toggleProductForm(show) {
             const container = document.getElementById('productFormCollapsible');

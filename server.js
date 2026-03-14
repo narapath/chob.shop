@@ -463,6 +463,67 @@ app.get('/sitemap.xml', async (req, res) => {
   }
 });
 
+// --- POST generate SEO with AI for a specific product ---
+app.post('/api/products/:id/gen-seo', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+    // 1. Fetch current product
+    const { data: product, error: fetchError } = await supabase.from('products').select('*').eq('id', id).single();
+    if (fetchError || !product) return res.status(404).json({ error: 'Product not found' });
+
+    // 2. Generate SEO Data
+    const seoData = await generateSEOData(product);
+
+    // 3. Update product
+    const { error: updateError } = await supabase.from('products').update({
+      seo_keywords: seoData.keywords,
+      seo_description: seoData.description
+    }).eq('id', id);
+
+    if (updateError) throw updateError;
+
+    res.json({ success: true, seo_keywords: seoData.keywords, seo_description: seoData.description });
+  } catch (err) {
+    console.error('AI SEO Endpoint Error:', err);
+    res.status(500).json({ error: 'Failed to generate SEO', detail: err.message });
+  }
+});
+
+// --- POST generate SEO in bulk ---
+app.post('/api/products/bulk/gen-seo', requireAuth, async (req, res) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids)) return res.status(400).json({ error: 'Invalid IDs' });
+
+  try {
+    if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+    console.log(`⏳ Generating AI SEO for ${ids.length} items...`);
+    const results = { successCount: 0, failedCount: 0 };
+
+    for (const id of ids) {
+      try {
+        const { data: product } = await supabase.from('products').select('*').eq('id', id).single();
+        if (product) {
+          const seoData = await generateSEOData(product);
+          await supabase.from('products').update({
+            seo_keywords: seoData.keywords,
+            seo_description: seoData.description
+          }).eq('id', id);
+          results.successCount++;
+        }
+      } catch (e) {
+        results.failedCount++;
+      }
+    }
+
+    res.json({ success: true, message: `Updated ${results.successCount} items, ${results.failedCount} failed.`, ...results });
+  } catch (err) {
+    res.status(500).json({ error: 'Bulk SEO failed', detail: err.message });
+  }
+});
+
 // --- POST scrape link for Auto-fill ---
 app.post('/api/scrape-link', requireAuth, async (req, res) => {
   const { url } = req.body;
