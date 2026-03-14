@@ -660,6 +660,31 @@
 
     // --- RENDER SEO (JSON-LD & Hidden Keywords) ---
     function renderSEO(products) {
+        // 0. Update Page Head Tags (Dynamic Title & Meta)
+        const currentCatLabel = document.querySelector(`.cat-card[data-cat="${currentCategory}"] .cat-label`)?.innerText || 'ทั้งหมด';
+        const searchTerm = (document.getElementById('searchInput')?.value || '').trim();
+        
+        // Update Title
+        let pageTitle = `Chob.Shop — สินค้าดีลพิเศษจาก Shopee`;
+        if (searchTerm) {
+            pageTitle = `ค้นหา "${searchTerm}" - Chob.Shop`;
+        } else if (currentCategory !== 'all') {
+            pageTitle = `${currentCatLabel} - Chob.Shop ดีลเครื่องใช้และสินค้าแนะนำ`;
+        }
+        document.title = pageTitle;
+
+        // Update Meta Description
+        const firstWithDesc = products.find(p => p.seo_description);
+        let metaDesc = `Chob.Shop รวมสินค้าดีลพิเศษจาก Shopee Affiliate ราคาดี คุณภาพเยี่ยม`;
+        if (firstWithDesc) {
+            metaDesc = firstWithDesc.seo_description;
+        } else if (currentCategory !== 'all') {
+            metaDesc = `เลือกซื้อสินค้าในหมวด ${currentCatLabel} ราคาพิเศษ ดีลดีที่สุดจาก Shopee คัดสรรที่ Chob.Shop`;
+        }
+        
+        let metaTag = document.querySelector('meta[name="description"]');
+        if (metaTag) metaTag.setAttribute('content', metaDesc);
+
         // 1. JSON-LD Structured Data
         const siteUrl = window.location.origin;
         const jsonLd = {
