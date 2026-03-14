@@ -653,6 +653,66 @@
         const html = newProducts.map(p => createProductHTML(p)).join('');
         grid.insertAdjacentHTML('beforeend', html);
       }
+      
+      // Update SEO data
+      renderSEO(ALL_PRODUCTS);
+    }
+
+    // --- RENDER SEO (JSON-LD & Hidden Keywords) ---
+    function renderSEO(products) {
+        // 1. JSON-LD Structured Data
+        const siteUrl = window.location.origin;
+        const jsonLd = {
+            "@context": "https://schema.org/",
+            "@type": "ItemList",
+            "itemListElement": products.map((p, i) => ({
+                "@type": "ListItem",
+                "position": i + 1,
+                "item": {
+                    "@type": "Product",
+                    "name": p.title,
+                    "image": p.image,
+                    "description": p.seo_description || p.description || p.title,
+                    "brand": { "@type": "Brand", "name": "Chob.Shop" },
+                    "offers": {
+                        "@type": "Offer",
+                        "url": `${siteUrl}/?productId=${p.id}`,
+                        "priceCurrency": "THB",
+                        "price": p.price,
+                        "availability": "https://schema.org/InStock"
+                    }
+                }
+            }))
+        };
+
+        let script = document.getElementById('product-jsonld');
+        if (!script) {
+            script = document.createElement('script');
+            script.id = 'product-jsonld';
+            script.type = 'application/ld+json';
+            document.head.appendChild(script);
+        }
+        script.text = JSON.stringify(jsonLd);
+
+        // 2. Hidden Keyword Section (Bottom of <body>)
+        let seoSection = document.getElementById('hidden-seo-keywords');
+        if (!seoSection) {
+            seoSection = document.createElement('div');
+            seoSection.id = 'hidden-seo-keywords';
+            seoSection.style.display = 'none';
+            seoSection.style.visibility = 'hidden';
+            seoSection.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(seoSection);
+        }
+
+        const allKeywords = new Set();
+        products.forEach(p => {
+            if (p.seo_keywords && Array.isArray(p.seo_keywords)) {
+                p.seo_keywords.forEach(k => allKeywords.add(k));
+            }
+        });
+
+        seoSection.innerHTML = `<h2>คำค้นหายอดนิยม</h2><p>${Array.from(allKeywords).join(', ')}</p>`;
     }
 
     // Search handler (with debounce)

@@ -389,6 +389,17 @@
                             <label>คำอธิบาย</label>
                             <textarea id="productDescription" placeholder="รายละเอียดสินค้าเพิ่มเติม..."></textarea>
                         </div>
+                        <div class="form-group" style="border: 1px solid var(--border); padding: 12px; border-radius: var(--radius-sm); background: rgba(233,69,96,0.02);">
+                            <label style="color: var(--accent2); display: flex; align-items: center; gap: 8px;">🚀 SEO Power Metadata (AI Generated)</label>
+                            <div class="form-group">
+                                <label>SEO Keywords (คั่นด้วยคอมม่า)</label>
+                                <input type="text" id="seoKeywords" placeholder="เช่น หูฟัง, หูฟังไร้สาย, bluetooth, ราคาถูก..." />
+                            </div>
+                            <div class="form-group">
+                                <label>SEO Description (150-160 ตัวอักษร)</label>
+                                <textarea id="seoDescription" placeholder="ใส่คำอธิบายสั้นๆ เพื่อให้ติดอันดับ Google..."></textarea>
+                            </div>
+                        </div>
                         <input type="hidden" id="editProductId" value="">
                         <div class="form-actions-sticky">
                             <button type="submit" class="btn btn-primary" id="submitBtn" style="flex: 2;">
@@ -1076,6 +1087,8 @@
             document.getElementById('submitBtn').innerHTML = '🛒 เพิ่มสินค้า';
             document.getElementById('formTitle').innerHTML = '➚ เพิ่มสินค้าใหม่';
             document.getElementById('imagePreview').innerHTML = '<span class="placeholder">' + "\ud83d\uddbc" + '</span>';
+            document.getElementById('seoKeywords').value = '';
+            document.getElementById('seoDescription').value = '';
         }
 
         // === Add/Edit product ===
@@ -1094,6 +1107,9 @@
             const image = document.getElementById('productImage').value;
             const affiliateUrl = document.getElementById('affiliateUrl').value;
             const description = document.getElementById('productDescription').value;
+            const toggleAI = document.getElementById('toggleAI').checked; // Use the toggle from CSV tab or global
+            const seoKeywords = document.getElementById('seoKeywords').value.split(',').map(k => k.trim()).filter(k => k);
+            const seoDescription = document.getElementById('seoDescription').value.trim();
 
             if (!affiliateUrl) {
                 alert('กรุณาใส่ Shopee Affiliate Link ก่อนเพิ่มสินค้า');
@@ -1103,7 +1119,8 @@
             }
 
             const body = {
-                title, price, originalPrice, discount, category, image, affiliateUrl, description
+                title, price, originalPrice, discount, category, image, affiliateUrl, description,
+                toggleAI, seo_keywords: seoKeywords, seo_description: seoDescription
             };
 
             const url = editId ? `/api/products/${editId}` : '/api/products';
@@ -1146,6 +1163,8 @@
             document.getElementById('productImage').value = product.image || '';
             document.getElementById('affiliateUrl').value = product.affiliateUrl || '';
             document.getElementById('productDescription').value = product.description || '';
+            document.getElementById('seoKeywords').value = (product.seo_keywords || []).join(', ');
+            document.getElementById('seoDescription').value = product.seo_description || '';
 
             document.getElementById('editProductId').value = product.id;
             document.getElementById('submitBtn').innerHTML = '💾 บันทึกการแก้ไข';

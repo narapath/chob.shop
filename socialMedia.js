@@ -720,6 +720,50 @@ ${categories.map(c => `- ${c}`).join('\n')}
     }
 }
 
+/**
+ * Generate powerful SEO keywords and meta description using Gemini AI.
+ */
+async function generateSEOData(product) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return { keywords: [], description: "" };
+
+    const title = product.title || '';
+    const category = product.category || 'ทั่วไป';
+
+    try {
+        const prompt = `คุณคือผู้เชี่ยวชาญด้าน SEO ระดับโลก จงวิเคราะห์ข้อมูลสินค้าต่อไปนี้เพื่อสร้างข้อมูล SEO ที่ "ทรงพลัง" ที่สุดเพื่อให้คนค้นหาเจอใน Google
+        
+สินค้า: "${title}"
+หมวดหมู่: "${category}"
+
+จงสร้างข้อมูลในรูปแบบ JSON ดังนี้:
+1. "keywords": รายการคำค้นหา (Keywords) ที่มีโอกาสถูกค้นหาสูงสุด 10-15 คำ (รวมทั้งภาษาไทยและอังกฤษ) ที่เกี่ยวข้องกับตัวสินค้า แบรนด์ และวิธีแก้ปัญหาของลูกค้า
+2. "description": Meta Description สำหรับผลการค้นหา (ความยาว 150-160 ตัวอักษร) ที่ฟังดูน่าคลิก และมี Keyword สำคัญอยู่ข้างใน
+
+ตอบกลับเฉพาะ JSON เท่านั้น และห้ามมีตัวอักษรอื่น:`;
+
+        const response = await axios.post(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+            {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { response_mime_type: "application/json" }
+            }
+        );
+
+        const aiText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (aiText) {
+            const data = JSON.parse(aiText);
+            return {
+                keywords: Array.isArray(data.keywords) ? data.keywords : [],
+                description: data.description || ""
+            };
+        }
+    } catch (err) {
+        console.error('⚠️ Gemini SEO Error:', err.message);
+    }
+    return { keywords: [], description: "" };
+}
+
 module.exports = {
     postToFacebook,
     postToInstagram,
@@ -729,5 +773,6 @@ module.exports = {
     deleteFromX,
     generateAICaption,
     buildPostContent,
-    categorizeProduct
+    categorizeProduct,
+    generateSEOData
 };
