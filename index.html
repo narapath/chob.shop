@@ -441,10 +441,15 @@
           ALL_PRODUCTS = reset ? data.products : [...ALL_PRODUCTS, ...data.products];
           hasMore = currentPage < data.totalPages;
           currentPage++;
-        } else {
+        } else if (Array.isArray(data)) {
           // Fallback if API returns old array format
           ALL_PRODUCTS = data;
           hasMore = false;
+        } else {
+          // API returned an error object or unexpected data
+          ALL_PRODUCTS = [];
+          hasMore = false;
+          throw new Error(data.error || 'Invalid API response');
         }
 
         if (!isCatPillsInitialized) {
