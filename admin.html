@@ -526,7 +526,7 @@
                                 <label class="toggle-switch"><input type="checkbox" id="toggleThreads" checked><span class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row" style="border-color: var(--accent); background: rgba(233,69,96,0.05);">
-                                <span class="toggle-label"><span class="platform-icon">🤖</span> ใช้ AI เขียนโพสต์ (สายป้ายยา)</span>
+                                <span class="toggle-label"><span class="platform-icon">🤖</span> ใช้ AI เขียนโพสต์ และคิด SEO (แนะนำ)</span>
                                 <label class="toggle-switch"><input type="checkbox" id="toggleAI" checked><span class="toggle-slider"></span></label>
                             </div>
                             <p class="hint" style="margin-top: 4px;">เปิดสวิตช์เพื่อโพสต์สินค้าลงโซเชียลมีเดียอัตโนมัติเมื่อนำเข้า CSV (ต้องตั้งค่า API Key ในหน้า Settings ก่อน)</p>
@@ -1420,7 +1420,6 @@
                     confirmMsg += ` (พร้อมโพสต์อัตโนมัติไปยัง: ${platforms.join(', ')})`;
                 }
 
-                showToast(confirmMsg);
 
                 try {
                     const autoPostFB = document.getElementById('toggleFacebook').checked;
@@ -1428,6 +1427,11 @@
                     const autoPostX = document.getElementById('toggleX').checked;
                     const autoPostThreads = document.getElementById('toggleThreads').checked;
                     const toggleAI = document.getElementById('toggleAI').checked;
+
+                    if (toggleAI) {
+                        confirmMsg += ` (เปิดระบบ AI ช่วยคิด SEO อัตโนมัติ 🪄)`;
+                    }
+                    showToast(confirmMsg);
 
                     const res = await fetchWithAuth('/api/products/bulk', {
                         method: 'POST',
