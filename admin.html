@@ -211,7 +211,7 @@
             .admin-main { padding: 20px 16px; }
             .filter-controls { grid-template-columns: 1fr; }
             .form-row, .form-grid-3 { grid-template-columns: 1fr; }
-            .dash-stats { grid-template-columns: 1fr 1fr; }
+            .dash-stats { grid-template-columns: repeat(3, 1fr); }
             .product-item .actions { flex-direction: column; }
         }
     </style>
@@ -313,11 +313,6 @@
                         <div class="card-icon">👁️</div>
                         <div class="card-num gradient" id="totalClicks">0</div>
                         <div class="card-label">คลิกทั้งหมด</div>
-                    </div>
-                    <div class="dash-card">
-                        <div class="card-icon">🏷️</div>
-                        <div class="card-num gradient" id="avgDiscount">0%</div>
-                        <div class="card-label">ส่วนลดเฉลี่ย</div>
                     </div>
                 </div>
                 <div class="dash-section">
@@ -691,15 +686,13 @@
             const stats = {
                 total: products.length,
                 categories: new Set(products.map(p => p.category)).size,
-                clicks: products.reduce((sum, p) => sum + (p.clicks || 0), 0),
-                avgDiscount: Math.round(products.reduce((sum, p) => sum + (p.discount || 0), 0) / (products.length || 1))
+                clicks: products.reduce((sum, p) => sum + (p.clicks || 0), 0)
             };
 
             // Update stats cards
             if(document.getElementById('totalProducts')) document.getElementById('totalProducts').textContent = stats.total;
             if(document.getElementById('totalCategories')) document.getElementById('totalCategories').textContent = stats.categories;
             if(document.getElementById('totalClicks')) document.getElementById('totalClicks').textContent = stats.clicks;
-            if(document.getElementById('avgDiscount')) document.getElementById('avgDiscount').textContent = stats.avgDiscount + '%';
 
             // Top Clicks
             const topClicksList = document.getElementById('topClicksList');
