@@ -1205,12 +1205,46 @@
             const reader = new FileReader();
             reader.onload = async function (e) {
                 const text = e.target.result;
-                const productsArray = parseShopeeCSV(text, importCat);
+                let productsArray = parseShopeeCSV(text, importCat);
 
                 if (productsArray.length === 0) {
                     alert('ไม่พบข้อมูลสินค้าที่ถูกต้องในไฟล์ หรือรูปแบบ CSV ไม่ถูกต้อง (ต้องการคอลัมน์ ชื่อสินค้า และ ลิงก์ข้อเสนอ)');
                     return;
                 }
+
+                // --- DUPLICATE CHECK ---
+                const existingUrls = new Set(products.map(p => (p.affiliateUrl || '').trim().toLowerCase()));
+                const initialCount = productsArray.length;
+                
+                // 1. Remove duplicates within CSV itself
+                const uniqueInCSV = [];
+                const seenInCSV = new Set();
+                for (const p of productsArray) {
+                    const url = (p.affiliateUrl || '').trim().toLowerCase();
+                    if (!seenInCSV.has(url)) {
+                        seenInCSV.add(url);
+                        uniqueInCSV.push(p);
+                    }
+                }
+                
+                // 2. Remove items already in database
+                productsArray = uniqueInCSV.filter(p => {
+                    const url = (p.affiliateUrl || '').trim().toLowerCase();
+                    return !existingUrls.has(url);
+                });
+
+                const skippedCount = initialCount - productsArray.length;
+                if (productsArray.length === 0) {
+                    showToast(`⏭️ ข้ามสินค้าซ้ำทั้งหมด ${skippedCount} รายการ — ไม่มีสินค้าใหม่ให้นำเข้า`);
+                    return;
+                }
+
+                if (skippedCount > 0) {
+                    showToast(`⏭️ พบสินค้าซ้ำ ${skippedCount} รายการ (ข้ามไปแล้ว) และเตรียมนำเข้าสินค้าใหม่ ${productsArray.length} รายการ`);
+                    // Small delay to allow toast to be seen before next one
+                    await new Promise(r => setTimeout(r, 1500));
+                }
+                // --- END DUPLICATE CHECK ---
 
                 // Read social media toggle states
                 const socialMedia = {
