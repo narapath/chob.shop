@@ -1006,8 +1006,8 @@ body {
 
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
 }
 
 .card {
@@ -1191,7 +1191,7 @@ body {
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  padding: 6px;
+  padding: 10px;
 }
 
 /* Fix for ghost title overlap */
@@ -1231,7 +1231,7 @@ body {
 }
 
 .card-body {
-  padding: 12px 14px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1810,7 +1810,7 @@ body {
 
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 16px;
   }
 
   .section-header h1,
