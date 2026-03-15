@@ -1035,7 +1035,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 0;
+  border-radius: var(--card-radius) var(--card-radius) 0 0;
 }
 
 /* Fix for ghost title overlap */
