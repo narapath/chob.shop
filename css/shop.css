@@ -1029,7 +1029,7 @@ body {
 .card-img-wrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 165.25 / 87;
   background: #ffffff;
   overflow: hidden;
   display: flex;
