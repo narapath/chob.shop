@@ -1191,7 +1191,7 @@ body {
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  padding: 12px;
+  padding: 6px;
 }
 
 /* Fix for ghost title overlap */
@@ -1231,7 +1231,7 @@ body {
 }
 
 .card-body {
-  padding: 14px 16px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1242,7 +1242,7 @@ body {
 .card-title {
   font-size: 14px;
   font-weight: 700;
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1294,8 +1294,8 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 8px;
-  margin-top: 8px;
+  margin-bottom: 6px;
+  margin-top: 4px;
 }
 
 .card-price {
