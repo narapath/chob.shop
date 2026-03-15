@@ -2461,7 +2461,8 @@
             const ids = Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
 
             if (ids.length === 0) return;
-            if (!confirm(`ต้องการให้ AI ช่วยคิด SEO ให้สินค้า ${ids.length} รายการที่เลือกหรือไม่?`)) return;
+            if (ids.length === 0) return;
+            if (!confirm(`ต้องการสร้างเนื้อหา SEO อัตโนมัติให้สินค้า ${ids.length} รายการที่เลือกหรือไม่?`)) return;
 
             showToast(`⏳ กำลังเตรียมการสำหรับ ${ids.length} รายการ...`);
             
@@ -2502,7 +2503,7 @@
             const missing = products.filter(p => !p.seo_keywords || p.seo_keywords.length === 0);
             if (missing.length === 0) return showToast('✨ สินค้าทุกชิ้นมี SEO ครบถ้วนแล้วครับ');
 
-            if (!confirm(`ตรวจสอบพบสินค้า ${missing.length} รายการที่ยังไม่มี SEO\nต้องการให้ AI ช่วยจัดการย้อนหลังให้หรือไม่?`)) return;
+            if (!confirm(`ตรวจสอบพบสินค้า ${missing.length} รายการที่ยังไม่มี SEO\nต้องการให้ระบบสร้างให้อัตโนมัติย้อนหลังหรือไม่?`)) return;
 
             const ids = missing.map(p => p.id);
             const btn = document.getElementById('fixSeoBtn');
@@ -2718,13 +2719,13 @@
                     document.getElementById('modalSeoKeywords').value = keywords.join(', ');
                     document.getElementById('modalSeoTitle').value = seoTitle;
                     document.getElementById('modalSeoDescription').value = description;
-                    showToast('✅ AI ช่วยสร้าง SEO ให้เรียบร้อยแล้ว');
+                    showToast('✅ สร้าง SEO ให้เรียบร้อยแล้ว');
                 } else {
-                    showToast('❌ ไม่สามารถเจน SEO ได้: ' + (data.error || 'AI Error'));
+                    showToast('❌ ไม่สามารถสร้าง SEO ได้: ' + (data.error || 'ระบบขัดข้อง'));
                 }
             } catch (e) {
-                console.error('AI SEO Error:', e);
-                showToast('❌ ไม่สามารถเชื่อมต่อกับ AI ได้');
+                console.error('Local SEO Error:', e);
+                showToast('❌ เกิดข้อผิดพลาดในการสร้าง SEO');
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;

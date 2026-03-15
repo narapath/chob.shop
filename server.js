@@ -466,16 +466,58 @@ app.get('/sitemap.xml', async (req, res) => {
   }
 });
 
-// --- POST generate SEO with AI (Generic) ---
+// --- POST generate SEO with Local Logic (Replaces Gemini API) ---
+// ฟังก์ชันสำหรับสร้าง SEO แบบ Local
+function generateLocalSEO(title, category, price) {
+  if (!title) return { seo_title: '', seo_description: '', seo_keywords: [] };
+
+  // 1. Clean Title: เอาอักขระพิเศษออกเพื่อให้ตัดคำง่ายขึ้น
+  const cleanTitle = title.replace(/[\[\]\(\)\-\|\,\.\/]/g, ' ').trim();
+  
+  // 2. Tokenization: แยกคำด้วยช่องว่าง
+  // (Note: This is basic tokenization. Assumes Thai words are spaced, or treats chunks as keywords)
+  let words = cleanTitle.split(/\s+/).filter(w => w.length > 0);
+
+  // 3. Stop words ภาษาไทย (คำที่พบบ่อยแต่ไม่มีผลต่อ SEO มากนัก)
+  const stopWords = ['ของแท้', 'พร้อมส่ง', 'ราคาถูก', 'ส่งฟรี', 'ด่วน', 'มีโค้ด', 'ลดราคา', 'แท้'];
+  
+  // 4. สร้าง Keywords
+  let keywords = words.filter(word => word.length > 2 && !stopWords.includes(word));
+  
+  // เพิ่ม Category และการผสมคำ (Combinations)
+  if (category) keywords.push(category);
+  
+  // สร้าง Combinations 2-3 คำแรก (มักจะเป็นชื่อแบรนด์ + รุ่น)
+  if (words.length >= 2) keywords.push(`${words[0]} ${words[1]}`);
+  if (words.length >= 3) keywords.push(`${words[0]} ${words[1]} ${words[2]}`);
+
+  // จำกัดจำนวน keywords ไม่ให้รกเกินไป (เช่น 10 คำ)
+  const finalKeywords = [...new Set(keywords)].slice(0, 10);
+
+  // 5. สร้าง SEO Title (ตัดเหลือ 60 ตัวอักษร)
+  const seoTitle = title.length > 60 ? title.substring(0, 57) + "..." : title;
+
+  // 6. สร้าง SEO Description (Template)
+  const numPrice = parseFloat(price) || 0;
+  const formattedPrice = numPrice > 0 ? ` ราคาเพียง ${numPrice.toLocaleString()} บาท` : '';
+  const seoDescription = `ซื้อ ${title} ในหมวดหมู่ ${category || 'ทั่วไป'}${formattedPrice} ช้อปเลยที่ Chob.Shop แหล่งรวมสินค้าคุ้มค่า พร้อมรีวิวและโปรโมชั่นล่าสุด`;
+
+  return {
+      seo_title: seoTitle,
+      seo_description: seoDescription,
+      seo_keywords: finalKeywords // Keep as array to match frontend expectations
+  };
+}
+
 app.post('/api/ai/seo', requireAuth, async (req, res) => {
-  const { title, category } = req.body;
+  const { title, category, price } = req.body;
   if (!title) return res.status(400).json({ error: 'Title required' });
   
   try {
-    const seoData = await generateSEOData({ title, category });
+    const seoData = generateLocalSEO(title, category, price);
     res.json({ success: true, ...seoData });
   } catch (err) {
-    res.status(500).json({ error: 'AI SEO failed', detail: err.message });
+    res.status(500).json({ error: 'Local SEO failed', detail: err.message });
   }
 });
 
@@ -489,19 +531,19 @@ app.post('/api/products/:id/gen-seo', requireAuth, async (req, res) => {
     const { data: product, error: fetchError } = await supabase.from('products').select('*').eq('id', id).single();
     if (fetchError || !product) return res.status(404).json({ error: 'Product not found' });
 
-    // 2. Generate SEO Data
-    const seoData = await generateSEOData(product);
+    // 2. Generate SEO Data Locally
+    const seoData = generateLocalSEO(product.title, product.category, product.price);
 
     // 3. Update product
     const { error: updateError } = await supabase.from('products').update({
-      seo_keywords: seoData.keywords,
-      seo_description: seoData.description,
-      seo_title: seoData.title
+      seo_keywords: seoData.seo_keywords,
+      seo_description: seoData.seo_description,
+      seo_title: seoData.seo_title
     }).eq('id', id);
 
     if (updateError) throw updateError;
 
-    res.json({ success: true, seo_keywords: seoData.keywords, seo_description: seoData.description, seo_title: seoData.title });
+    res.json({ success: true, seo_keywords: seoData.seo_keywords, seo_description: seoData.seo_description, seo_title: seoData.seo_title });
   } catch (err) {
     console.error('AI SEO Endpoint Error:', err);
     res.status(500).json({ error: 'Failed to generate SEO', detail: err.message });
@@ -516,18 +558,18 @@ app.post('/api/products/bulk/gen-seo', requireAuth, async (req, res) => {
   try {
     if (!supabase) return res.status(500).json({ error: 'Database not configured' });
 
-    console.log(`⏳ Generating AI SEO for ${ids.length} items...`);
+    console.log(`⏳ Generating Local SEO for ${ids.length} items...`);
     const results = { successCount: 0, failedCount: 0 };
 
     for (const id of ids) {
       try {
         const { data: product } = await supabase.from('products').select('*').eq('id', id).single();
         if (product) {
-          const seoData = await generateSEOData(product);
+          const seoData = generateLocalSEO(product.title, product.category, product.price);
           await supabase.from('products').update({
-            seo_keywords: seoData.keywords,
-            seo_description: seoData.description,
-            seo_title: seoData.title
+            seo_keywords: seoData.seo_keywords,
+            seo_description: seoData.seo_description,
+            seo_title: seoData.seo_title
           }).eq('id', id);
           results.successCount++;
         }
