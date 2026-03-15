@@ -714,16 +714,95 @@ app.put('/api/settings', requireAuth, (req, res) => {
   }
 });
 
-// --- POST categorize via AI ---
+// --- POST categorize via Local Logic ---
+// ฟังก์ชันวิเคราะห์หมวดหมู่แบบ Local
+function generateLocalCategory(title) {
+  if (!title) return "ทั่วไป";
+  
+  const lowerTitle = title.toLowerCase();
+
+  // Dictionary ของหมวดหมู่และ Keyword (เรียงจากเฉพาะเจาะจงไปหาทั่วไป)
+  const categoryMap = [
+      {
+          name: "โทรศัพท์และอุปกรณ์เสริม",
+          keywords: ['โทรศัพท์', 'มือถือ', 'iphone', 'samsung', 'oppo', 'vivo', 'xiaomi', 'เคส', 'สายชาร์จ', 'ฟิล์มกระจก', 'power bank']
+      },
+      {
+          name: "อิเล็กทรอนิกส์และเครื่องใช้ไฟฟ้า",
+          keywords: ['ทีวี', 'แอร์', 'เตารีด', 'หูฟัง', 'ลำโพง', 'พัดลม', 'เครื่องดูดฝุ่น', 'ไมโครเวฟ', 'หม้อหุงข้าว', 'ตู้เย็น']
+      },
+      {
+          name: "สุขภาพและความงาม",
+          keywords: ['ครีม', 'เซรั่ม', 'สบู่', 'แชมพู', 'ลิป', 'วิตามิน', 'อาหารเสริม', 'กันแดด', 'มาส์ก', 'น้ำหอม']
+      },
+      {
+          name: "เสื้อผ้าแฟชั่น",
+          keywords: ['เสื้อ', 'กางเกง', 'เดรส', 'รองเท้า', 'กระโปรง', 'หมวก', 'ถุงเท้า', 'ชุดนอน']
+      },
+      {
+          name: "ของใช้ในบ้าน",
+          keywords: ['ผ้าปูที่นอน', 'กล่องเก็บของ', 'โคมไฟ', 'ม่าน', 'พรม', 'กระบอกน้ำ', 'ชั้นวางของ', 'เครื่องครัว']
+      },
+      {
+          name: "แม่และเด็ก",
+          keywords: ['ผ้าอ้อม', 'นมผง', 'ขวดนม', 'รถเข็นเด็ก', 'ของเล่น', 'แพมเพิส']
+      }
+  ];
+
+  // Loop เช็ค Keyword
+  for (const entry of categoryMap) {
+      if (entry.keywords.some(keyword => lowerTitle.includes(keyword))) {
+          return entry.name;
+      }
+  }
+
+  return "ทั่วไป"; // Default หากไม่ตรงกับอะไรเลย
+}
+
 app.post('/api/categorize', requireAuth, async (req, res) => {
   const { title } = req.body;
   if (!title) return res.status(400).json({ error: 'Title is required' });
 
   try {
-    const category = await categorizeProduct(title);
+    const category = generateLocalCategory(title);
     res.json({ success: true, category });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// --- POST bulk categorize ---
+app.post('/api/products/bulk/categorize', requireAuth, async (req, res) => {
+  const { productIds } = req.body;
+  
+  // Accept both productIds (from new plan) or ids (existing bulk style)
+  const idsToProcess = productIds || req.body.ids;
+  
+  if (!idsToProcess || !Array.isArray(idsToProcess)) {
+      return res.status(400).json({ error: 'Invalid IDs' });
+  }
+
+  try {
+      if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+      let updatedCount = 0;
+      let failedCount = 0;
+
+      for (const id of idsToProcess) {
+          try {
+              const { data: product } = await supabase.from('products').select('title').eq('id', id).single();
+              if (product) {
+                  const newCategory = generateLocalCategory(product.title);
+                  await supabase.from('products').update({ category: newCategory }).eq('id', id);
+                  updatedCount++;
+              }
+          } catch (e) {
+              failedCount++;
+          }
+      }
+      res.json({ success: true, updatedCount, failedCount });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
   }
 });
 

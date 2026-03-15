@@ -1646,6 +1646,7 @@
                         <div style="font-size: 14px; font-weight: 500;">เลืสกอยู่ <span id="selectedCount" style="color: var(--accent); font-weight: 700;">0</span> รายการ</div>
                         <button class="btn-bulk btn-danger" onclick="bulkDelete()">🗑 ลบ</button>
                         <button class="btn-bulk btn-secondary" onclick="bulkGenSEO()" style="background: rgba(233,69,96,0.1); color: var(--accent2);">🪄 Gen SEO</button>
+                        <button class="btn-bulk btn-primary" onclick="bulkCategorize()" style="background: rgba(99,102,241,0.1); color: var(--accent-light); border: 1px solid var(--accent);">🗂 จัดหมวดหมู่อัตโนมัติ</button>
                     </div>
                     <div class="select-all-row">
                         <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
@@ -2497,6 +2498,37 @@
             }
 
             showToast(`🎯 เสร็จสิ้น: สำเร็จ ${success}, ❌ ล้มเหลว ${failed}`);
+        }
+
+        async function bulkCategorize() {
+            const checkboxes = document.querySelectorAll('.product-checkbox:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
+            
+            if (selectedIds.length === 0) {
+                return showToast("❌ กรุณาเลือกสินค้าที่ต้องการจัดหมวดหมู่");
+            }
+
+            if (!confirm(`ต้องการให้ระบบจัดหมวดหมู่อัตโนมัติให้สินค้า ${selectedIds.length} รายการ?`)) return;
+
+            showToast(`⏳ กำลังจัดหมวดหมู่ให้ ${selectedIds.length} รายการ...`);
+            
+            try {
+                const response = await fetchWithAuth('/api/products/bulk/categorize', {
+                    method: 'POST',
+                    body: JSON.stringify({ productIds: selectedIds })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast(`✅ จัดหมวดหมู่สำเร็จ ${result.updatedCount} รายการ`);
+                    await loadProducts(); // Refresh list to get new categories
+                } else {
+                    showToast("❌ เกิดข้อผิดพลาด: " + (result.error || "Unknown"));
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("❌ เกิดข้อผิดพลาดในการจัดหมวดหมู่");
+            }
         }
 
         async function genMissingSEO() {
