@@ -4,8 +4,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chob.Shop — สินค้าดีลพิเศษจาก Shopee</title>
-  <meta name="description" content="Chob.Shop รวมสินค้าดีลพิเศษจาก Shopee Affiliate ราคาดี คุณภาพเยี่ยม" />
+  <title>Chob.shop ชอบช้อป | รวมโค้ดลับ Shopee และรีวิวของแท้ที่คุ้มที่สุด 2026</title>
+  <meta name="description" content="ทางลัดนักช้อป! Chob.shop รวบรวมโค้ดส่วนลด Shopee วันนี้ วิธีเก็บโค้ดส่งฟรี และรีวิวสินค้าจากประสบการณ์จริง เช็คราคาที่ดีที่สุดได้ที่นี่ก่อนใคร" />
+  <link rel="canonical" href="https://chob.shop" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://chob.shop" />
+  <meta property="og:title" content="Chob.shop ชอบช้อป | รวมโค้ดลับ Shopee และรีวิวของแท้ที่คุ้มที่สุด" />
+  <meta property="og:description" content="ทางลัดนักช้อป! รวมโค้ดส่วนลด Shopee อัปเดตล่าสุด และดีลเด็ดประจำวัน" />
+  <meta property="og:image" content="https://chob.shop/preview0.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://chob.shop" />
+  <meta property="twitter:title" content="Chob.shop ชอบช้อป | รวมโค้ดลับ Shopee" />
+  <meta property="twitter:description" content="ทางลัดนักช้อป! รวมโค้ดส่วนลด Shopee อัปเดตล่าสุด และดีลเด็ดประจำวัน" />
+  <meta property="twitter:image" content="https://chob.shop/preview0.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -251,6 +267,23 @@
       </div>
     </div>
   </main>
+
+  <!-- ===== GUIDES SECTION (AIO/SEO DNA) ===== -->
+  <section id="guides" class="guides-section" style="padding: 60px 0; background: var(--bg-secondary); border-top: 1px solid var(--border);">
+    <div class="container" style="max-width: 800px;">
+      <h2 style="font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 24px; text-align: center;">📕 คู่มือการช้อปประหยัด: วิธีใช้ Chob.shop ล่าดีล Shopee</h2>
+      <article style="line-height: 1.8; color: var(--text-secondary); font-size: 16px;">
+        <p>หลายคนมักถามว่า <strong>ซื้อของใน Shopee ยังไงให้ถูกที่สุด?</strong> เคล็ดลับที่เหล่ามือโปรใช้กันคือการรอเก็บ <strong>โค้ดลับ Shopee</strong> และ <strong>โค้ดส่งฟรี</strong> ที่อัปเดตแบบเรียลไทม์ที่ <strong>Chob.shop (ชอบช้อป)</strong></p>
+        <p>เราคัดสรรเฉพาะร้านค้า <strong>Shopee Mall</strong> ที่ไว้ใจได้ 100% พร้อมรีวิวสินค้าจากประสบการณ์จริง เพื่อให้คุณมั่นใจว่าจะได้ของแท้ในราคาที่คุ้มค่าที่สุด ไม่ว่าจะเป็นช่วงแคมเปญใหญ่หรือ Flash Sale วันธรรมดา หากคุณกำลังมองหา <strong>พิกัดของถูกและดี</strong> ต้องไม่พลาดที่จะเช็คที่นี่ก่อนช้อปทุกครั้ง!</p>
+        <h3 style="color: var(--accent); margin-top: 32px;">ทริคเด็ดสำหรับนักช้อป Chob.shop:</h3>
+        <ul style="list-style: none; padding: 0;">
+          <li style="margin-bottom: 12px;">✅ <strong>รวมโค้ดลับ Shopee วันนี้:</strong> อัปเดตทุกเช้าก่อนใครที่หน้าเว็บของเรา</li>
+          <li style="margin-bottom: 12px;">✅ <strong>วิธีเก็บโค้ดส่งฟรี:</strong> แนะนำลิงก์ตรงเข้าหน้าแคมเปญ กดง่าย ไม่ต้องแย่ง</li>
+          <li style="margin-bottom: 12px;">✅ <strong>ดีลเด็ด 00:00 Shopee คืนนี้:</strong> เตรียมตัวก่อนเที่ยงคืนด้วยรายการสินค้าลดหนักที่เราเลือกไว้</li>
+        </ul>
+      </article>
+    </div>
+  </section>
 
   <!-- ===== FOOTER ===== -->
   <footer id="footer">
@@ -689,34 +722,78 @@
 
     // --- RENDER SEO (JSON-LD & Hidden Keywords) ---
     function renderSEO(products) {
-        // 0. Update Page Head Tags (Dynamic Title & Meta)
+        const siteUrl = window.location.origin;
         const currentCatLabel = document.querySelector(`.cat-card[data-cat="${currentCategory}"] .cat-label`)?.innerText || 'ทั้งหมด';
         const searchTerm = (document.getElementById('searchInput')?.value || '').trim();
         
-        // Update Title
-        let pageTitle = `Chob.Shop — สินค้าดีลพิเศษจาก Shopee`;
+        // 0. Update Page Head Tags (Dynamic Title & Meta)
+        let pageTitle = `Chob.shop ชอบช้อป | รวมโค้ดลับ Shopee และรีวิวของแท้ที่คุ้มที่สุด 2026`;
         if (searchTerm) {
-            pageTitle = `ค้นหา "${searchTerm}" - Chob.Shop`;
+            pageTitle = `ค้นหา "${searchTerm}" - Chob.shop ชอบช้อป`;
         } else if (currentCategory !== 'all') {
-            pageTitle = `${currentCatLabel} - Chob.Shop ดีลเครื่องใช้และสินค้าแนะนำ`;
+            pageTitle = `${currentCatLabel} - Chob.shop ชอบช้อป | ดีลเด็ดและรีวิวของแท้`;
         }
         document.title = pageTitle;
 
-        // Update Meta Description
         const firstWithDesc = products.find(p => p.seo_description);
-        let metaDesc = `Chob.Shop รวมสินค้าดีลพิเศษจาก Shopee Affiliate ราคาดี คุณภาพเยี่ยม`;
+        let metaDesc = `ทางลัดนักช้อป! Chob.shop รวบรวมโค้ดส่วนลด Shopee วันนี้ วิธีเก็บโค้ดส่งฟรี และรีวิวสินค้าจากประสบการณ์จริง เช็คราคาที่ดีที่สุดได้ที่นี่ก่อนใคร`;
         if (firstWithDesc) {
             metaDesc = firstWithDesc.seo_description;
         } else if (currentCategory !== 'all') {
-            metaDesc = `เลือกซื้อสินค้าในหมวด ${currentCatLabel} ราคาพิเศษ ดีลดีที่สุดจาก Shopee คัดสรรที่ Chob.Shop`;
+            metaDesc = `เลือกซื้อสินค้าในหมวด ${currentCatLabel} ราคาพิเศษ ดีลดีที่สุดจาก Shopee คัดสรรที่ Chob.shop (ชอบช้อป)`;
         }
         
-        let metaTag = document.querySelector('meta[name="description"]');
+        const metaTag = document.querySelector('meta[name="description"]');
         if (metaTag) metaTag.setAttribute('content', metaDesc);
 
-        // 1. JSON-LD Structured Data
-        const siteUrl = window.location.origin;
-        const jsonLd = {
+        // 1. BRAND & SITE DNA (Organization & WebSite)
+        let brandScript = document.getElementById('brand-jsonld');
+        if (!brandScript) {
+            brandScript = document.createElement('script');
+            brandScript.id = 'brand-jsonld';
+            brandScript.type = 'application/ld+json';
+            document.head.appendChild(brandScript);
+        }
+        brandScript.text = JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Chob.shop ชอบช้อป",
+            "url": siteUrl,
+            "logo": `${siteUrl}/favicon.png`,
+            "description": "แหล่งรวมโค้ดส่วนลด Shopee และรีวิวสินค้าที่คุ้มค่าที่สุด",
+            "sameAs": ["https://www.facebook.com/ChobShop.Official"]
+        });
+
+        // 2. ZERO-CLICK FAQ DNA
+        let faqScript = document.getElementById('faq-jsonld');
+        if (!faqScript) {
+            faqScript = document.createElement('script');
+            faqScript.id = 'faq-jsonld';
+            faqScript.type = 'application/ld+json';
+            document.head.appendChild(faqScript);
+        }
+        faqScript.text = JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [{
+            "@type": "Question",
+            "name": "วิธีเก็บโค้ดส่งฟรี Shopee ใน Chob.shop ทำอย่างไร?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "คุณสามารถเข้าหน้าแคมเปญผ่าน Chob.shop เพื่อกดรับโค้ดส่งฟรีขั้นต่ำ 0 บาท และโค้ดส่วนลดร้านค้าแนะนำที่อัปเดตแบบเรียลไทม์"
+            }
+          }, {
+            "@type": "Question",
+            "name": "ซื้อของใน Shopee ยังไงให้ได้ราคาถูกที่สุด?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "แนะนำให้เช็คดีลเด็ดผ่าน ชอบช้อป (Chob.shop) เพื่อเทียบราคาร้านค้า Mall และใช้โค้ดลดเพิ่ม 50% ในช่วง Flash Sale"
+            }
+          }]
+        });
+
+        // 3. PRODUCT LIST DNA
+        const productJsonLd = {
             "@context": "https://schema.org/",
             "@type": "ItemList",
             "itemListElement": products.map((p, i) => ({
@@ -728,6 +805,11 @@
                     "image": p.image,
                     "description": p.seo_description || p.description || p.title,
                     "brand": { "@type": "Brand", "name": "Chob.Shop" },
+                    "review": p.ratingValue ? {
+                        "@type": "Review",
+                        "reviewRating": { "@type": "Rating", "ratingValue": p.ratingValue, "bestRating": "5" },
+                        "author": { "@type": "Person", "name": "ชอบช้อป กูรู" }
+                    } : undefined,
                     "offers": {
                         "@type": "Offer",
                         "url": `${siteUrl}/?productId=${p.id}`,
@@ -746,9 +828,9 @@
             script.type = 'application/ld+json';
             document.head.appendChild(script);
         }
-        script.text = JSON.stringify(jsonLd);
+        script.text = JSON.stringify(productJsonLd);
 
-        // 2. Hidden Keyword Section (Bottom of <body>)
+        // 4. Hidden Keyword Section
         let seoSection = document.getElementById('hidden-seo-keywords');
         if (!seoSection) {
             seoSection = document.createElement('div');
@@ -766,7 +848,7 @@
             }
         });
 
-        seoSection.innerHTML = `<h2>คำค้นหายอดนิยม</h2><p>${Array.from(allKeywords).join(', ')}</p>`;
+        seoSection.innerHTML = `<h2>คำค้นหายอดนิยม Chob.shop</h2><p>${Array.from(allKeywords).join(', ')}</p>`;
     }
 
     // Search handler (with debounce)

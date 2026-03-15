@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Sitemap: https://chob.shop/sitemap.xml
+
+# ให้ความสำคัญกับ AI Crawlers (AIO Optimization)
+User-agent: GPTBot
+Allow: /
+User-agent: Google-InspectionTool
+Allow: /
+User-agent: CCBot
+Allow: /
+User-agent: Anthropic-ai
+Allow: /
+User-agent: Claude-Web
+Allow: /
