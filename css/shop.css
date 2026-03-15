@@ -1091,7 +1091,7 @@ body {
   right: 0;
   background: linear-gradient(135deg, #ee4d2d 0%, #d63031 100%);
   color: #fff;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   padding: 3px 6px 4px;
   border-radius: 0 0 0 8px;
@@ -1104,7 +1104,7 @@ body {
 
 .discount-badge small {
   display: block;
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 600;
   opacity: 0.85;
   letter-spacing: 0;
@@ -1123,7 +1123,7 @@ body {
 }
 
 .card-title {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   margin: 0;
   line-height: 1.35;
@@ -1151,14 +1151,14 @@ body {
 
 .card-rating .stars {
   color: #fbbf24;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: -1px;
   line-height: 1;
 }
 
 .card-rating .sales {
   color: #94a3b8;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .card-rating .dot {
@@ -1212,7 +1212,7 @@ body {
 }
 
 .card-price {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--card-price-color, #ee4d2d);
   letter-spacing: -0.2px;
@@ -1226,7 +1226,7 @@ body {
 }
 
 .card-original {
-  font-size: 9px;
+  font-size: 10px;
   color: var(--card-text);
   opacity: 0.4;
   text-decoration: line-through;
@@ -1249,7 +1249,7 @@ body {
   color: var(--card-btn-text, #fff);
   border: none;
   border-radius: 6px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.2px;
   transition: all 0.2s ease;
