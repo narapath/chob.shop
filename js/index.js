@@ -66,6 +66,9 @@ function initItems() {
       body.appendChild(layer);
     }
     body.style.display = "";
+    if (allImagesData.length > 0) {
+      body.style.height = `${allImagesData[0].height * compensate}px`;
+    }
     layers = document.querySelectorAll(".layer");
 
     // Force initial draw
@@ -84,6 +87,9 @@ function initItems() {
       item.transform[4] = item.transform[4] * compensate
       item.transform[5] = item.transform[5] * compensate
       layers[i].style.transform = new DOMMatrix(item.transform)
+    }
+    if (allImagesData.length > 0) {
+      body.style.height = `${allImagesData[0].height * compensate}px`;
     }
   }
 }
