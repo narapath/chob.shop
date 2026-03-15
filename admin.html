@@ -1594,8 +1594,8 @@
                     <div class="panel-title" id="formTitle">➚ เพิ่มสินค้าใหม่</div>
                     <div class="link-input-area">
                         <div style="font-size:24px;margin-bottom:8px;">🔗</div>
-                        <input type="text" id="affiliateUrl" placeholder="วาง Shopee Affiliate Link ที่นี่..." />
-                        <p class="hint">เช่น https://s.shopee.co.th/xxxxx หรือ https://affiliate.shopee.co.th/...</p>
+                        <input type="text" id="affiliateUrl" placeholder="วาง 'ลิงก์ข้อเสนอ' (Offer Link) จาก Shopee ที่นี่..." />
+                        <p class="hint">ใช้ 'ลิงก์ข้อเสนอ' (เช่น https://s.shopee.co.th/xxxxx) เพื่อให้ระบบเก็บค่าคอมมิชชั่นได้ถูกต้อง</p>
                     </div>
                     <form id="productForm">
                         <div class="form-group">
@@ -1763,7 +1763,7 @@
             <div class="tab-panel" id="tab-csv-import">
                 <div class="tab-header">
                     <h2>📁 นำเข้าสินค้าจาก Shopee CSV</h2>
-                    <p>อัปโหลดไฟล์ CSV ที่ส่งออกจาก Shopee Affiliate เพื่อเพิ่มสินค้าหลายรายการพร้อมกัน</p>
+                    <p>อัปโหลดไฟล์ CSV จาก Shopee Affiliate (ระบบจะดึง <b>"ลิงก์ข้อเสนอ"</b> เป็นหลักเพื่อความแม่นยำของค่าคอมมิชชั่น)</p>
                 </div>
                 <div>
                     <div class="panel">
@@ -3312,9 +3312,17 @@
             );
             
             let colUrl = headers.findIndex(h => 
-                h === 'ลิงก์ข้อเสนอ' || h === 'ลิงก์สินค้า' || h === 'Shopee Affiliate Link' || h === 'Product Link' || 
-                h === 'URL' || h.includes('Offer Link') || h.includes('Affiliate Link') || h.includes('ลิงก์')
+                h === 'ลิงก์ข้อเสนอ' || h === 'Offer Link' || h === 'Shopee Affiliate Link' || 
+                h.includes('Offer Link') || h.includes('ลิงก์ข้อเสนอ')
             );
+            
+            // If Offer Link not found, fallback to generic product links
+            if (colUrl === -1) {
+                colUrl = headers.findIndex(h => 
+                    h === 'ลิงก์สินค้า' || h === 'Product Link' || h === 'URL' || 
+                    h.includes('Affiliate Link') || h.includes('ลิงก์')
+                );
+            }
 
             let colPrice = headers.findIndex(h => 
                 h === 'ราคา' || h === 'Price' || 
