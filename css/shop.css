@@ -1757,6 +1757,17 @@ body {
     gap: 6px;
   }
 
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .product-sort select {
+    width: 100%;
+    padding: 10px 16px !important;
+  }
+
   .section-header h1,
   .section-header h2 {
     font-size: 18px;

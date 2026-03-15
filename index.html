@@ -217,9 +217,20 @@
   <!-- ===== PRODUCTS GRID ===== -->
   <main id="products" class="products-section">
     <div class="container">
-      <div class="section-header">
-        <h1>🔥 สินค้าแนะนำ</h1>
-        <p class="subtitle">ดีลสุดพิเศษจาก Shopee คัดสรรมาเพื่อคุณ</p>
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <h1>🔥 สินค้าแนะนำ</h1>
+          <p class="subtitle">ดีลสุดพิเศษจาก Shopee คัดสรรมาเพื่อคุณ</p>
+        </div>
+        <div class="product-sort">
+          <select id="productSort" style="padding: 8px 16px; border-radius: var(--radius-pill); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary); font-family: inherit; font-size: 14px; outline: none; cursor: pointer;">
+            <option value="default">เรียงตาม: แนะนำ</option>
+            <option value="price_asc">ราคา: ต่ำ - สูง</option>
+            <option value="price_desc">ราคา: สูง - ต่ำ</option>
+            <option value="name_asc">ชื่อ: A - Z (ก - ฮ)</option>
+            <option value="name_desc">ชื่อ: Z - A (ฮ - ก)</option>
+          </select>
+        </div>
       </div>
       <div class="products-grid" id="productsGrid">
         <!-- Products will be injected here -->
@@ -310,6 +321,7 @@
     let hasMore = true;
     let isCatPillsInitialized = false;
     let isLoading = false;
+    let currentSort = 'default';
 
     // --- APPLY THEME ---
     async function applyTheme() {
@@ -637,12 +649,25 @@
       }
       empty.style.display = 'none';
 
+      let productsToRender = [...ALL_PRODUCTS];
+
+      // Apply Sorting
+      if (currentSort === 'price_asc') {
+        productsToRender.sort((a, b) => Number(a.price) - Number(b.price));
+      } else if (currentSort === 'price_desc') {
+        productsToRender.sort((a, b) => Number(b.price) - Number(a.price));
+      } else if (currentSort === 'name_asc') {
+        productsToRender.sort((a, b) => a.title.localeCompare(b.title, 'th'));
+      } else if (currentSort === 'name_desc') {
+        productsToRender.sort((a, b) => b.title.localeCompare(a.title, 'th'));
+      }
+
       if (reset) {
-        grid.innerHTML = ALL_PRODUCTS.map(p => createProductHTML(p)).join('');
+        grid.innerHTML = productsToRender.map(p => createProductHTML(p)).join('');
       } else {
         // Only append NEW products
         const lastBatchCount = 20; // limit per page
-        const newProducts = ALL_PRODUCTS.slice(-lastBatchCount);
+        const newProducts = productsToRender.slice(-lastBatchCount);
         const html = newProducts.map(p => createProductHTML(p)).join('');
         grid.insertAdjacentHTML('beforeend', html);
       }
@@ -745,6 +770,12 @@
     // Load More Button
     document.getElementById('loadMoreBtn')?.addEventListener('click', () => {
       loadProducts(false);
+    });
+
+    // Sort Handler
+    document.getElementById('productSort')?.addEventListener('change', (e) => {
+      currentSort = e.target.value;
+      renderProducts(true);
     });
 
     // Sticky navbar
