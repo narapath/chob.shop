@@ -1184,6 +1184,7 @@ body {
 .card-img-wrapper {
   position: relative;
   width: 100%;
+  aspect-ratio: 1 / 1;
   background: #ffffff;
   overflow: hidden;
   display: flex;
@@ -1192,11 +1193,19 @@ body {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+/* Fix for ghost title overlap */
+.card-img-wrapper::before,
+.card-img-wrapper::after,
+.card::before {
+  display: none !important;
+  content: none !important;
+}
+
 .card-img-wrapper img.card-img {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
-  object-fit: contain;
+  object-fit: cover;
   transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
