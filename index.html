@@ -61,7 +61,7 @@
               <div class="nav-dd-group">
                 <div class="nav-dd-title">🔌 อิเล็กทรอนิกส์</div>
                 <a class="nav-dd-item" data-cat="โทรศัพท์มือถือและอุปกรณ์เสริม">📱 มือถือ</a>
-                <a class="nav-dd-item" data-cat="แท็บเล็ต">📓 แท็บเล็ต</a>
+                <a class="nav-dd-item" data-cat="แท็บเล็ต"><img src="/assets/tablet-icon.png" class="cat-icon-nav"> แท็บเล็ต</a>
                 <a class="nav-dd-item" data-cat="คอมพิวเตอร์และแล็ปท็อป">💻 คอมพิวเตอร์</a>
                 <a class="nav-dd-item" data-cat="เครื่องใช้ไฟฟ้าในบ้าน">🔌 เครื่องใช้ไฟฟ้า</a>
                 <a class="nav-dd-item" data-cat="กล้องและอุปกรณ์ถ่ายภาพ">📷 กล้อง</a>
@@ -159,7 +159,7 @@
               class="cat-label">นาฬิกา</span></button>
           <button class="cat-card" data-cat="โทรศัพท์มือถือและอุปกรณ์เสริม"><span class="cat-emoji">📱</span><span
               class="cat-label">มือถือ</span></button>
-          <button class="cat-card" data-cat="แท็บเล็ต"><span class="cat-emoji">📓</span><span
+          <button class="cat-card" data-cat="แท็บเล็ต"><img src="/assets/tablet-icon.png" class="cat-icon-card"><span
               class="cat-label">แท็บเล็ต</span></button>
           <button class="cat-card" data-cat="คอมพิวเตอร์และแล็ปท็อป"><span class="cat-emoji">💻</span><span
               class="cat-label">คอมพิวเตอร์</span></button>
@@ -506,7 +506,15 @@
           loadProducts(true);
 
           // Update Hero Text
-          const emoji = btn.querySelector('.cat-emoji')?.innerText || '✨';
+          let iconHtml = '';
+          const imgIcon = btn.querySelector('img');
+          if (imgIcon) {
+            iconHtml = `<img src="${imgIcon.src}" class="hero-emoji-img">`;
+          } else {
+            const emoji = btn.querySelector('.cat-emoji')?.innerText || '✨';
+            iconHtml = `<span class="hero-emoji">${emoji}</span>`;
+          }
+
           const label = btn.querySelector('.cat-label')?.innerText || 'สินค้า';
           const heroTitle = document.getElementById('heroTitle');
           const heroSubtitle = document.getElementById('heroSubtitle');
@@ -514,7 +522,7 @@
           if (heroTitle) {
             heroTitle.style.opacity = '0';
             setTimeout(() => {
-              heroTitle.innerHTML = `<span class="hero-emoji">${emoji}</span> ${label}`;
+              heroTitle.innerHTML = `${iconHtml} ${label}`;
               heroTitle.style.opacity = '1';
             }, 200);
           }

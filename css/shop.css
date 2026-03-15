@@ -111,6 +111,16 @@ body {
   will-change: transform;
 }
 
+.hero-emoji-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 8px;
+  animation: heroEmojiFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.4));
+}
+
 @keyframes heroEmojiFloat {
 
   0%,
@@ -762,6 +772,32 @@ body {
 .cat-card.active .cat-emoji {
   transform: scale(1.1);
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4)) brightness(1.2);
+}
+
+/* Custom Image Icons for Categories */
+.cat-icon-card {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cat-card:hover .cat-icon-card {
+  transform: scale(1.25) rotate(5deg);
+}
+
+.cat-card.active .cat-icon-card {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4)) brightness(1.2);
+}
+
+.cat-icon-nav {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 4px;
 }
 
 /* Label text */
