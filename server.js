@@ -19,6 +19,12 @@ const PORT = process.env.PORT || 3000;
 // Trust proxy for secure cookies/headers behind reverse proxy (DirectAdmin)
 app.set('trust proxy', 1);
 
+// Debug Log Middleware
+app.use((req, res, next) => {
+  console.log(`📡 [${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 // --- Initialize Supabase ---
 const EMBEDDED_SUPABASE_URL = 'https://zcplipytalprkniwxurs.supabase.co';
 const EMBEDDED_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjcGxpcHl0YWxwcmtuaXd4dXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5ODc2NjMsImV4cCI6MjA4ODU2MzY2M30.P2leswWIjMGkxpobp-9aUbYlvRxBcWIDJGPciDF6mF4';
@@ -86,16 +92,17 @@ app.post('/api/login', apiLimiter, (req, res) => {
 app.get('/api/products', async (req, res) => {
   try {
     if (!supabase) return res.status(500).json({ error: 'Supabase is not configured yet. Please update settings in Admin Panel.' });
-
+    const { page, limit, category, search } = req.query;
+    console.log(`🔍 Fetching products: Page=${page}, Limit=${limit}, Category=${category}, Search=${search}`);
     let query = supabase.from('products').select('*', { count: 'exact' }).order('date', { ascending: false });
 
-    const { page, limit, category, search } = req.query;
-
     if (category && category !== 'all' && category !== 'ทั้งหมด') {
+      console.log(`   Filtering by category: ${category}`);
       query = query.eq('category', category);
     }
 
     if (search) {
+      console.log(`   Filtering by search: ${search}`);
       query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
@@ -107,7 +114,9 @@ app.get('/api/products', async (req, res) => {
 
       query = query.range(startIndex, endIndex);
 
+      console.log(`   Executing Supabase query...`);
       const { data, error, count } = await query;
+      console.log(`   Supabase response received. Success: ${!error}`);
       if (error) throw error;
 
       return res.json({

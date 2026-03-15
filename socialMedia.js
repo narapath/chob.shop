@@ -101,7 +101,7 @@ async function generateAICaption(product) {
 เขียนโพสต์สำหรับสินค้านี้มา 1 โพสต์สั้นๆ (ไม่เกิน 4-5 บรรทัด):`;
 
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
                 contents: [{ parts: [{ text: prompt }] }]
             }
@@ -743,7 +743,7 @@ async function generateSEOData(product) {
 ตอบกลับเฉพาะ JSON เท่านั้น และห้ามมีตัวอักษรอื่น:`;
 
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: { response_mime_type: "application/json" }
