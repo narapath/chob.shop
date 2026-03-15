@@ -1723,18 +1723,24 @@
                             <small class="hint">Choose the visual style for the store overview statistics bar.</small>
                         </div>
                     </div>
-                    <div class="setting-group" style="grid-column: 1 / -1; border-color: rgba(233,69,96,0.3); background: rgba(233,69,96,0.02);">
-                        <h3 style="color: var(--accent2);"><span style="filter: grayscale(1);">🔒</span> Database Connection (Supabase)</h3>
-                        <p class="hint" style="margin-bottom: 12px; color: var(--text2);">การตั้งค่าฐานข้อมูลมีความสำคัญสูง หากแก้ไขผิดพลาดอาจทำให้หน้าร้านไม่สามารถโหลดสินค้าได้</p>
+                    <div class="setting-group" id="supabaseSettingGroup" style="grid-column: 1 / -1; border-color: rgba(233,69,96,0.3); background: rgba(233,69,96,0.02); transition: all 0.3s ease;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="color: var(--accent2); margin: 0;"><span id="lockIcon">🔒</span> Database Connection (Supabase)</h3>
+                            <button type="button" class="btn btn-secondary btn-sm" id="lockToggleBtn" onclick="toggleSupabaseLock()" 
+                                style="padding: 4px 12px; font-size: 11px; background: rgba(233,69,96,0.1); border: 1px solid var(--accent2); color: var(--accent2);">
+                                🔓 Unlock to Edit
+                            </button>
+                        </div>
+                        <p class="hint" style="margin-bottom: 12px; color: var(--text2);">การตั้งค่าฐานข้อมูลถูกล็อกไว้เพื่อความปลอดภัย หากต้องการแก้ไขกรุณากดปุ่มเพื่อปลดล็อก</p>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Supabase Project URL</label>
-                                <input type="text" id="supabaseUrlInput" placeholder="https://<project>.supabase.co">
+                                <input type="text" id="supabaseUrlInput" placeholder="https://<project>.supabase.co" readonly style="background: rgba(255,255,255,0.03); cursor: not-allowed; border-color: transparent;">
                                 <small class="hint">Project Settings > API</small>
                             </div>
                             <div class="form-group">
                                 <label>Supabase Anon/Public Key</label>
-                                <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                                <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." readonly style="background: rgba(255,255,255,0.03); cursor: not-allowed; border-color: transparent;">
                                 <small class="hint">Project Settings > API</small>
                             </div>
                         </div>
@@ -3164,6 +3170,54 @@
         // Init sidebar state
         if (localStorage.getItem('sidebarMini') === 'true') {
             toggleSidebarMini();
+        }
+
+        // === Supabase Lock Logic ===
+        let isSupabaseLocked = true;
+        function toggleSupabaseLock() {
+            const btn = document.getElementById('lockToggleBtn');
+            const icon = document.getElementById('lockIcon');
+            const urlInput = document.getElementById('supabaseUrlInput');
+            const keyInput = document.getElementById('supabaseKeyInput');
+            const group = document.getElementById('supabaseSettingGroup');
+
+            isSupabaseLocked = !isSupabaseLocked;
+
+            if (isSupabaseLocked) {
+                // LOCKING
+                urlInput.readOnly = true;
+                keyInput.readOnly = true;
+                urlInput.style.background = 'rgba(255,255,255,0.03)';
+                urlInput.style.cursor = 'not-allowed';
+                urlInput.style.borderColor = 'transparent';
+                keyInput.style.background = 'rgba(255,255,255,0.03)';
+                keyInput.style.cursor = 'not-allowed';
+                keyInput.style.borderColor = 'transparent';
+                
+                btn.textContent = '🔓 Unlock to Edit';
+                btn.style.background = 'rgba(233,69,96,0.1)';
+                btn.style.color = 'var(--accent2)';
+                icon.textContent = '🔒';
+                group.style.borderColor = 'rgba(233,69,96,0.3)';
+                showToast('🔒 ฐานข้อมูลถูกล็อกแล้ว');
+            } else {
+                // UNLOCKING
+                urlInput.readOnly = false;
+                keyInput.readOnly = false;
+                urlInput.style.background = 'var(--panel-bg)';
+                urlInput.style.cursor = 'text';
+                urlInput.style.borderColor = 'var(--border)';
+                keyInput.style.background = 'var(--panel-bg)';
+                keyInput.style.cursor = 'text';
+                keyInput.style.borderColor = 'var(--border)';
+
+                btn.textContent = '🔒 Lock Settings';
+                btn.style.background = 'var(--accent)';
+                btn.style.color = '#fff';
+                icon.textContent = '🔓';
+                group.style.borderColor = 'var(--accent)';
+                showToast('🔓 ปลดล็อกให้แก้ไขได้');
+            }
         }
 
         checkAuth();
