@@ -1723,8 +1723,9 @@
                             <small class="hint">Choose the visual style for the store overview statistics bar.</small>
                         </div>
                     </div>
-                    <div class="setting-group" style="grid-column: 1 / -1;">
-                        <h3>🗄️ Supabase Database Settings</h3>
+                    <div class="setting-group" style="grid-column: 1 / -1; border-color: rgba(233,69,96,0.3); background: rgba(233,69,96,0.02);">
+                        <h3 style="color: var(--accent2);"><span style="filter: grayscale(1);">🔒</span> Database Connection (Supabase)</h3>
+                        <p class="hint" style="margin-bottom: 12px; color: var(--text2);">การตั้งค่าฐานข้อมูลมีความสำคัญสูง หากแก้ไขผิดพลาดอาจทำให้หน้าร้านไม่สามารถโหลดสินค้าได้</p>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Supabase Project URL</label>
@@ -3133,13 +3134,7 @@
                 const data = await res.json();
                 if (data.success) {
                     showToast(`✅ อัปเดตสำเร็จ ${data.updatedCount} รายการ! (ใช้งานได้ทันที)`);
-                    // Clear inputs and reload current values
-                    document.getElementById('fbTokenInput').value = '';
-                    document.getElementById('threadsUserIdInput').value = '';
-                    document.getElementById('threadsTokenInput').value = '';
-                    document.getElementById('geminiKeyInput').value = '';
-                    document.getElementById('supabaseUrlInput').value = '';
-                    document.getElementById('supabaseKeyInput').value = '';
+                    // Reload current values to update placeholders/markers
                     await loadSettings();
                 } else {
                     showToast('❌ บันทึกไม่สำเร็จ');

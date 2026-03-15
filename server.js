@@ -593,24 +593,35 @@ app.put('/api/settings', requireAuth, (req, res) => {
 
     const SECRET_MARKER = '●●●●●●●●';
     let updatedCount = 0;
+    let supabaseChanged = false;
+
     for (const key of allowedKeys) {
-      if (updates[key] !== undefined && updates[key] !== '' && updates[key] !== SECRET_MARKER) {
-        process.env[key] = updates[key];
-        updatedCount++;
+      const newValue = updates[key];
+      // Only update if value is provided, not empty, and not the secret marker
+      if (newValue !== undefined && newValue !== '' && newValue !== SECRET_MARKER) {
+        // Check if value actually changed
+        if (process.env[key] !== newValue) {
+          process.env[key] = newValue;
+          updatedCount++;
+          if (key === 'SUPABASE_URL' || key === 'SUPABASE_KEY') {
+            supabaseChanged = true;
+          }
+        }
       }
     }
 
     const envPath = path.join(__dirname, '.env');
-    if (fs.existsSync(envPath)) {
+    if (fs.existsSync(envPath) && updatedCount > 0) {
       try {
         let envContent = fs.readFileSync(envPath, 'utf-8');
         for (const key of allowedKeys) {
-          if (updates[key] !== undefined && updates[key] !== '' && updates[key] !== SECRET_MARKER) {
+          const newValue = updates[key];
+          if (newValue !== undefined && newValue !== '' && newValue !== SECRET_MARKER) {
             const regex = new RegExp(`^${key}=.*$`, 'm');
             if (envContent.match(regex)) {
-              envContent = envContent.replace(regex, `${key}=${updates[key]}`);
+              envContent = envContent.replace(regex, `${key}=${newValue}`);
             } else {
-              envContent += `\n${key}=${updates[key]}`;
+              envContent += `\n${key}=${newValue}`;
             }
           }
         }
@@ -620,17 +631,21 @@ app.put('/api/settings', requireAuth, (req, res) => {
       }
     }
 
-    // Hot-reload Supabase if keys changed
-    if (updates.SUPABASE_URL || updates.SUPABASE_KEY) {
-      supabaseUrl = process.env.SUPABASE_URL || '';
-      supabaseKey = process.env.SUPABASE_KEY || '';
-      if (supabaseUrl && supabaseKey) {
+    // Hot-reload Supabase only if keys ACTUALLY changed
+    if (supabaseChanged) {
+      const newUrl = process.env.SUPABASE_URL || '';
+      const newKey = process.env.SUPABASE_KEY || '';
+      if (newUrl && newKey) {
+        supabaseUrl = newUrl;
+        supabaseKey = newKey;
         supabase = createClient(supabaseUrl, supabaseKey);
         console.log("🟢 Supabase client re-initialized with new keys.");
       }
+    } else {
+      console.log("ℹ️ Settings updated. Supabase configuration remains unchanged.");
     }
 
-    console.log(`⚙️ Settings updated: ${updatedCount} key(s) changed`);
+    console.log(`⚙️ Settings updated: ${updatedCount} key(s) modified.`);
     res.json({ success: true, updatedCount });
   } catch (err) {
     console.error('Settings update error:', err);
