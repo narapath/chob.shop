@@ -1035,7 +1035,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 4px; /* Slight padding so image doesn't touch the absolute border */
   border-radius: var(--card-radius) var(--card-radius) 0 0;
 }
 
@@ -1051,7 +1051,7 @@ body {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
   transition: transform 0.3s ease;
 }
 
