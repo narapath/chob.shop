@@ -1227,6 +1227,103 @@
             .card-stat-val { font-size: 28px; }
             .admin-main { padding: 16px 12px; }
         }
+
+        /* === EDIT PRODUCT MODAL === */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(5, 5, 13, 0.85); /* Sapphire Dark base with opacity */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .edit-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-bright);
+            border-radius: var(--radius-xl);
+            width: 90%;
+            max-width: 650px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-premium), 0 0 40px rgba(99, 102, 241, 0.15); /* Accent glow */
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        .modal-overlay.show .edit-modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .btn-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            line-height: 1;
+            padding: 4px;
+            border-radius: var(--radius-sm);
+        }
+
+        .btn-close:hover {
+            color: var(--error);
+            background: var(--error-bg);
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .modal-body::-webkit-scrollbar { width: 6px; }
+        .modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 
@@ -2287,16 +2384,15 @@
             document.getElementById('editProductId').value = '';
             document.getElementById('submitBtn').innerHTML = '🛒 เพิ่มสินค้า';
             document.getElementById('formTitle').innerHTML = '➚ เพิ่มสินค้าใหม่';
-            document.getElementById('imagePreview').innerHTML = '<span class="placeholder">' + "\ud83d\uddbc" + '</span>';
+            document.getElementById('imagePreview').innerHTML = '<span class="placeholder">🖼</span>';
             document.getElementById('seoKeywords').value = '';
             document.getElementById('seoDescription').value = '';
         }
 
-        // === Add/Edit product ===
+        // === Add product (Main Form) ===
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
-            const editId = document.getElementById('editProductId').value;
             btn.disabled = true;
             btn.textContent = '⏳ กำลังบันทึก...';
 
@@ -2308,14 +2404,14 @@
             const image = document.getElementById('productImage').value;
             const affiliateUrl = document.getElementById('affiliateUrl').value;
             const description = document.getElementById('productDescription').value;
-            const toggleAI = document.getElementById('toggleAI').checked; // Use the toggle from CSV tab or global
+            const toggleAI = document.getElementById('toggleAI').checked; 
             const seoKeywords = document.getElementById('seoKeywords').value.split(',').map(k => k.trim()).filter(k => k);
             const seoDescription = document.getElementById('seoDescription').value.trim();
 
             if (!affiliateUrl) {
                 alert('กรุณาใส่ Shopee Affiliate Link ก่อนเพิ่มสินค้า');
                 btn.disabled = false;
-                btn.textContent = editId ? '💾 บันทึกการแก้ไข' : '🛒 เพิ่มสินค้า';
+                btn.textContent = '🛒 เพิ่มสินค้า';
                 return;
             }
 
@@ -2324,8 +2420,8 @@
                 toggleAI, seo_keywords: seoKeywords, seo_description: seoDescription
             };
 
-            const url = editId ? `/api/products/${editId}` : '/api/products';
-            const method = editId ? 'PUT' : 'POST';
+            const url = '/api/products';
+            const method = 'POST';
 
             try {
                 const res = await fetchWithAuth(url, {
@@ -2334,12 +2430,12 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast(editId ? '✅ แก้ไขสินค้าสำเร็จ!' : '✅ เพิ่มสินค้าสำเร็จ!');
+                    showToast('✅ เพิ่มสินค้าสำเร็จ!');
                     resetProductForm();
                     toggleProductForm(false);
                     await loadProducts();
                 } else {
-                    showToast('❌ เกิดขโอผิดพลาด');
+                    showToast('❌ เกิดข้อผิดพลาด');
                 }
             } catch (e) {
                 if (e.message !== 'Unauthorized') {
@@ -2348,34 +2444,115 @@
             }
 
             btn.disabled = false;
-            btn.textContent = editId ? '💾 บันทึกการแก้ไข' : '🛒 เพิ่มสินค้า';
+            btn.textContent = '🛒 เพิ่มสินค้า';
         });
 
-        // === Edit product ===
+        // === Edit product Modal Logic ===
         function editProduct(id) {
             const product = products.find(p => p.id === id);
             if (!product) return;
 
-            document.getElementById('productTitle').value = product.title || '';
-            document.getElementById('productPrice').value = product.price || '';
-            document.getElementById('productOriginalPrice').value = product.originalPrice || '';
-            document.getElementById('productDiscount').value = product.discount || '';
-            document.getElementById('productCategory').value = product.category || 'ทั่วไป';
-            document.getElementById('productImage').value = product.image || '';
-            document.getElementById('affiliateUrl').value = product.affiliateUrl || '';
-            document.getElementById('productDescription').value = product.description || '';
-            document.getElementById('seoKeywords').value = (product.seo_keywords || []).join(', ');
-            document.getElementById('seoDescription').value = product.seo_description || '';
+            // Populate category dropdown
+            const modalCatSelect = document.getElementById('modalCategory');
+            modalCatSelect.innerHTML = document.getElementById('productCategory').innerHTML;
 
-            document.getElementById('editProductId').value = product.id;
-            document.getElementById('submitBtn').innerHTML = '💾 บันทึกการแก้ไข';
-            document.getElementById('formTitle').innerHTML = '📝 แก้ไขสินค้า';
+            document.getElementById('modalTitle').value = product.title || '';
+            document.getElementById('modalPrice').value = product.price || '';
+            document.getElementById('modalOriginalPrice').value = product.originalPrice || '';
+            document.getElementById('modalDiscount').value = product.discount || '';
+            document.getElementById('modalCategory').value = product.category || 'ทั่วไป';
+            document.getElementById('modalImage').value = product.image || '';
+            document.getElementById('modalAffiliateUrl').value = product.affiliateUrl || '';
+            document.getElementById('modalDescription').value = product.description || '';
+            document.getElementById('modalSeoKeywords').value = (product.seo_keywords || []).join(', ');
+            document.getElementById('modalSeoDescription').value = product.seo_description || '';
+
+            document.getElementById('modalEditId').value = product.id;
             
-            document.getElementById('productImage').dispatchEvent(new Event('input'));
-            toggleProductForm(true);
+            // Image Preview trigger
+            const imgInput = document.getElementById('modalImage');
+            const preview = document.getElementById('modalImagePreview');
+            if (product.image) {
+                preview.innerHTML = `<img src="${product.image}" loading="lazy" />`;
+            } else {
+                preview.innerHTML = '<span class="placeholder">🖼</span>';
+            }
+            
+            // Live preview listener
+            imgInput.oninput = (e) => {
+                const url = e.target.value.trim();
+                if (url) {
+                    preview.innerHTML = `<img src="${url}" loading="lazy" onerror="this.parentElement.innerHTML='<span class=\\'placeholder\\'>⚠️ ไม่สามารถโหลดรูปได้</span>'" />`;
+                } else {
+                    preview.innerHTML = '<span class="placeholder">🖼</span>';
+                }
+            };
 
-            document.querySelector('.admin-main').scrollTo({ top: 0, behavior: 'smooth' });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Open Modal
+            document.getElementById('editModalOverlay').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModalOverlay').classList.remove('show');
+            document.getElementById('editProductForm').reset();
+            document.getElementById('modalEditId').value = '';
+        }
+
+        // Close on outside click
+        document.getElementById('editModalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
+        });
+
+        async function submitEditModal() {
+            const btn = document.getElementById('modalSaveBtn');
+            const editId = document.getElementById('modalEditId').value;
+            if (!editId) return;
+
+            const title = document.getElementById('modalTitle').value.trim();
+            const price = document.getElementById('modalPrice').value;
+            const originalPrice = document.getElementById('modalOriginalPrice').value;
+            const discount = document.getElementById('modalDiscount').value;
+            const category = document.getElementById('modalCategory').value;
+            const image = document.getElementById('modalImage').value;
+            const affiliateUrl = document.getElementById('modalAffiliateUrl').value;
+            const description = document.getElementById('modalDescription').value;
+            const seoKeywords = document.getElementById('modalSeoKeywords').value.split(',').map(k => k.trim()).filter(k => k);
+            const seoDescription = document.getElementById('modalSeoDescription').value.trim();
+
+            if (!affiliateUrl || !title || !price) {
+                alert('กรุณากรอกข้อมูลที่จำเป็น (*) ให้ครบถ้วน');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ กำลังบันทึก...';
+
+            const body = {
+                title, price, originalPrice, discount, category, image, affiliateUrl, description,
+                seo_keywords: seoKeywords, seo_description: seoDescription
+            };
+
+            try {
+                const res = await fetchWithAuth(`/api/products/${editId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(body),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('✅ แก้ไขสินค้าสำเร็จ!');
+                    closeEditModal();
+                    await loadProducts();
+                } else {
+                    showToast('❌ เกิดข้อผิดพลาดในการบันทึก');
+                }
+            } catch (e) {
+                if (e.message !== 'Unauthorized') {
+                    showToast('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์');
+                }
+            }
+
+            btn.disabled = false;
+            btn.textContent = '💾 บันทึกการแก้ไข';
         }
 
         // === Delete product ===
