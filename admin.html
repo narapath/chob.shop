@@ -1596,6 +1596,10 @@
                                 <input type="text" id="seoKeywords" placeholder="เช่น หูฟัง, หูฟังไร้สาย, bluetooth, ราคาถูก..." />
                             </div>
                             <div class="form-group">
+                                <label>SEO Optimized Title (AI)</label>
+                                <input type="text" id="seoTitle" placeholder="ชื่อสินค้าที่ปรับแต่งเพื่อ SEO..." />
+                            </div>
+                            <div class="form-group">
                                 <label>SEO Description (150-160 ตัวอักษร)</label>
                                 <textarea id="seoDescription" placeholder="ใส่คำอธิบายสั้นๆ เพื่อให้ติดอันดับ Google..."></textarea>
                             </div>
@@ -1653,7 +1657,7 @@
                                     <th class="col-pricing">ราคา</th>
                                     <th class="col-comm" style="color: var(--accent2);">💰 คอมมิชชั่น</th>
                                     <th class="col-stats">สถิติ</th>
-                                    <th class="col-seo">SEO Content (Keywords & Meta)</th>
+                                    <th class="col-seo">SEO Content (Title, Keywords & Meta)</th>
                                     <th class="col-actions"></th>
                                 </tr>
                             </thead>
@@ -1922,6 +1926,10 @@
                                 <button type="button" class="btn btn-secondary btn-sm" onclick="genAISEOModal(event)" style="font-size: 11px; padding: 4px 8px; background: rgba(99, 102, 241, 0.1);">🪄 Gen with AI</button>
                             </label>
                             <input type="text" id="modalSeoKeywords" placeholder="เช่น หูฟัง, หูฟังไร้สาย..." />
+                        </div>
+                        <div class="form-group">
+                            <label>SEO Optimized Title</label>
+                            <input type="text" id="modalSeoTitle" placeholder="ชื่อสินค้าที่ปรับแต่งเพื่อ SEO..." />
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label>SEO Description (150-160 ตัวอักษร)</label>
@@ -2226,6 +2234,7 @@
                     </td>
                     <td class="col-seo">
                         <div class="seo-cell">
+                            ${p.seo_title ? `<div style="font-weight: 700; color: var(--accent-light); margin-bottom: 6px; font-size: 12px; line-height: 1.4;">📌 ${p.seo_title}</div>` : ''}
                             ${hasSEO ? `
                                 <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
                                     ${p.seo_keywords.map(k => `<span class="kw-tag">${k}</span>`).join('')}
@@ -2551,6 +2560,7 @@
             document.getElementById('formTitle').innerHTML = '➚ เพิ่มสินค้าใหม่';
             document.getElementById('imagePreview').innerHTML = '<span class="placeholder">🖼</span>';
             document.getElementById('seoKeywords').value = '';
+            document.getElementById('seoTitle').value = '';
             document.getElementById('seoDescription').value = '';
             document.getElementById('productCommission').value = '';
         }
@@ -2572,6 +2582,7 @@
             const description = document.getElementById('productDescription').value;
             const toggleAI = document.getElementById('toggleAI').checked; 
             const seoKeywords = document.getElementById('seoKeywords').value.split(',').map(k => k.trim()).filter(k => k);
+            const seoTitle = document.getElementById('seoTitle').value.trim();
             const seoDescription = document.getElementById('seoDescription').value.trim();
             const commission = document.getElementById('productCommission').value || 0;
 
@@ -2584,7 +2595,7 @@
 
             const body = {
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
-                toggleAI, seo_keywords: seoKeywords, seo_description: seoDescription,
+                toggleAI, seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
                 commission: parseFloat(commission)
             };
 
@@ -2633,6 +2644,7 @@
             document.getElementById('modalAffiliateUrl').value = product.affiliateUrl || '';
             document.getElementById('modalDescription').value = product.description || '';
             document.getElementById('modalSeoKeywords').value = (product.seo_keywords || []).join(', ');
+            document.getElementById('modalSeoTitle').value = product.seo_title || '';
             document.getElementById('modalSeoDescription').value = product.seo_description || '';
             document.getElementById('modalCommission').value = product.commission || '';
 
@@ -2689,8 +2701,10 @@
                 if (data.success) {
                     const keywords = Array.isArray(data.seo_keywords) ? data.seo_keywords : (data.keywords || []);
                     const description = data.seo_description || data.description || '';
+                    const seoTitle = data.seo_title || data.title || '';
                     
                     document.getElementById('modalSeoKeywords').value = keywords.join(', ');
+                    document.getElementById('modalSeoTitle').value = seoTitle;
                     document.getElementById('modalSeoDescription').value = description;
                     showToast('✅ AI ช่วยสร้าง SEO ให้เรียบร้อยแล้ว');
                 } else {
@@ -2730,6 +2744,7 @@
             const affiliateUrl = document.getElementById('modalAffiliateUrl').value;
             const description = document.getElementById('modalDescription').value;
             const seoKeywords = document.getElementById('modalSeoKeywords').value.split(',').map(k => k.trim()).filter(k => k);
+            const seoTitle = document.getElementById('modalSeoTitle').value.trim();
             const seoDescription = document.getElementById('modalSeoDescription').value.trim();
             const commission = document.getElementById('modalCommission').value || 0;
 
@@ -2743,7 +2758,7 @@
 
             const body = {
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
-                seo_keywords: seoKeywords, seo_description: seoDescription,
+                seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
                 commission: parseFloat(commission)
             };
 
@@ -2877,12 +2892,15 @@
                     showToast(`⏳ เริ่มต้นการดึงข้อมูลและจัดการ AI... (0/${totalTasks})`);
                     let processedCount = 0;
                     
-                    // Process in chunks of 3 to avoid overwhelming backend
-                    const chunkSize = 3;
-                    for (let i = 0; i < productsArray.length; i += chunkSize) {
-                        const chunk = productsArray.slice(i, i + chunkSize);
-                        const promises = chunk.map(async (product) => {
-                            // 1. AI Categorization (Call first so we have accurate category for hashtags later if needed)
+                    // --- BATCH PROCESSING (5 items per batch) to prevent Rate Limit (15 RPM) ---
+                    const batchSize = 5;
+                    for (let i = 0; i < productsArray.length; i += batchSize) {
+                        const batch = productsArray.slice(i, i + batchSize);
+                        
+                        showToast(`🚀 กำลังประมวลผลชุดที่ ${Math.floor(i/batchSize) + 1} (${processedCount}/${totalTasks})...`);
+                        
+                        const batchPromises = batch.map(async (product) => {
+                            // 1. AI Categorization
                             if (needsAICat) {
                                 try {
                                     const catRes = await fetchWithAuth('/api/categorize', {
@@ -2893,10 +2911,7 @@
                                     if (catData.success && catData.category) {
                                         product.category = catData.category;
                                     }
-                                } catch (err) {
-                                    console.error('AI Categorization failed:', err);
-                                    // fall back to keyword logic was already done by parseShopeeCSV
-                                }
+                                } catch (err) { console.error('AI Categorization failed:', err); }
                             }
 
                             // 2. Image Scraping
@@ -2907,23 +2922,16 @@
                                         body: JSON.stringify({ url: product.affiliateUrl })
                                     });
                                     const scrapeData = await scrapeRes.json();
-                                    
                                     if (scrapeData.success) {
                                         if (scrapeData.image) product.image = scrapeData.image;
                                         if (scrapeData.title && (!product.title || product.title.length < 5)) {
-                                            let cleanTitle = scrapeData.title;
-                                            if (cleanTitle.endsWith(' | Shopee Thailand')) {
-                                                cleanTitle = cleanTitle.substring(0, cleanTitle.length - 18);
-                                            }
-                                            product.title = cleanTitle;
+                                            product.title = scrapeData.title.replace(' | Shopee Thailand', '');
                                         }
                                     }
-                                } catch (err) {
-                                    console.error('Scraping failed:', err);
-                                }
+                                } catch (err) { console.error('Scraping failed:', err); }
                             }
                             
-                            // 3. AI SEO Generation
+                            // 3. AI SEO Generation (Gemini 1.5 Flash)
                             if (toggleAI) {
                                 try {
                                     const seoRes = await fetchWithAuth('/api/ai/seo', {
@@ -2932,23 +2940,24 @@
                                     });
                                     const seoData = await seoRes.json();
                                     if (seoData.success) {
-                                        product.seo_keywords = seoData.keywords;
-                                        product.seo_description = seoData.description;
+                                        product.seo_keywords = seoData.seo_keywords || seoData.keywords || [];
+                                        product.seo_description = seoData.seo_description || seoData.description || '';
+                                        product.seo_title = seoData.seo_title || seoData.title || '';
                                     }
-                                } catch (err) {
-                                    console.error('AI SEO failed during upload:', err);
-                                }
+                                } catch (err) { console.error('AI SEO failed during upload:', err); }
                             }
 
                             processedCount++;
-                            let statusText = `⏳ กำลังจัดการสินค้า ${processedCount}/${totalTasks}...`;
-                            if (toggleAI) statusText += ` (AI SEO 🪄)`;
-                            showToast(statusText);
                         });
                         
-                        await Promise.all(promises);
-                        if (i + chunkSize < productsArray.length) {
-                            await new Promise(resolve => setTimeout(resolve, 300));
+                        await Promise.all(batchPromises);
+                        
+                        // If not the last batch, wait to prevent rate limit (Gemini Free 15 RPM = ~4s per req)
+                        // With batch of 5, we should wait about 20s to be safe, but let's do 10s and sequential internally for better throughput if possible,
+                        // or just keep 5 concurrent and wait 20s. The user asked for batches of 5-10.
+                        if (i + batchSize < productsArray.length) {
+                            showToast(`⏳ พักเครื่อง 20 วินาทีเพื่อป้องกัน Rate Limit... (${processedCount}/${totalTasks})`);
+                            await new Promise(resolve => setTimeout(resolve, 20000));
                         }
                     }
                 }

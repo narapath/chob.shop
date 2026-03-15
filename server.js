@@ -197,6 +197,7 @@ app.post('/api/products', requireAuth, async (req, res) => {
       twitterPostId: '',
       seo_keywords: [],
       seo_description: '',
+      seo_title: req.body.seo_title || '',
       commission: req.body.commission || 0
     };
 
@@ -205,6 +206,7 @@ app.post('/api/products', requireAuth, async (req, res) => {
         const seoData = await generateSEOData(newProduct);
         newProduct.seo_keywords = seoData.keywords;
         newProduct.seo_description = seoData.description;
+        newProduct.seo_title = seoData.title;
       } catch (err) {
         console.error('AI SEO generation failed for single product:', err);
       }
@@ -252,6 +254,7 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
         twitterPostId: null,
         seo_keywords: p.seo_keywords || [],
         seo_description: p.seo_description || '',
+        seo_title: p.seo_title || '',
         commission: p.commission || 0
       };
     });
@@ -492,12 +495,13 @@ app.post('/api/products/:id/gen-seo', requireAuth, async (req, res) => {
     // 3. Update product
     const { error: updateError } = await supabase.from('products').update({
       seo_keywords: seoData.keywords,
-      seo_description: seoData.description
+      seo_description: seoData.description,
+      seo_title: seoData.title
     }).eq('id', id);
 
     if (updateError) throw updateError;
 
-    res.json({ success: true, seo_keywords: seoData.keywords, seo_description: seoData.description });
+    res.json({ success: true, seo_keywords: seoData.keywords, seo_description: seoData.description, seo_title: seoData.title });
   } catch (err) {
     console.error('AI SEO Endpoint Error:', err);
     res.status(500).json({ error: 'Failed to generate SEO', detail: err.message });
@@ -522,7 +526,8 @@ app.post('/api/products/bulk/gen-seo', requireAuth, async (req, res) => {
           const seoData = await generateSEOData(product);
           await supabase.from('products').update({
             seo_keywords: seoData.keywords,
-            seo_description: seoData.description
+            seo_description: seoData.description,
+            seo_title: seoData.title
           }).eq('id', id);
           results.successCount++;
         }

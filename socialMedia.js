@@ -737,8 +737,9 @@ async function generateSEOData(product) {
 หมวดหมู่: "${category}"
 
 จงสร้างข้อมูลในรูปแบบ JSON ดังนี้:
-1. "keywords": รายการคำค้นหา (Keywords) ที่มีโอกาสถูกค้นหาสูงสุด 10-15 คำ (รวมทั้งภาษาไทยและอังกฤษ) ที่เกี่ยวข้องกับตัวสินค้า แบรนด์ และวิธีแก้ปัญหาของลูกค้า
-2. "description": Meta Description สำหรับผลการค้นหา (ความยาว 150-160 ตัวอักษร) ที่ฟังดูน่าคลิก และมี Keyword สำคัญอยู่ข้างใน
+1. "title": SEO Optimized Title (ไม่เกิน 60 ตัวอักษร) ที่มี Keyword สำคัญและดึงดูดใจ
+2. "keywords": รายการคำค้นหา (Keywords) ที่มีโอกาสถูกค้นหาสูงสุด 10-15 คำ (รวมทั้งภาษาไทยและอังกฤษ) ที่เกี่ยวข้องกับตัวสินค้า แบรนด์ และวิธีแก้ปัญหาของลูกค้า
+3. "description": Meta Description สำหรับผลการค้นหา (ความยาว 150-160 ตัวอักษร) ที่ฟังดูน่าคลิก และมี Keyword สำคัญอยู่ข้างใน
 
 ตอบกลับเฉพาะ JSON เท่านั้น และห้ามมีตัวอักษรอื่น:`;
 
@@ -755,10 +756,14 @@ async function generateSEOData(product) {
             const data = JSON.parse(aiText);
             const kws = Array.isArray(data.keywords) ? data.keywords : (data.seo_keywords || []);
             const desc = data.description || data.seo_description || "";
+            const seoTitle = data.title || data.seo_title || title;
+
             return {
+                title: seoTitle,
                 keywords: kws,
                 description: desc,
-                seo_keywords: kws, // Duplicate for compatibility
+                seo_title: seoTitle,
+                seo_keywords: kws,
                 seo_description: desc
             };
         }
