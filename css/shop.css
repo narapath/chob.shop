@@ -1023,6 +1023,9 @@ body {
   --card-radius: 20px;
   --card-tag-bg: rgba(99, 102, 241, 0.08);
   --card-tag-text: #6366f1;
+  --card-btn-bg: var(--shopee-orange);
+  --card-btn-text: #ffffff;
+  --card-price-color: var(--accent-gradient);
 
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -1070,6 +1073,8 @@ body {
   --card-title-hover: #1e293b;
   --card-tag-bg: rgba(233, 69, 96, 0.06);
   --card-tag-text: #e94560;
+  --card-btn-bg: linear-gradient(135deg, #e94560, #952d3f);
+  --card-price-color: linear-gradient(135deg, #e94560, #ff85a1);
 }
 
 /* 2. Modern Glass — Glassmorphism */
@@ -1084,6 +1089,8 @@ body {
   --card-title-hover: #1e293b;
   --card-tag-bg: rgba(99, 102, 241, 0.1);
   --card-tag-text: #6366f1;
+  --card-btn-bg: rgba(233, 69, 96, 0.9);
+  --card-price-color: var(--accent-gradient);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -1101,6 +1108,9 @@ body {
   --card-title-hover: #000000;
   --card-tag-bg: rgba(0, 255, 204, 0.1);
   --card-tag-text: #008f73;
+  --card-btn-bg: #00ffcc;
+  --card-btn-text: #000000;
+  --card-price-color: #ff00ff;
 }
 
 /* 4. Sweet Pastel — Soft & Cute */
@@ -1115,6 +1125,8 @@ body {
   --card-title-hover: #1e293b;
   --card-tag-bg: rgba(233, 69, 96, 0.08);
   --card-tag-text: #e94560;
+  --card-btn-bg: linear-gradient(135deg, #ff758c, #ff7eb3);
+  --card-price-color: linear-gradient(135deg, #ff758c, #ff7eb3);
 }
 
 
@@ -1130,6 +1142,8 @@ body {
   --card-title-hover: #1e293b;
   --card-tag-bg: rgba(0, 131, 143, 0.08);
   --card-tag-text: #00838f;
+  --card-btn-bg: linear-gradient(135deg, #009688, #4db6ac);
+  --card-price-color: linear-gradient(135deg, #00838f, #00bcd4);
 }
 
 
@@ -1145,6 +1159,8 @@ body {
   --card-title-hover: #1e293b;
   --card-tag-bg: rgba(230, 81, 0, 0.08);
   --card-tag-text: #e65100;
+  --card-btn-bg: linear-gradient(135deg, #ff5722, #ff9800);
+  --card-price-color: linear-gradient(135deg, #e65100, #ff9800);
 }
 
 
@@ -1279,7 +1295,7 @@ body {
   font-weight: 900;
   color: #fff;
   letter-spacing: -1px;
-  background: var(--accent-gradient);
+  background: var(--card-price-color);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1304,8 +1320,8 @@ body {
   gap: 10px;
   width: 100%;
   padding: 14px;
-  background: var(--shopee-orange);
-  color: #fff;
+  background: var(--card-btn-bg);
+  color: var(--card-btn-text, #fff);
   border: none;
   border-radius: var(--radius-md);
   font-size: 14px;
@@ -1313,7 +1329,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 1px;
   transition: var(--transition);
-  box-shadow: 0 4px 12px rgba(238, 77, 45, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .card:hover .shopee-btn {
