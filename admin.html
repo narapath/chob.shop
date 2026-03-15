@@ -2807,7 +2807,37 @@
 
         // === CSV Import Logic ===
         const csvFileInput = document.getElementById('csvFileInput');
+        const csvDropzone = document.getElementById('csvDropzone');
         csvFileInput.addEventListener('change', handleCSVUpload);
+
+        // Drag-and-drop support for CSV dropzone
+        if (csvDropzone) {
+            csvDropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                csvDropzone.style.borderColor = 'var(--accent)';
+                csvDropzone.style.background = 'var(--accent-soft)';
+            });
+            csvDropzone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                csvDropzone.style.borderColor = '';
+                csvDropzone.style.background = '';
+            });
+            csvDropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                csvDropzone.style.borderColor = '';
+                csvDropzone.style.background = '';
+                const files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].name.endsWith('.csv')) {
+                    // Create a synthetic event-like object for handleCSVUpload
+                    handleCSVUpload({ target: { files: [files[0]], value: files[0].name } });
+                } else {
+                    showToast('❌ กรุณาอัปโหลดไฟล์ .csv เท่านั้น');
+                }
+            });
+        }
 
         // Helper to parse Thai price abbreviations like '56.9พัน'
         function parseShopeePrice(priceStr) {
@@ -3081,6 +3111,11 @@
 
         function parseShopeeCSV(csvText, importCategory) {
             console.log('📄 Starting CSV Parse...');
+            // Strip BOM (Byte Order Mark) that Shopee/Excel adds to UTF-8 CSV files
+            if (csvText.charCodeAt(0) === 0xFEFF) {
+                csvText = csvText.substring(1);
+                console.log('🔧 Stripped UTF-8 BOM from CSV');
+            }
             const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
             if (lines.length < 2) {
                 console.error('❌ CSV too short');
@@ -3137,10 +3172,19 @@
                 h.includes('ราคาเดิม') || h.includes('ราคาปกติ') || h.includes('Original Price') || h.includes('Regular Price')
             );
 
-            console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal });
+            let colCommission = headers.findIndex(h => 
+                h.includes('คอมมิชชั่น') || h.includes('Commission') || h.includes('อัตราค่าคอมมิชชั่น') || h.includes('commission')
+            );
+
+            let colDiscount = headers.findIndex(h => 
+                h.includes('ส่วนลด') || h.includes('Discount') || h.includes('discount')
+            );
+
+            console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal, colCommission, colDiscount });
 
             if (colTitle === -1 || colUrl === -1) {
                 console.error('❌ Missing core columns (Title or Link)');
+                console.error('📋 Available headers:', headers);
                 return [];
             }
 
@@ -3155,7 +3199,9 @@
 
                 const price = colPrice !== -1 ? parseShopeePrice(cols[colPrice]) : '0';
                 const originalPrice = colOriginal !== -1 ? parseShopeePrice(cols[colOriginal]) : '';
-                const image = colImage !== -1 ? cols[colImage] : '';
+                const image = colImage !== -1 ? (cols[colImage] || '').trim() : '';
+                const commission = colCommission !== -1 ? parseFloat((cols[colCommission] || '0').replace(/[^0-9.]/g, '')) || 0 : 0;
+                const discount = colDiscount !== -1 ? parseInt((cols[colDiscount] || '0').replace(/[^0-9]/g, ''), 10) || 0 : 0;
 
                 parsedProducts.push({
                     title: title,
@@ -3163,8 +3209,10 @@
                     category: importCategory === 'auto' ? autoCategorize(title) : importCategory,
                     price: price,
                     originalPrice: originalPrice,
+                    discount: discount || '',
                     image: image,
-                    description: ''
+                    description: '',
+                    commission: commission
                 });
             }
             console.log('✅ Parsed products:', parsedProducts.length);
