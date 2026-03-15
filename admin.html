@@ -1555,6 +1555,10 @@
                             <label>ชื่อสินค้า *</label>
                             <input type="text" id="productTitle" placeholder="เช่น หูฟังไร้สาย Bluetooth 5.0" required />
                         </div>
+                        <div class="form-group">
+                            <label>Commission (%)</label>
+                            <input type="number" id="productCommission" placeholder="0" step="0.1" />
+                        </div>
                         <div class="form-grid-3">
                             <div class="form-group">
                                 <label>ราคาเต็ม (B)</label>
@@ -1565,8 +1569,8 @@
                                 <input type="number" id="productDiscount" placeholder="50" />
                             </div>
                             <div class="form-group" style="background: rgba(233,69,96,0.03); border-left: 2px solid var(--accent2); padding-left: 10px;">
-                                <label style="color: var(--accent2);">💰 ค่าคอมมิชชั่น (฿)</label>
-                                <input type="number" id="productCommission" placeholder="0.00" step="0.01" />
+                                <label style="color: var(--accent2);">💰 ราคาหลังหักส่วนลด (B)</label>
+                                <input type="number" id="productPrice" placeholder="299" />
                             </div>
                         </div>
                         <div class="form-group">
@@ -1591,7 +1595,7 @@
                             <div class="form-group">
                                 <label style="display: flex; justify-content: space-between; align-items: center;">
                                     SEO Keywords (คั่นด้วยคอมม่า)
-                                    <button type="button" class="btn btn-secondary btn-sm" onclick="genAISEOInline()" style="font-size: 11px; padding: 4px 8px;">🪄 Gen with AI</button>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="genAISEOInline(event)" style="font-size: 11px; padding: 4px 8px;">🪄 Gen with AI</button>
                                 </label>
                                 <input type="text" id="seoKeywords" placeholder="เช่น หูฟัง, หูฟังไร้สาย, bluetooth, ราคาถูก..." />
                             </div>
@@ -1892,8 +1896,8 @@
                             <input type="number" id="modalDiscount" placeholder="50" />
                         </div>
                         <div class="form-group" style="background: rgba(99,102, 241, 0.03); border-left: 2px solid var(--accent); padding-left: 10px;">
-                            <label style="color: var(--accent-light);">💰 ค่าคอมมิชชั่น (฿)</label>
-                            <input type="number" id="modalCommission" placeholder="0.00" step="0.01" />
+                            <label style="color: var(--accent-light);">💰 Commission (%)</label>
+                            <input type="number" id="modalCommission" placeholder="0" step="0.1" />
                         </div>
                     </div>
                     <div class="form-group">
@@ -2218,13 +2222,13 @@
                     </td>
                     <td class="col-pricing">
                         <div class="price-box">
-                            <span class="main-price">฿${Number(p.price).toLocaleString()}</span>
-                            ${p.originalPrice ? `<span class="old-price">฿${Number(p.originalPrice).toLocaleString()}</span>` : ''}
+                            <span class="main-price">฿${Number(p.price || 0).toLocaleString()}</span>
+                            ${p.originalPrice ? `<span class="old-price">฿${Number(p.originalPrice || 0).toLocaleString()}</span>` : ''}
                         </div>
                     </td>
                     <td class="col-comm">
                         <div style="font-weight: 700; color: var(--accent2);">
-                            ฿${Number(p.commission || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                            ${p.commission || 0}%
                         </div>
                     </td>
                     <td class="col-stats">
@@ -2426,14 +2430,16 @@
                 }
 
                 if (data.success) {
-                    const keywords = Array.isArray(data.seo_keywords) ? data.seo_keywords : (data.keywords || []);
+                    const keywords = Array.isArray(data.seo_keywords) ? data.seo_keywords : (Array.isArray(data.keywords) ? data.keywords : []);
                     const description = data.seo_description || data.description || '';
+                    const seoTitle = data.seo_title || data.title || '';
                     
                     document.getElementById('seoKeywords').value = keywords.join(', ');
+                    document.getElementById('seoTitle').value = seoTitle; // Add this line which was missing
                     document.getElementById('seoDescription').value = description;
                     showToast('✅ AI ช่วยสร้าง SEO ให้เรียบร้อยแล้ว');
                 } else {
-                    showToast('❌ เกิดข้อผิดพลาดจาก AI: ' + (data.error || 'Unknown error'));
+                    showToast('❌ ไม่สามารถเจน SEO ได้: ' + (data.error || 'AI Error'));
                 }
             } catch (e) {
                 console.error('AI SEO Error:', e);
@@ -2699,7 +2705,7 @@
                 }
 
                 if (data.success) {
-                    const keywords = Array.isArray(data.seo_keywords) ? data.seo_keywords : (data.keywords || []);
+                    const keywords = Array.isArray(data.seo_keywords) ? data.seo_keywords : (Array.isArray(data.keywords) ? data.keywords : []);
                     const description = data.seo_description || data.description || '';
                     const seoTitle = data.seo_title || data.title || '';
                     
@@ -2708,7 +2714,7 @@
                     document.getElementById('modalSeoDescription').value = description;
                     showToast('✅ AI ช่วยสร้าง SEO ให้เรียบร้อยแล้ว');
                 } else {
-                    showToast('❌ เกิดข้อผิดพลาดจาก AI');
+                    showToast('❌ ไม่สามารถเจน SEO ได้: ' + (data.error || 'AI Error'));
                 }
             } catch (e) {
                 console.error('AI SEO Error:', e);

@@ -753,12 +753,18 @@ async function generateSEOData(product) {
 
         const aiText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (aiText) {
-            const data = JSON.parse(aiText);
-            const kws = Array.isArray(data.keywords) ? data.keywords : (data.seo_keywords || []);
+            // Clean up possible markdown code blocks
+            const cleanText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
+            const data = JSON.parse(cleanText);
+            
+            const kws = Array.isArray(data.keywords) ? data.keywords : 
+                        (Array.isArray(data.seo_keywords) ? data.seo_keywords : []);
+                        
             const desc = data.description || data.seo_description || "";
             const seoTitle = data.title || data.seo_title || title;
 
             return {
+                success: true,
                 title: seoTitle,
                 keywords: kws,
                 description: desc,
@@ -769,8 +775,9 @@ async function generateSEOData(product) {
         }
     } catch (err) {
         console.error('⚠️ Gemini SEO Error:', err.message);
+        return { success: false, error: err.message };
     }
-    return { keywords: [], description: "", seo_keywords: [], seo_description: "" };
+    return { success: false, keywords: [], description: "", seo_keywords: [], seo_description: "" };
 }
 
 module.exports = {
