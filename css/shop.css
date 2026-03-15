@@ -1186,12 +1186,12 @@ body {
 .card-img-wrapper {
   position: relative;
   width: 100%;
-  background: #000;
+  background: #ffffff;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .card-img-wrapper img.card-img {
