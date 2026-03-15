@@ -1403,6 +1403,47 @@
             gap: 12px;
             background: rgba(0, 0, 0, 0.2);
         }
+
+        /* === MOBILE SIDEBAR ENHANCEMENTS === */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 950;
+            display: none;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .mobile-close-btn {
+            display: none;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        @media (max-width: 1024px) {
+            .mobile-close-btn { display: flex; }
+            .sidebar-brand { justify-content: space-between; padding-right: 12px; }
+        }
     </style>
 </head>
 
@@ -1435,11 +1476,17 @@
 
     <!-- MAIN APP WRAPPER (Hidden by default) -->
     <div id="appWrapper" style="display: none;">
+        <!-- Sidebar Overlay -->
+        <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebarMobile()"></div>
+
         <!-- === SIDEBAR === -->
         <aside class="admin-sidebar" id="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-icon">💎</div>
-                <div class="brand-text">Chob.Shop <span style="color:var(--text-muted);font-size:12px;font-weight:400;">ADMIN</span></div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="brand-icon">💎</div>
+                    <div class="brand-text">Chob.Shop <span style="color:var(--text-muted);font-size:12px;font-weight:400;">ADMIN</span></div>
+                </div>
+                <button class="mobile-close-btn" onclick="toggleSidebarMobile()">×</button>
             </div>
 
             <nav class="sidebar-nav">
@@ -3557,8 +3604,25 @@
         }
 
         function toggleSidebarMobile() {
-            document.getElementById('sidebar').classList.toggle('open');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            const isOpen = sidebar.classList.toggle('open');
+            if (isOpen) {
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
         }
+
+        // Auto-close sidebar on mobile when a tab is switched
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    toggleSidebarMobile();
+                }
+            });
+        });
 
         // Init sidebar state
         if (localStorage.getItem('sidebarMini') === 'true') {
