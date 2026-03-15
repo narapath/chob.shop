@@ -1007,23 +1007,25 @@ body {
 .products-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
+/* ===== PRODUCT CARD — Modern E-Commerce ===== */
 .card {
   --card-bg: #ffffff;
-  --card-text: #1e293b;
+  --card-text: #334155;
+  --card-text-title: #1e293b;
   --card-border: rgba(0, 0, 0, 0.06);
-  --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --card-hover-bg: #ffffff;
-  --card-hover-border: var(--accent);
-  --card-hover-shadow: 0 20px 50px rgba(0, 0, 0, 0.1), 0 0 30px var(--accent-glow);
-  --card-radius: 12px;
-  --card-tag-bg: rgba(99, 102, 241, 0.08);
-  --card-tag-text: #6366f1;
-  --card-btn-bg: var(--shopee-orange);
+  --card-hover-border: rgba(238, 77, 45, 0.35);
+  --card-hover-shadow: 0 12px 28px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(238, 77, 45, 0.1);
+  --card-radius: 14px;
+  --card-tag-bg: #f1f5f9;
+  --card-tag-text: #64748b;
+  --card-btn-bg: linear-gradient(135deg, #ee4d2d 0%, #f0603c 100%);
   --card-btn-text: #ffffff;
-  --card-price-color: var(--accent-gradient);
+  --card-price-color: #ee4d2d;
 
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -1031,7 +1033,7 @@ body {
   overflow: hidden;
   text-decoration: none;
   color: var(--card-text);
-  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -1043,18 +1045,22 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, transparent 100%);
+  border-radius: var(--card-radius);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 60%, rgba(238, 77, 45, 0.02) 100%);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.35s ease;
 }
 
 .card:hover {
-  transform: translateY(-8px) scale(1.02);
+  transform: translateY(-4px);
   border-color: var(--card-hover-border);
   box-shadow: var(--card-hover-shadow);
   background: var(--card-hover-bg);
+}
+
+.card:hover::after {
+  opacity: 1;
 }
 
 /* ===== THEME DEFINITIONS ===== */
@@ -1062,135 +1068,136 @@ body {
 /* 1. Midnight Noir — Premium Dark */
 .theme-dark .card {
   --card-bg: #ffffff;
-  --card-text: #1e293b;
+  --card-text: #334155;
+  --card-text-title: #1e293b;
   --card-border: rgba(0, 0, 0, 0.05);
-  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   --card-hover-bg: #ffffff;
-  --card-hover-border: rgba(233, 69, 96, 0.6);
-  --card-hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(233, 69, 96, 0.15);
+  --card-hover-border: rgba(233, 69, 96, 0.5);
+  --card-hover-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(233, 69, 96, 0.15);
   --card-title-hover: #1e293b;
   --card-tag-bg: rgba(233, 69, 96, 0.06);
   --card-tag-text: #e94560;
-  --card-btn-bg: linear-gradient(135deg, #e94560, #952d3f);
-  --card-price-color: linear-gradient(135deg, #e94560, #ff85a1);
+  --card-btn-bg: linear-gradient(135deg, #e94560, #d63851);
+  --card-price-color: #e94560;
 }
 
 /* 2. Modern Glass — Glassmorphism */
 .theme-glass .card {
-  --card-bg: rgba(255, 255, 255, 0.95);
-  --card-text: #1e293b;
-  --card-border: rgba(255, 255, 255, 0.2);
-  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  --card-bg: rgba(255, 255, 255, 0.96);
+  --card-text: #334155;
+  --card-text-title: #1e293b;
+  --card-border: rgba(255, 255, 255, 0.3);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   --card-hover-bg: #ffffff;
-  --card-hover-border: rgba(233, 69, 96, 0.5);
-  --card-hover-shadow: 0 15px 45px rgba(0, 0, 0, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.5);
+  --card-hover-border: rgba(233, 69, 96, 0.4);
+  --card-hover-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
   --card-title-hover: #1e293b;
-  --card-tag-bg: rgba(99, 102, 241, 0.1);
+  --card-tag-bg: rgba(99, 102, 241, 0.08);
   --card-tag-text: #6366f1;
-  --card-btn-bg: rgba(233, 69, 96, 0.9);
-  --card-price-color: var(--accent-gradient);
+  --card-btn-bg: linear-gradient(135deg, #e94560, #d63851);
+  --card-price-color: #e94560;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
-
 /* 3. Cyber Neon — Gaming Style */
 .theme-neon .card {
   --card-bg: #ffffff;
-  --card-text: #0d0d0d;
-  --card-border: rgba(0, 255, 204, 0.2);
-  --card-shadow: 0 0 15px rgba(0, 255, 204, 0.05);
+  --card-text: #1a1a2e;
+  --card-text-title: #0d0d0d;
+  --card-border: rgba(0, 255, 204, 0.15);
+  --card-shadow: 0 1px 4px rgba(0, 255, 204, 0.06);
   --card-hover-bg: #ffffff;
-  --card-hover-border: #00ffcc;
-  --card-hover-shadow: 0 0 25px rgba(0, 255, 204, 0.2), 0 0 40px rgba(233, 69, 96, 0.1);
+  --card-hover-border: rgba(0, 255, 204, 0.5);
+  --card-hover-shadow: 0 8px 28px rgba(0, 255, 204, 0.12);
   --card-title-hover: #000000;
-  --card-tag-bg: rgba(0, 255, 204, 0.1);
+  --card-tag-bg: rgba(0, 255, 204, 0.08);
   --card-tag-text: #008f73;
-  --card-btn-bg: #00ffcc;
+  --card-btn-bg: linear-gradient(135deg, #00e6b8, #00ccaa);
   --card-btn-text: #000000;
-  --card-price-color: #ff00ff;
+  --card-price-color: #00b894;
 }
 
 /* 4. Sweet Pastel — Soft & Cute */
 .theme-pastel .card {
   --card-bg: #ffffff;
-  --card-text: #1e293b;
-  --card-border: #f8cdda;
-  --card-shadow: 0 8px 24px rgba(248, 205, 218, 0.15);
-  --card-hover-bg: #ffffff;
+  --card-text: #5c4d6e;
+  --card-text-title: #3d2e52;
+  --card-border: rgba(248, 205, 218, 0.5);
+  --card-shadow: 0 2px 8px rgba(248, 205, 218, 0.2);
+  --card-hover-bg: #fffbfc;
   --card-hover-border: #ffb6c1;
-  --card-hover-shadow: 0 15px 35px rgba(255, 182, 193, 0.2);
-  --card-title-hover: #1e293b;
-  --card-tag-bg: rgba(233, 69, 96, 0.08);
+  --card-hover-shadow: 0 12px 28px rgba(255, 182, 193, 0.2);
+  --card-title-hover: #3d2e52;
+  --card-tag-bg: rgba(255, 117, 140, 0.08);
   --card-tag-text: #e94560;
   --card-btn-bg: linear-gradient(135deg, #ff758c, #ff7eb3);
-  --card-price-color: linear-gradient(135deg, #ff758c, #ff7eb3);
+  --card-price-color: #ff4d7a;
 }
-
 
 /* 5. Deep Ocean — Cool & Fresh */
 .theme-ocean .card {
   --card-bg: #ffffff;
-  --card-text: #1e293b;
-  --card-border: #b2ebf2;
-  --card-shadow: 0 8px 24px rgba(0, 150, 136, 0.08);
-  --card-hover-bg: #ffffff;
+  --card-text: #37474f;
+  --card-text-title: #263238;
+  --card-border: rgba(178, 235, 242, 0.5);
+  --card-shadow: 0 2px 8px rgba(0, 150, 136, 0.06);
+  --card-hover-bg: #fafffe;
   --card-hover-border: #4db6ac;
-  --card-hover-shadow: 0 15px 35px rgba(0, 150, 136, 0.15);
-  --card-title-hover: #1e293b;
-  --card-tag-bg: rgba(0, 131, 143, 0.08);
+  --card-hover-shadow: 0 12px 28px rgba(0, 150, 136, 0.12);
+  --card-title-hover: #263238;
+  --card-tag-bg: rgba(0, 131, 143, 0.06);
   --card-tag-text: #00838f;
-  --card-btn-bg: linear-gradient(135deg, #009688, #4db6ac);
-  --card-price-color: linear-gradient(135deg, #00838f, #00bcd4);
+  --card-btn-bg: linear-gradient(135deg, #009688, #26a69a);
+  --card-price-color: #00897b;
 }
-
 
 /* 6. Sunset Vibes — Warm & Energetic */
 .theme-sunset .card {
   --card-bg: #ffffff;
-  --card-text: #1e293b;
-  --card-border: #ffe0b2;
-  --card-shadow: 0 8px 24px rgba(255, 152, 0, 0.08);
-  --card-hover-bg: #ffffff;
+  --card-text: #4e342e;
+  --card-text-title: #3e2723;
+  --card-border: rgba(255, 224, 178, 0.5);
+  --card-shadow: 0 2px 8px rgba(255, 152, 0, 0.06);
+  --card-hover-bg: #fffdf9;
   --card-hover-border: #ffb74d;
-  --card-hover-shadow: 0 15px 35px rgba(255, 152, 0, 0.15);
-  --card-title-hover: #1e293b;
-  --card-tag-bg: rgba(230, 81, 0, 0.08);
+  --card-hover-shadow: 0 12px 28px rgba(255, 152, 0, 0.12);
+  --card-title-hover: #3e2723;
+  --card-tag-bg: rgba(230, 81, 0, 0.06);
   --card-tag-text: #e65100;
-  --card-btn-bg: linear-gradient(135deg, #ff5722, #ff9800);
-  --card-price-color: linear-gradient(135deg, #e65100, #ff9800);
+  --card-btn-bg: linear-gradient(135deg, #ff5722, #ff7043);
+  --card-price-color: #e65100;
 }
-
 
 /* 7. Pure Minimal — Clean & Elegant */
 .theme-minimal .card {
   --card-bg: #ffffff;
-  --card-text: #1e293b;
-  --card-border: rgba(0, 0, 0, 0.05);
-  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --card-text: #475569;
+  --card-text-title: #1e293b;
+  --card-border: rgba(0, 0, 0, 0.04);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   --card-hover-bg: #ffffff;
-  --card-hover-border: rgba(0, 0, 0, 0.15);
-  --card-hover-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  --card-hover-border: rgba(0, 0, 0, 0.12);
+  --card-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   --card-title-hover: #1e293b;
-  --card-tag-bg: #f5f5f5;
-  --card-tag-text: #666;
+  --card-tag-bg: #f8fafc;
+  --card-tag-text: #64748b;
+  --card-btn-bg: #1e293b;
+  --card-price-color: #1e293b;
 }
 
 
-.card:hover::after {
-  opacity: 1;
-}
-
+/* ===== CARD IMAGE ===== */
 .card-img-wrapper {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  background: #ffffff;
+  background: #f8fafc;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   padding: 0;
 }
 
@@ -1206,76 +1213,142 @@ body {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
-  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .card:hover .card-img-wrapper img.card-img {
-  transform: scale(1.1) rotate(1deg);
+  transform: scale(1.06);
 }
 
+/* Shopee Logo Watermark on image */
+.card-shopee-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(135deg, rgba(238, 77, 45, 0.92), rgba(240, 96, 60, 0.92));
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 10px 3px 8px;
+  letter-spacing: 0.3px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 0 8px 0 0;
+  text-transform: uppercase;
+}
+
+.card-shopee-badge svg {
+  flex-shrink: 0;
+}
+
+/* Discount Badge — Ribbon Style */
 .discount-badge {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  background: var(--accent-gradient);
+  top: 0;
+  right: 0;
+  background: linear-gradient(135deg, #ee4d2d 0%, #d63031 100%);
   color: #fff;
   font-size: 11px;
   font-weight: 800;
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  letter-spacing: 0.5px;
+  padding: 4px 10px 6px;
+  border-radius: 0 0 0 10px;
+  letter-spacing: 0.3px;
   z-index: 2;
-  box-shadow: 0 4px 15px var(--accent-glow);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(238, 77, 45, 0.3);
+  line-height: 1.2;
+  text-align: center;
 }
 
+.discount-badge small {
+  display: block;
+  font-size: 8px;
+  font-weight: 600;
+  opacity: 0.85;
+  letter-spacing: 0;
+}
+
+
+/* ===== CARD BODY ===== */
 .card-body {
-  padding: 6px 8px;
+  padding: 10px 12px 12px;
   display: flex;
   flex-direction: column;
   flex: 1;
   z-index: 1;
   background: transparent;
+  gap: 6px;
 }
 
 .card-title {
   font-size: 13px;
-  font-weight: 700;
-  margin: 0 0 2px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--card-text-title, var(--card-text));
+  transition: color 0.3s ease;
+}
+
+.card:hover .card-title {
+  color: var(--card-price-color, var(--card-title-hover, #ee4d2d));
+}
+
+/* Rating & Sales Row */
+.card-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.card-rating .stars {
+  color: #fbbf24;
+  font-size: 11px;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.card-rating .sales {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.card-rating .dot {
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.card-desc {
+  font-size: 12px;
+  color: var(--card-text);
+  opacity: 0.6;
+  margin: 0;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  color: var(--card-text);
-  opacity: 0.9;
-  transition: var(--transition);
 }
 
-.card:hover .card-title {
-  color: var(--card-title-hover, var(--text-primary));
-}
-
-.card-desc {
-  font-size: 13px;
-  color: var(--card-text);
-  opacity: 0.7;
-  margin: 0 0 12px;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
+/* SEO Tags — hidden visually, kept for SEO */
 .card-seo-tags {
-  margin-bottom: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 .card-tag {
@@ -1284,65 +1357,85 @@ body {
   color: var(--card-tag-text) !important;
   padding: 2px 8px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   font-weight: 600;
   letter-spacing: 0.2px;
 }
 
+/* Pricing */
 .card-pricing {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 4px;
-  margin-top: 2px;
+  gap: 6px;
+  margin-top: auto;
 }
 
 .card-price {
-  font-size: 24px;
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: -1px;
-  background: var(--card-price-color);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 15px var(--accent-glow));
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--card-price-color, #ee4d2d);
+  letter-spacing: -0.3px;
+  line-height: 1;
+  /* Reset gradient text for solid color */
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  -webkit-text-fill-color: var(--card-price-color, #ee4d2d);
+  filter: none;
 }
 
 .card-original {
-  font-size: 13px;
+  font-size: 11px;
   color: var(--card-text);
-  opacity: 0.5;
+  opacity: 0.4;
   text-decoration: line-through;
+  font-weight: 400;
 }
 
+/* CTA Button */
 .card-cta {
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .shopee-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
   width: 100%;
-  padding: 6px;
+  padding: 8px 12px;
   background: var(--card-btn-bg);
   color: var(--card-btn-text, #fff);
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 13px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: var(--transition);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 2px 8px rgba(238, 77, 45, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.shopee-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: left 0.5s ease;
+}
+
+.card:hover .shopee-btn::before {
+  left: 100%;
 }
 
 .card:hover .shopee-btn {
-  transform: scale(1.05);
-  box-shadow: 0 12px 24px var(--accent-glow);
+  box-shadow: 0 4px 16px rgba(238, 77, 45, 0.35);
+  transform: translateY(-1px);
 }
 
 /* ===== EMPTY STATE ===== */
@@ -1810,7 +1903,7 @@ body {
 
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 10px;
   }
 
   .section-header h1,
@@ -1821,29 +1914,72 @@ body {
   .card-price {
     font-size: 16px;
   }
+
+  .card-body {
+    padding: 8px 10px 10px;
+    gap: 4px;
+  }
+
+  .card-title {
+    font-size: 12px;
+  }
+
+  .card-shopee-badge {
+    font-size: 8px;
+    padding: 2px 8px 2px 6px;
+  }
 }
 
 @media (max-width: 480px) {
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 8px;
   }
 
   .card-body {
-    padding: 10px;
+    padding: 8px;
+    gap: 3px;
   }
 
   .card-title {
-    font-size: 13px;
+    font-size: 11px;
+    line-height: 1.35;
   }
 
   .card-price {
     font-size: 15px;
   }
 
+  .card-original {
+    font-size: 10px;
+  }
+
+  .card-rating {
+    font-size: 10px;
+  }
+
+  .card-rating .sales {
+    font-size: 9px;
+  }
+
   .shopee-btn {
-    padding: 8px;
-    font-size: 12px;
+    padding: 6px 8px;
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .shopee-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .discount-badge {
+    font-size: 10px;
+    padding: 3px 8px 5px;
+  }
+
+  .discount-badge small {
+    font-size: 7px;
   }
 }
 
