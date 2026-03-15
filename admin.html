@@ -1641,6 +1641,7 @@
                             </select>
                         </div>
                         <button class="btn btn-secondary" id="fixSeoBtn" onclick="genMissingSEO()" style="height: 100%; white-space: nowrap; background: rgba(233,69,96,0.1); color: var(--accent2);">🪄 SEO Fix (รายการที่ว่าง)</button>
+                        <button class="btn btn-primary" id="fixCatBtn" onclick="fixMissingCategories()" style="height: 100%; white-space: nowrap; background: rgba(99,102,241,0.1); color: var(--accent-light);">🗂 จัดหมวดหมู่ (ที่ยังเป็น 'ทั่วไป')</button>
                     </div>
                     <div class="bulk-actions-bar" id="bulkActionsBar">
                         <div style="font-size: 14px; font-weight: 500;">เลืสกอยู่ <span id="selectedCount" style="color: var(--accent); font-weight: 700;">0</span> รายการ</div>
@@ -2528,6 +2529,45 @@
             } catch (error) {
                 console.error(error);
                 showToast("❌ เกิดข้อผิดพลาดในการจัดหมวดหมู่");
+            }
+        }
+
+        async function fixMissingCategories() {
+            const missing = products.filter(p => !p.category || p.category === 'ทั่วไป' || p.category === 'Other' || p.category === 'อื่นๆ' || p.category === 'ไม่ระบุ');
+            
+            if (missing.length === 0) {
+                return showToast('✨ สินค้าทุกชิ้นได้รับการจัดหมวดหมู่แล้ว');
+            }
+
+            if (!confirm(`ตรวจสอบพบสินค้า ${missing.length} รายการที่ยังเป็นหมวดหมู่ "ทั่วไป"\nต้องการให้ระบบจัดหมวดหมู่อัตโนมัติเริ่มจัดการให้หรือไม่?`)) return;
+
+            const ids = missing.map(p => p.id);
+            const btn = document.getElementById('fixCatBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `⏳ กำลังจัดการ...`;
+            btn.disabled = true;
+
+            showToast(`⏳ กำลังจัดหมวดหมู่ให้ ${ids.length} รายการ...`);
+            
+            try {
+                const response = await fetchWithAuth('/api/products/bulk/categorize', {
+                    method: 'POST',
+                    body: JSON.stringify({ productIds: ids })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showToast(`✅ จัดหมวดหมู่สำเร็จ ${result.updatedCount} รายการ`);
+                    await loadProducts(); // Refresh list to get new categories
+                } else {
+                    showToast("❌ เกิดข้อผิดพลาด: " + (result.error || "Unknown"));
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("❌ เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อจัดหมวดหมู่");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         }
 
