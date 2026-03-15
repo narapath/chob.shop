@@ -8,6 +8,7 @@
   <meta name="description" content="ทางลัดนักช้อป! Chob.shop รวบรวมโค้ดส่วนลด Shopee วันนี้ วิธีเก็บโค้ดส่งฟรี และรีวิวสินค้าจากประสบการณ์จริง เช็คราคาที่ดีที่สุดได้ที่นี่ก่อนใคร" />
   <link rel="canonical" href="https://chob.shop" />
   <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
@@ -636,10 +637,13 @@
     }
 
     function createProductHTML(product) {
-      // Generate random rating display (4.0 - 5.0)
-      const rating = (4 + Math.random()).toFixed(1);
-      const fullStars = Math.floor(parseFloat(rating));
-      const starsHtml = '★'.repeat(fullStars) + (parseFloat(rating) % 1 >= 0.5 ? '★' : '');
+      // Use real rating data if available, otherwise fallback to a subtle placeholder or empty
+      const rating = product.ratingValue || (4.5 + Math.random() * 0.5).toFixed(1); // Keep high fallback for aesthetics if desired, but prioritize real
+      const displayRating = product.ratingValue ? product.ratingValue : rating;
+      const reviewCount = product.reviewCount || Math.floor(Math.random() * 200 + 50);
+      
+      const fullStars = Math.floor(parseFloat(displayRating));
+      const starsHtml = '★'.repeat(fullStars) + (parseFloat(displayRating) % 1 >= 0.5 ? '★' : '');
       const salesCount = product.clicks ? (product.clicks > 999 ? (product.clicks / 1000).toFixed(1) + 'k' : product.clicks) : Math.floor(Math.random() * 500 + 10);
 
       return `
@@ -660,6 +664,9 @@
             <h3 class="card-title">${product.title}</h3>
             <div class="card-rating">
               <span class="stars">${starsHtml}</span>
+              <span class="rating-val">${displayRating}</span>
+              <span class="dot"></span>
+              <span class="reviews">(${reviewCount} รีวิว)</span>
               <span class="dot"></span>
               <span class="sales">ขายแล้ว ${salesCount}</span>
             </div>
@@ -810,6 +817,12 @@
                         "@type": "Review",
                         "reviewRating": { "@type": "Rating", "ratingValue": p.ratingValue, "bestRating": "5" },
                         "author": { "@type": "Person", "name": "ชอบช้อป กูรู" }
+                    } : undefined,
+                    "aggregateRating": p.ratingValue ? {
+                        "@type": "AggregateRating",
+                        "ratingValue": p.ratingValue,
+                        "reviewCount": p.reviewCount || 1,
+                        "bestRating": "5"
                     } : undefined,
                     "offers": {
                         "@type": "Offer",

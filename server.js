@@ -198,7 +198,9 @@ app.post('/api/products', requireAuth, async (req, res) => {
       seo_keywords: [],
       seo_description: '',
       seo_title: req.body.seo_title || '',
-      commission: req.body.commission || 0
+      commission: req.body.commission || 0,
+      ratingValue: req.body.ratingValue || null,
+      reviewCount: req.body.reviewCount || null
     };
 
     if (req.body.toggleAI) {
@@ -255,7 +257,9 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
         seo_keywords: p.seo_keywords || [],
         seo_description: p.seo_description || '',
         seo_title: p.seo_title || '',
-        commission: p.commission || 0
+        commission: p.commission || 0,
+        ratingValue: p.ratingValue || null,
+        reviewCount: p.reviewCount || null
       };
     });
 

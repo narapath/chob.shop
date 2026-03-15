@@ -7,6 +7,7 @@
     <meta name="color-scheme" content="dark">
     <title>Chob.Shop Admin — จัดการสินค้า</title>
     <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -1603,9 +1604,19 @@
                             <label>ชื่อสินค้า *</label>
                             <input type="text" id="productTitle" placeholder="เช่น หูฟังไร้สาย Bluetooth 5.0" required />
                         </div>
-                        <div class="form-group">
-                            <label>Commission (%)</label>
-                            <input type="number" id="productCommission" placeholder="0" step="0.1" />
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label>Commission (%)</label>
+                                <input type="number" id="productCommission" placeholder="0" step="0.1" />
+                            </div>
+                            <div class="form-group">
+                                <label>Rating (1-5)</label>
+                                <input type="number" id="productRating" placeholder="4.8" step="0.1" min="1" max="5" />
+                            </div>
+                            <div class="form-group">
+                                <label>Review Count</label>
+                                <input type="number" id="productReviewCount" placeholder="120" />
+                            </div>
                         </div>
                         <div class="form-grid-3">
                             <div class="form-group">
@@ -1987,6 +1998,14 @@
                             <label style="color: var(--accent-light);">💰 Commission (%)</label>
                             <input type="number" id="modalCommission" placeholder="0" step="0.1" />
                         </div>
+                        <div class="form-group">
+                            <label>Rating (1-5)</label>
+                            <input type="number" id="modalRating" placeholder="4.8" step="0.1" min="1" max="5" />
+                        </div>
+                        <div class="form-group">
+                            <label>Reviews</label>
+                            <input type="number" id="modalReviewCount" placeholder="120" />
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>หมวดหมู่</label>
@@ -2320,8 +2339,15 @@
                         </div>
                     </td>
                     <td class="col-stats">
-                        <div style="font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
-                            <span style="opacity: 0.6;">👁️</span> ${p.clicks || 0}
+                        <div style="font-size: 14px; font-weight: 700; color: #fff; display: flex; flex-direction: column; gap: 4px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="opacity: 0.6;">👁️</span> ${p.clicks || 0}
+                            </div>
+                            ${p.ratingValue ? `
+                                <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #fbbf24;">
+                                    <span>⭐️</span> ${p.ratingValue} (${p.reviewCount || 0})
+                                </div>
+                            ` : ''}
                         </div>
                     </td>
                     <td class="col-seo">
@@ -2728,6 +2754,8 @@
             document.getElementById('seoTitle').value = '';
             document.getElementById('seoDescription').value = '';
             document.getElementById('productCommission').value = '';
+            document.getElementById('productRating').value = '';
+            document.getElementById('productReviewCount').value = '';
         }
 
         // === Add product (Main Form) ===
@@ -2750,6 +2778,8 @@
             const seoTitle = document.getElementById('seoTitle').value.trim();
             const seoDescription = document.getElementById('seoDescription').value.trim();
             const commission = document.getElementById('productCommission').value || 0;
+            const ratingValue = document.getElementById('productRating').value;
+            const reviewCount = document.getElementById('productReviewCount').value;
 
             if (!affiliateUrl) {
                 alert('กรุณาใส่ Shopee Affiliate Link ก่อนเพิ่มสินค้า');
@@ -2761,7 +2791,9 @@
             const body = {
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
                 toggleAI, seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
-                commission: parseFloat(commission)
+                commission: parseFloat(commission),
+                ratingValue: ratingValue ? parseFloat(ratingValue) : null,
+                reviewCount: reviewCount ? parseInt(reviewCount) : null
             };
 
             const url = '/api/products';
@@ -2812,6 +2844,8 @@
             document.getElementById('modalSeoTitle').value = product.seo_title || '';
             document.getElementById('modalSeoDescription').value = product.seo_description || '';
             document.getElementById('modalCommission').value = product.commission || '';
+            document.getElementById('modalRating').value = product.ratingValue || '';
+            document.getElementById('modalReviewCount').value = product.reviewCount || '';
 
             document.getElementById('modalEditId').value = product.id;
             
@@ -2912,6 +2946,8 @@
             const seoTitle = document.getElementById('modalSeoTitle').value.trim();
             const seoDescription = document.getElementById('modalSeoDescription').value.trim();
             const commission = document.getElementById('modalCommission').value || 0;
+            const ratingValue = document.getElementById('modalRating').value;
+            const reviewCount = document.getElementById('modalReviewCount').value;
 
             if (!affiliateUrl || !title || !price) {
                 alert('กรุณากรอกข้อมูลที่จำเป็น (*) ให้ครบถ้วน');
@@ -2924,7 +2960,9 @@
             const body = {
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
                 seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
-                commission: parseFloat(commission)
+                commission: parseFloat(commission),
+                ratingValue: ratingValue ? parseFloat(ratingValue) : null,
+                reviewCount: reviewCount ? parseInt(reviewCount) : null
             };
 
             try {
