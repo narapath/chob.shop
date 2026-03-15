@@ -728,6 +728,10 @@ function generateLocalCategory(title) {
           keywords: ['โทรศัพท์', 'มือถือ', 'iphone', 'samsung', 'oppo', 'vivo', 'xiaomi', 'เคส', 'สายชาร์จ', 'ฟิล์มกระจก', 'power bank']
       },
       {
+          name: "แท็บเล็ต",
+          keywords: ['แท็บเล็ต', 'tablet', 'ipad', 'galaxy tab']
+      },
+      {
           name: "อิเล็กทรอนิกส์และเครื่องใช้ไฟฟ้า",
           keywords: ['ทีวี', 'แอร์', 'เตารีด', 'หูฟัง', 'ลำโพง', 'พัดลม', 'เครื่องดูดฝุ่น', 'ไมโครเวฟ', 'หม้อหุงข้าว', 'ตู้เย็น']
       },
