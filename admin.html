@@ -1895,6 +1895,12 @@
                             <label>ส่วนลด (%)</label>
                             <input type="number" id="modalDiscount" placeholder="50" />
                         </div>
+                        <div class="form-group" style="background: rgba(233,69,96,0.03); border-left: 2px solid var(--accent2); padding-left: 10px;">
+                            <label style="color: var(--accent2);">💰 ราคาหลังหักส่วนลด (B)</label>
+                            <input type="number" id="modalPrice" placeholder="299" />
+                        </div>
+                    </div>
+                    <div class="form-grid-3" style="margin-top: -6px;">
                         <div class="form-group" style="background: rgba(99,102, 241, 0.03); border-left: 2px solid var(--accent); padding-left: 10px;">
                             <label style="color: var(--accent-light);">💰 Commission (%)</label>
                             <input type="number" id="modalCommission" placeholder="0" step="0.1" />
@@ -2988,12 +2994,10 @@
                         
                         await Promise.all(batchPromises);
                         
-                        // If not the last batch, wait to prevent rate limit (Gemini Free 15 RPM = ~4s per req)
-                        // With batch of 5, we should wait about 20s to be safe, but let's do 10s and sequential internally for better throughput if possible,
-                        // or just keep 5 concurrent and wait 20s. The user asked for batches of 5-10.
+                        // Small delay between batches to prevent overwhelming the server
                         if (i + batchSize < productsArray.length) {
-                            showToast(`⏳ พักเครื่อง 20 วินาทีเพื่อป้องกัน Rate Limit... (${processedCount}/${totalTasks})`);
-                            await new Promise(resolve => setTimeout(resolve, 20000));
+                            showToast(`⏳ กำลังประมวลผลต่อ... (${processedCount}/${totalTasks})`);
+                            await new Promise(resolve => setTimeout(resolve, 500));
                         }
                     }
                 }
@@ -3155,8 +3159,8 @@
             );
             
             let colUrl = headers.findIndex(h => 
-                h === 'ลิงก์ข้อเสนอ' || h === 'Shopee Affiliate Link' || h === 'Product Link' || 
-                h === 'URL' || h.includes('Offer Link') || h.includes('Affiliate Link')
+                h === 'ลิงก์ข้อเสนอ' || h === 'ลิงก์สินค้า' || h === 'Shopee Affiliate Link' || h === 'Product Link' || 
+                h === 'URL' || h.includes('Offer Link') || h.includes('Affiliate Link') || h.includes('ลิงก์')
             );
 
             let colPrice = headers.findIndex(h => 
@@ -3173,7 +3177,7 @@
             );
 
             let colCommission = headers.findIndex(h => 
-                h.includes('คอมมิชชั่น') || h.includes('Commission') || h.includes('อัตราค่าคอมมิชชั่น') || h.includes('commission')
+                h.includes('อัตราคอมมิชชั่น') || h.includes('คอมมิชชั่น') || h.includes('Commission') || h.includes('อัตราค่าคอมมิชชั่น') || h.includes('commission')
             );
 
             let colDiscount = headers.findIndex(h => 
