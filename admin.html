@@ -3154,8 +3154,8 @@
 
             // Robust mapping for Shopee Affiliate CSVs (covering both TH/EN)
             let colTitle = headers.findIndex(h => 
-                h === 'ชื่อสินค้า' || h === 'Product Name' || h === 'Item Name' || 
-                h.includes('สินค้า') || h.includes('Item Title')
+                h === 'ชื่อสินค้า' || h === 'Product Name' || h === 'Item Name' || h === 'Title' ||
+                h.includes('ชื่อสินค้า') || h.includes('Item Title')
             );
             
             let colUrl = headers.findIndex(h => 
