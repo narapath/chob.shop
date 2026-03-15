@@ -129,7 +129,8 @@ app.get('/api/products', async (req, res) => {
     }
 
     // Unpaginated response (fallback for admin panel or no pagination request)
-    const { data, error, count } = await query;
+    // Increase limit to 10,000 to ensure admin panel shows all products
+    const { data, error, count } = await query.limit(10000);
     if (error) throw error;
     res.json(data);
 
