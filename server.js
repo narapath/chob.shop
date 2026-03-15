@@ -196,7 +196,8 @@ app.post('/api/products', requireAuth, async (req, res) => {
       facebookPostId: '',
       twitterPostId: '',
       seo_keywords: [],
-      seo_description: ''
+      seo_description: '',
+      commission: req.body.commission || 0
     };
 
     if (req.body.toggleAI) {
@@ -250,7 +251,8 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
         facebookPostId: null,
         twitterPostId: null,
         seo_keywords: p.seo_keywords || [],
-        seo_description: p.seo_description || ''
+        seo_description: p.seo_description || '',
+        commission: p.commission || 0
       };
     });
 

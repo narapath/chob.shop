@@ -1557,16 +1557,16 @@
                         </div>
                         <div class="form-grid-3">
                             <div class="form-group">
-                                <label>ราคา (B) *</label>
-                                <input type="number" id="productPrice" placeholder="299" required />
-                            </div>
-                            <div class="form-group">
                                 <label>ราคาเต็ม (B)</label>
                                 <input type="number" id="productOriginalPrice" placeholder="599" />
                             </div>
                             <div class="form-group">
                                 <label>ส่วนลด (%)</label>
                                 <input type="number" id="productDiscount" placeholder="50" />
+                            </div>
+                            <div class="form-group" style="background: rgba(233,69,96,0.03); border-left: 2px solid var(--accent2); padding-left: 10px;">
+                                <label style="color: var(--accent2);">💰 ค่าคอมมิชชั่น (฿)</label>
+                                <input type="number" id="productCommission" placeholder="0.00" step="0.01" />
                             </div>
                         </div>
                         <div class="form-group">
@@ -1651,6 +1651,7 @@
                                     <th class="col-thumb">สินค้า</th>
                                     <th class="col-info"></th>
                                     <th class="col-pricing">ราคา</th>
+                                    <th class="col-comm" style="color: var(--accent2);">💰 คอมมิชชั่น</th>
                                     <th class="col-stats">สถิติ</th>
                                     <th class="col-seo">SEO Content (Keywords & Meta)</th>
                                     <th class="col-actions"></th>
@@ -1879,16 +1880,16 @@
                     </div>
                     <div class="form-grid-3">
                         <div class="form-group">
-                            <label>ราคา (B) *</label>
-                            <input type="number" id="modalPrice" placeholder="299" required />
-                        </div>
-                        <div class="form-group">
                             <label>ราคาเต็ม (B)</label>
                             <input type="number" id="modalOriginalPrice" placeholder="599" />
                         </div>
                         <div class="form-group">
                             <label>ส่วนลด (%)</label>
                             <input type="number" id="modalDiscount" placeholder="50" />
+                        </div>
+                        <div class="form-group" style="background: rgba(99,102, 241, 0.03); border-left: 2px solid var(--accent); padding-left: 10px;">
+                            <label style="color: var(--accent-light);">💰 ค่าคอมมิชชั่น (฿)</label>
+                            <input type="number" id="modalCommission" placeholder="0.00" step="0.01" />
                         </div>
                     </div>
                     <div class="form-group">
@@ -2211,6 +2212,11 @@
                         <div class="price-box">
                             <span class="main-price">฿${Number(p.price).toLocaleString()}</span>
                             ${p.originalPrice ? `<span class="old-price">฿${Number(p.originalPrice).toLocaleString()}</span>` : ''}
+                        </div>
+                    </td>
+                    <td class="col-comm">
+                        <div style="font-weight: 700; color: var(--accent2);">
+                            ฿${Number(p.commission || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}
                         </div>
                     </td>
                     <td class="col-stats">
@@ -2546,6 +2552,7 @@
             document.getElementById('imagePreview').innerHTML = '<span class="placeholder">🖼</span>';
             document.getElementById('seoKeywords').value = '';
             document.getElementById('seoDescription').value = '';
+            document.getElementById('productCommission').value = '';
         }
 
         // === Add product (Main Form) ===
@@ -2566,6 +2573,7 @@
             const toggleAI = document.getElementById('toggleAI').checked; 
             const seoKeywords = document.getElementById('seoKeywords').value.split(',').map(k => k.trim()).filter(k => k);
             const seoDescription = document.getElementById('seoDescription').value.trim();
+            const commission = document.getElementById('productCommission').value || 0;
 
             if (!affiliateUrl) {
                 alert('กรุณาใส่ Shopee Affiliate Link ก่อนเพิ่มสินค้า');
@@ -2576,7 +2584,8 @@
 
             const body = {
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
-                toggleAI, seo_keywords: seoKeywords, seo_description: seoDescription
+                toggleAI, seo_keywords: seoKeywords, seo_description: seoDescription,
+                commission: parseFloat(commission)
             };
 
             const url = '/api/products';
@@ -2625,6 +2634,7 @@
             document.getElementById('modalDescription').value = product.description || '';
             document.getElementById('modalSeoKeywords').value = (product.seo_keywords || []).join(', ');
             document.getElementById('modalSeoDescription').value = product.seo_description || '';
+            document.getElementById('modalCommission').value = product.commission || '';
 
             document.getElementById('modalEditId').value = product.id;
             
@@ -2721,6 +2731,7 @@
             const description = document.getElementById('modalDescription').value;
             const seoKeywords = document.getElementById('modalSeoKeywords').value.split(',').map(k => k.trim()).filter(k => k);
             const seoDescription = document.getElementById('modalSeoDescription').value.trim();
+            const commission = document.getElementById('modalCommission').value || 0;
 
             if (!affiliateUrl || !title || !price) {
                 alert('กรุณากรอกข้อมูลที่จำเป็น (*) ให้ครบถ้วน');
@@ -2732,7 +2743,8 @@
 
             const body = {
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
-                seo_keywords: seoKeywords, seo_description: seoDescription
+                seo_keywords: seoKeywords, seo_description: seoDescription,
+                commission: parseFloat(commission)
             };
 
             try {
