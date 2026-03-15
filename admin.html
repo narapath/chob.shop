@@ -2866,7 +2866,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            const importCat = document.getElementById('importCategory').value || 'auto';
+            const importCat = document.getElementById('importCategory').value || 'ทั่วไป';
 
             // Reset input so the same file can be selected again if needed
             event.target.value = '';
@@ -2925,9 +2925,10 @@
                 const hasSocial = socialMedia.facebook || socialMedia.instagram || socialMedia.x || socialMedia.threads;
 
                 // --- NEW SCRAPING & AI CATEGORIZATION LOGIC ---
-                const needsScrape = productsArray.filter(p => p.affiliateUrl && !p.image);
-                const needsAICat = importCat === 'auto';
+                // Only scrape if AI toggle is ON to prevent massive delays during CSV upload
                 const toggleAI = document.getElementById('toggleAI').checked;
+                const needsScrape = toggleAI ? productsArray.filter(p => p.affiliateUrl && !p.image) : [];
+                const needsAICat = importCat === 'auto';
                 
                 if (needsScrape.length > 0 || needsAICat || toggleAI) {
                     const totalTasks = productsArray.length;
@@ -3177,7 +3178,8 @@
             );
 
             let colCommission = headers.findIndex(h => 
-                h.includes('อัตราคอมมิชชั่น') || h.includes('คอมมิชชั่น') || h.includes('Commission') || h.includes('อัตราค่าคอมมิชชั่น') || h.includes('commission')
+                h.includes('อัตราคอมมิชชั่น') || h.includes('คอมมิชชั่น') || h.includes('Commission') || 
+                h.includes('อัตราค่าคอมมิชชั่น') || h.includes('อัตราค่าคอมมิชชัน') || h.includes('commission')
             );
 
             let colDiscount = headers.findIndex(h => 
