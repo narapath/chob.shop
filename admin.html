@@ -1802,15 +1802,15 @@
                             <small class="hint">Choose the visual style for the store overview statistics bar.</small>
                         </div>
                     </div>
-                    <div class="setting-group" id="supabaseSettingGroup" style="grid-column: 1 / -1; border-color: rgba(233,69,96,0.3); background: rgba(233,69,96,0.02); transition: all 0.3s ease;">
+                    <div class="setting-group" id="supabaseSettingGroup" style="grid-column: 1 / -1; border-color: var(--accent); background: rgba(99, 102, 241, 0.05); border-width: 2px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <h3 style="color: var(--accent2); margin: 0;"><span id="lockIcon">🔒</span> Database Connection (Supabase)</h3>
+                            <h3 style="color: var(--accent); margin: 0;"><span id="lockIcon">🔒</span> Database Connection (Embedded)</h3>
                             <button type="button" class="btn btn-secondary btn-sm" id="lockToggleBtn" onclick="toggleSupabaseLock()" 
-                                style="padding: 4px 12px; font-size: 11px; background: rgba(233,69,96,0.1); border: 1px solid var(--accent2); color: var(--accent2);">
-                                🔓 Unlock to Edit
+                                style="padding: 4px 12px; font-size: 11px; background: rgba(99, 102, 241, 0.1); border: 1px solid var(--accent); color: var(--accent);">
+                                🔓 Unlock to Override
                             </button>
                         </div>
-                        <p class="hint" style="margin-bottom: 12px; color: var(--text2);">การตั้งค่าฐานข้อมูลถูกล็อกไว้เพื่อความปลอดภัย หากต้องการแก้ไขกรุณากดปุ่มเพื่อปลดล็อก</p>
+                        <p class="hint" style="margin-bottom: 12px; color: var(--text-primary); font-weight: 500;">✨ ระบบใช้ค่าเริ่มต้นที่ฝังไว้ในตัวโค้ดเพื่อความปลอดภัย (Locked by default)</p>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Supabase Project URL</label>

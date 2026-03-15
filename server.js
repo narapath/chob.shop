@@ -20,8 +20,11 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 
 // --- Initialize Supabase ---
-let supabaseUrl = process.env.SUPABASE_URL || '';
-let supabaseKey = process.env.SUPABASE_KEY || '';
+const EMBEDDED_SUPABASE_URL = 'https://zcplipytalprkniwxurs.supabase.co';
+const EMBEDDED_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjcGxpcHl0YWxwcmtuaXd4dXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5ODc2NjMsImV4cCI6MjA4ODU2MzY2M30.P2leswWIjMGkxpobp-9aUbYlvRxBcWIDJGPciDF6mF4';
+
+let supabaseUrl = process.env.SUPABASE_URL || EMBEDDED_SUPABASE_URL;
+let supabaseKey = process.env.SUPABASE_KEY || EMBEDDED_SUPABASE_KEY;
 let supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
 // --- Security Middleware ---
@@ -572,8 +575,8 @@ app.get('/api/settings', requireAuth, (req, res) => {
     THREADS_USER_ID: process.env.THREADS_USER_ID || '', // User ID isn't a secret typically, so we just return it
     THREADS_ACCESS_TOKEN: formatOutput(process.env.THREADS_ACCESS_TOKEN),
     GEMINI_API_KEY: formatOutput(process.env.GEMINI_API_KEY),
-    SUPABASE_URL: formatOutput(process.env.SUPABASE_URL),
-    SUPABASE_KEY: formatOutput(process.env.SUPABASE_KEY),
+    SUPABASE_URL: formatOutput(process.env.SUPABASE_URL || EMBEDDED_SUPABASE_URL),
+    SUPABASE_KEY: formatOutput(process.env.SUPABASE_KEY || EMBEDDED_SUPABASE_KEY),
     CARD_THEME: process.env.CARD_THEME || 'theme-white',
     STATS_THEME: process.env.STATS_THEME || 'stats-premium'
   });
