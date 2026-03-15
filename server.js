@@ -112,12 +112,12 @@ app.get('/api/products', async (req, res) => {
         total: count,
         page: pageNum,
         limit: limitNum,
-        totalPages: Math.ceil(count / limitNum)
+        totalPages: Math.ceil((count || 0) / limitNum)
       });
     }
 
     // Unpaginated response (fallback for admin panel or no pagination request)
-    const { data, error } = await query;
+    const { data, error, count } = await query;
     if (error) throw error;
     res.json(data);
 
