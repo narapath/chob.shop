@@ -3110,21 +3110,32 @@
                 return parts;
             };
 
-            const headers = splitLine(lines[0]);
-            console.log('📋 Headers:', headers);
+            const headers = splitLine(lines[0]).map(h => h.trim());
+            console.log('📋 Headers identified:', headers);
 
-            // Shopee columns mappings (more precise to avoid matching รหัสสินค้า)
-            let colTitle = headers.findIndex(h => h.includes('ชื่อสินค้า') || h.includes('Product Name') || h.includes('Item Name'));
-            if (colTitle === -1) colTitle = headers.findIndex(h => h.includes('สินค้า') && !h.includes('รหัส'));
+            // Robust mapping for Shopee Affiliate CSVs (covering both TH/EN)
+            let colTitle = headers.findIndex(h => 
+                h === 'ชื่อสินค้า' || h === 'Product Name' || h === 'Item Name' || 
+                h.includes('สินค้า') || h.includes('Item Title')
+            );
+            
+            let colUrl = headers.findIndex(h => 
+                h === 'ลิงก์ข้อเสนอ' || h === 'Shopee Affiliate Link' || h === 'Product Link' || 
+                h === 'URL' || h.includes('Offer Link') || h.includes('Affiliate Link')
+            );
 
-            let colUrl = headers.findIndex(h => h.includes('ลิงก์ข้อเสนอ') || h.includes('Shopee Affiliate Link') || h.includes('Product Link') || h.includes('URL'));
-            if (colUrl === -1) colUrl = headers.findIndex(h => h.includes('Link'));
+            let colPrice = headers.findIndex(h => 
+                h === 'ราคา' || h === 'Price' || 
+                (h.includes('ราคา') && !h.includes('เดิม') && !h.includes('ปกติ') && !h.includes('ลด'))
+            );
 
-            let colPrice = headers.findIndex(h => h.trim() === 'ราคา' || h.trim() === 'Price' || (h.includes('ราคา') && !h.includes('เดิม') && !h.includes('ปกติ') && !h.includes('ลด')));
-            if (colPrice === -1) colPrice = headers.findIndex(h => h.includes('Price') && !h.includes('Original'));
-
-            let colImage = headers.findIndex(h => h.includes('รูป') || h.includes('Image') || h.includes('Photo') || h.includes('Picture'));
-            let colOriginal = headers.findIndex(h => h.includes('ราคาเดิม') || h.includes('ราคาปกติ') || h.includes('Original Price'));
+            let colImage = headers.findIndex(h => 
+                h.includes('รูป') || h.includes('Image') || h.includes('Photo') || h.includes('Picture') || h.includes('Thumbnail')
+            );
+            
+            let colOriginal = headers.findIndex(h => 
+                h.includes('ราคาเดิม') || h.includes('ราคาปกติ') || h.includes('Original Price') || h.includes('Regular Price')
+            );
 
             console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal });
 
