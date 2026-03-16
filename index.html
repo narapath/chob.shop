@@ -638,9 +638,9 @@
 
     function createProductHTML(product) {
       // Use real rating data if available, otherwise fallback to a subtle placeholder or empty
-      const rating = product.ratingValue || (4.5 + Math.random() * 0.5).toFixed(1); // Keep high fallback for aesthetics if desired, but prioritize real
-      const displayRating = product.ratingValue ? product.ratingValue : rating;
-      const reviewCount = product.reviewCount || Math.floor(Math.random() * 200 + 50);
+      const rating = product.rating_value || (4.5 + Math.random() * 0.5).toFixed(1); 
+      const displayRating = product.rating_value ? product.rating_value : rating;
+      const reviewCount = product.review_count || Math.floor(Math.random() * 200 + 50);
       
       const fullStars = Math.floor(parseFloat(displayRating));
       const starsHtml = '★'.repeat(fullStars) + (parseFloat(displayRating) % 1 >= 0.5 ? '★' : '');
@@ -813,15 +813,15 @@
                     "image": p.image,
                     "description": p.seo_description || p.description || p.title,
                     "brand": { "@type": "Brand", "name": "Chob.Shop" },
-                    "review": p.ratingValue ? {
+                    "review": p.rating_value ? {
                         "@type": "Review",
-                        "reviewRating": { "@type": "Rating", "ratingValue": p.ratingValue, "bestRating": "5" },
+                        "reviewRating": { "@type": "Rating", "ratingValue": p.rating_value, "bestRating": "5" },
                         "author": { "@type": "Person", "name": "ชอบช้อป กูรู" }
                     } : undefined,
-                    "aggregateRating": p.ratingValue ? {
+                    "aggregateRating": p.rating_value ? {
                         "@type": "AggregateRating",
-                        "ratingValue": p.ratingValue,
-                        "reviewCount": p.reviewCount || 1,
+                        "ratingValue": p.rating_value,
+                        "reviewCount": p.review_count || 1,
                         "bestRating": "5"
                     } : undefined,
                     "offers": {

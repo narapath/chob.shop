@@ -2343,9 +2343,9 @@
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="opacity: 0.6;">👁️</span> ${p.clicks || 0}
                             </div>
-                            ${p.ratingValue ? `
+                            ${p.rating_value ? `
                                 <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #fbbf24;">
-                                    <span>⭐️</span> ${p.ratingValue} (${p.reviewCount || 0})
+                                    <span>⭐️</span> ${p.rating_value} (${p.review_count || 0})
                                 </div>
                             ` : ''}
                         </div>
@@ -2778,8 +2778,8 @@
             const seoTitle = document.getElementById('seoTitle').value.trim();
             const seoDescription = document.getElementById('seoDescription').value.trim();
             const commission = document.getElementById('productCommission').value || 0;
-            const ratingValue = document.getElementById('productRating').value;
-            const reviewCount = document.getElementById('productReviewCount').value;
+            const rating_value = document.getElementById('productRating').value;
+            const review_count = document.getElementById('productReviewCount').value;
 
             if (!affiliateUrl) {
                 alert('กรุณาใส่ Shopee Affiliate Link ก่อนเพิ่มสินค้า');
@@ -2792,8 +2792,8 @@
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
                 toggleAI, seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
                 commission: parseFloat(commission),
-                ratingValue: ratingValue ? parseFloat(ratingValue) : null,
-                reviewCount: reviewCount ? parseInt(reviewCount) : null
+                rating_value: rating_value ? parseFloat(rating_value) : null,
+                review_count: review_count ? parseInt(review_count) : null
             };
 
             const url = '/api/products';
@@ -2844,8 +2844,8 @@
             document.getElementById('modalSeoTitle').value = product.seo_title || '';
             document.getElementById('modalSeoDescription').value = product.seo_description || '';
             document.getElementById('modalCommission').value = product.commission || '';
-            document.getElementById('modalRating').value = product.ratingValue || '';
-            document.getElementById('modalReviewCount').value = product.reviewCount || '';
+            document.getElementById('modalRating').value = product.rating_value || '';
+            document.getElementById('modalReviewCount').value = product.review_count || '';
 
             document.getElementById('modalEditId').value = product.id;
             
@@ -2946,8 +2946,8 @@
             const seoTitle = document.getElementById('modalSeoTitle').value.trim();
             const seoDescription = document.getElementById('modalSeoDescription').value.trim();
             const commission = document.getElementById('modalCommission').value || 0;
-            const ratingValue = document.getElementById('modalRating').value;
-            const reviewCount = document.getElementById('modalReviewCount').value;
+            const rating_value = document.getElementById('modalRating').value;
+            const review_count = document.getElementById('modalReviewCount').value;
 
             if (!affiliateUrl || !title || !price) {
                 alert('กรุณากรอกข้อมูลที่จำเป็น (*) ให้ครบถ้วน');
@@ -2961,8 +2961,8 @@
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
                 seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
                 commission: parseFloat(commission),
-                ratingValue: ratingValue ? parseFloat(ratingValue) : null,
-                reviewCount: reviewCount ? parseInt(reviewCount) : null
+                rating_value: rating_value ? parseFloat(rating_value) : null,
+                review_count: review_count ? parseInt(review_count) : null
             };
 
             try {
@@ -3381,45 +3381,50 @@
                 h.includes('อัตราค่าคอมมิชชั่น') || h.includes('อัตราค่าคอมมิชชัน') || h.includes('commission')
             );
 
-            let colDiscount = headers.findIndex(h => 
-                h.includes('ส่วนลด') || h.includes('Discount') || h.includes('discount')
-            );
+                let colRating = headers.findIndex(h => h.includes('Rating') || h.includes('คะแนน') || h.includes('คะแนนสินค้า'));
+                let colReviews = headers.findIndex(h => h.includes('Review') || h.includes('รีวิว'));
 
-            console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal, colCommission, colDiscount });
+                console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal, colCommission, colDiscount, colRating, colReviews });
 
-            if (colTitle === -1 || colUrl === -1) {
-                console.error('❌ Missing core columns (Title or Link)');
-                console.error('📋 Available headers:', headers);
-                return [];
-            }
+                if (colTitle === -1 || colUrl === -1) {
+                    console.error('❌ Missing core columns (Title or Link)');
+                    console.error('📋 Available headers:', headers);
+                    return [];
+                }
 
-            const parsedProducts = [];
-            for (let i = 1; i < lines.length; i++) {
-                const cols = splitLine(lines[i]);
-                if (cols.length <= Math.max(colTitle, colUrl)) continue;
+                const parsedProducts = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    const cols = splitLine(line);
+                    if (cols.length <= Math.max(colTitle, colUrl)) continue;
 
-                const title = cols[colTitle];
-                const url = cols[colUrl];
-                if (!title || !url) continue;
+                    const title = cols[colTitle];
+                    const url = cols[colUrl];
+                    if (!title || !url) continue;
 
-                const price = colPrice !== -1 ? parseShopeePrice(cols[colPrice]) : '0';
-                const originalPrice = colOriginal !== -1 ? parseShopeePrice(cols[colOriginal]) : '';
-                const image = colImage !== -1 ? (cols[colImage] || '').trim() : '';
-                const commission = colCommission !== -1 ? parseFloat((cols[colCommission] || '0').replace(/[^0-9.]/g, '')) || 0 : 0;
-                const discount = colDiscount !== -1 ? parseInt((cols[colDiscount] || '0').replace(/[^0-9]/g, ''), 10) || 0 : 0;
+                    const price = colPrice !== -1 ? parseShopeePrice(cols[colPrice]) : '0';
+                    const originalPrice = colOriginal !== -1 ? parseShopeePrice(cols[colOriginal]) : '';
+                    const image = colImage !== -1 ? (cols[colImage] || '').trim() : '';
+                    const commission = colCommission !== -1 ? parseFloat((cols[colCommission] || '0').replace(/[^0-9.]/g, '')) || 0 : 0;
+                    const discount = colDiscount !== -1 ? parseInt((cols[colDiscount] || '0').replace(/[^0-9]/g, ''), 10) || 0 : 0;
+                    const rating = colRating !== -1 ? parseFloat(cols[colRating]) || 0 : 0;
+                    const reviews = colReviews !== -1 ? parseInt(cols[colReviews], 10) || 0 : 0;
 
-                parsedProducts.push({
-                    title: title,
-                    affiliateUrl: url,
-                    category: importCategory === 'auto' ? autoCategorize(title) : importCategory,
-                    price: price,
-                    originalPrice: originalPrice,
-                    discount: discount || '',
-                    image: image,
-                    description: '',
-                    commission: commission
-                });
-            }
+                    parsedProducts.push({
+                        title: title,
+                        affiliateUrl: url,
+                        category: importCategory === 'auto' ? autoCategorize(title) : importCategory,
+                        price: price,
+                        originalPrice: originalPrice,
+                        discount: discount || '',
+                        image: image,
+                        description: '',
+                        commission: commission,
+                        rating_value: rating,
+                        review_count: reviews
+                    });
+                }
             console.log('✅ Parsed products:', parsedProducts.length);
             return parsedProducts;
         }
