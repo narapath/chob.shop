@@ -264,7 +264,6 @@ app.post('/api/products', requireAuth, async (req, res) => {
       seo_keywords: [],
       seo_description: '',
       seo_title: req.body.seo_title || '',
-      commission: req.body.commission || 0,
       commission: req.body.commission || 0
     };
 
@@ -327,7 +326,6 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
         seo_keywords: p.seo_keywords || [],
         seo_description: p.seo_description || '',
         seo_title: p.seo_title || '',
-        commission: p.commission || 0,
         commission: p.commission || 0
       };
     });
@@ -499,48 +497,6 @@ app.post('/api/products/:id/click', async (req, res) => {
     res.json({ success: true, clicks: newClicks });
   } catch (err) {
     res.status(500).json({ error: 'Failed to record click', detail: err.message });
-  }
-});
-
-// GET dynamic sitemap.xml
-app.get('/sitemap.xml', async (req, res) => {
-  try {
-    if (!supabase) return res.status(500).send('Database not configured');
-
-    const { data: products, error } = await supabase.from('products').select('id, date').order('date', { ascending: false });
-    if (error) throw error;
-
-    const siteUrl = process.env.SITE_URL || 'https://chob.shop';
-    const lastMod = new Date().toISOString().split('T')[0];
-
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${siteUrl}/</loc>
-    <lastmod>${lastMod}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>`;
-
-    products.forEach(p => {
-      const pDate = p.date ? new Date(p.date).toISOString().split('T')[0] : lastMod;
-      xml += `
-  <url>
-    <loc>${siteUrl}/?productId=${p.id}</loc>
-    <lastmod>${pDate}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-    });
-
-    xml += `
-</urlset>`;
-
-    res.header('Content-Type', 'application/xml');
-    res.send(xml);
-  } catch (err) {
-    console.error('Sitemap error:', err);
-    res.status(500).send('Error generating sitemap');
   }
 });
 

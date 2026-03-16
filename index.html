@@ -161,6 +161,8 @@
         <div class="cat-scroll" id="catScroll">
           <button class="cat-card active" data-cat="all"><span class="cat-emoji">🔥</span><span
               class="cat-label">ทั้งหมด</span></button>
+          <button class="cat-card" data-cat="wishlist"><span class="cat-emoji">❤️</span><span
+              class="cat-label">ที่ชอบ</span></button>
           <button class="cat-card" data-cat="เสื้อผ้าผู้หญิง"><span class="cat-emoji">👗</span><span
               class="cat-label">แฟชั่นหญิง</span></button>
           <button class="cat-card" data-cat="เสื้อผ้าผู้ชาย"><span class="cat-emoji">👔</span><span
@@ -349,6 +351,77 @@
   </script>
   <script type="module" src="/js/index.js"></script>
 
+  <style>
+    /* Wishlist Heart Button Style */
+    .heart-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      color: #94a3b8;
+    }
+    
+    .heart-btn:hover {
+      transform: scale(1.1);
+      background: #fff;
+    }
+    
+    .heart-btn.active {
+      color: #e94560;
+      background: #fff;
+    }
+    
+    .heart-btn.active svg {
+      fill: #e94560;
+    }
+    
+    .heart-btn svg {
+      width: 18px;
+      height: 18px;
+      transition: fill 0.3s;
+    }
+
+    /* Skeleton Animation */
+    @keyframes shimmer {
+      0% { opacity: 0.5; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0.5; }
+    }
+    .skeleton { animation: shimmer 1.5s infinite; }
+
+    /* Toast Notification */
+    .wish-toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1a1a2e;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      z-index: 9999;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid rgba(233, 69, 96, 0.3);
+    }
+    .wish-toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+
   <!-- Shop logic -->
   <script>
     const API_BASE = '';
@@ -360,6 +433,56 @@
     let isCatPillsInitialized = false;
     let isLoading = false;
     let currentSort = 'default';
+
+    // --- WISHLIST LOGIC ---
+    function getWishlist() {
+      return JSON.parse(localStorage.getItem('chob_wishlist') || '[]');
+    }
+
+    function isInWishlist(id) {
+      return getWishlist().includes(id);
+    }
+
+    function saveWishlist(list) {
+      localStorage.setItem('chob_wishlist', JSON.stringify(list));
+    }
+
+    function handleWishlistClick(event, id, title) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      let list = getWishlist();
+      const index = list.indexOf(id);
+      const btn = event.currentTarget;
+
+      if (index > -1) {
+        list.splice(index, 1);
+        btn.classList.remove('active');
+        showToast('ลบออกจากรายการที่ชอบแล้ว');
+      } else {
+        list.push(id);
+        btn.classList.add('active');
+        showToast(`ชอบ "${title}" แล้ว! ❤️`);
+      }
+      saveWishlist(list);
+      
+      // If we are currently in wishlist view, refresh the grid
+      if (currentCategory === 'wishlist') {
+        loadProducts(true);
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.createElement('div');
+      toast.className = 'wish-toast';
+      toast.innerText = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.classList.add('show'), 10);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
 
     // --- APPLY THEME ---
     async function applyTheme() {
@@ -458,15 +581,30 @@
       try {
         const term = encodeURIComponent((document.getElementById('searchInput')?.value || '').trim());
         const cat = encodeURIComponent(currentCategory);
-        const url = `${API_BASE}/api/products?page=${currentPage}&limit=20&category=${cat}&search=${term}`;
+        let url = `${API_BASE}/api/products?page=${currentPage}&limit=20&category=${cat}&search=${term}`;
+        
+        // Wishlist override: if wishlist category, we might need a different approach
+        // For now, we'll fetch all products (limit 1000) and filter locally if category is wishlist
+        if (currentCategory === 'wishlist') {
+          url = `${API_BASE}/api/products?limit=1000`;
+        }
 
         const res = await fetch(url);
         const data = await res.json();
 
         if (data && data.products) {
-          ALL_PRODUCTS = reset ? data.products : [...ALL_PRODUCTS, ...data.products];
-          hasMore = currentPage < data.totalPages;
-          currentPage++;
+          let fetchedProducts = data.products;
+          
+          if (currentCategory === 'wishlist') {
+            const wishlist = getWishlist();
+            fetchedProducts = fetchedProducts.filter(p => wishlist.includes(p.id));
+            hasMore = false; // No pagination for wishlist view right now
+          } else {
+            hasMore = currentPage < data.totalPages;
+            currentPage++;
+          }
+          
+          ALL_PRODUCTS = reset ? fetchedProducts : [...ALL_PRODUCTS, ...fetchedProducts];
         } else if (Array.isArray(data)) {
           // Fallback if API returns old array format
           ALL_PRODUCTS = data;
@@ -646,8 +784,14 @@
       const starsHtml = '★'.repeat(fullStars) + (parseFloat(displayRating) % 1 >= 0.5 ? '★' : '');
       const salesCount = product.clicks ? (product.clicks > 999 ? (product.clicks / 1000).toFixed(1) + 'k' : product.clicks) : Math.floor(Math.random() * 500 + 10);
 
+      const displayWishClass = isInWishlist(product.id) ? 'active' : '';
+
       return `
-        <a href="${product.affiliateUrl}" target="_blank" rel="noopener noreferrer" class="card" onclick="trackClickAndRedirect(event, '${product.id}', '${product.affiliateUrl}')">
+        <div class="card-wrap" style="position: relative;">
+          <button class="heart-btn ${displayWishClass}" onclick="handleWishlistClick(event, '${product.id}', '${product.title.replace(/'/g, "\\'")}')" aria-label="Add to wishlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.94-8.94a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          </button>
+          <a href="${product.affiliateUrl}" target="_blank" rel="noopener noreferrer" class="card" onclick="trackClickAndRedirect(event, '${product.id}', '${product.affiliateUrl}')">
           <div class="card-img-wrapper">
             <img src="${product.image ? (API_BASE + '/api/image-proxy?url=' + encodeURIComponent(product.image)) : 'https://placehold.co/300x300/f8fafc/ee4d2d?text=Chob.Shop'}" 
                  alt="${product.title}" 
@@ -690,6 +834,7 @@
             </div>
           </div>
         </a>
+      </div>
       `;
     }
 
@@ -849,13 +994,28 @@
             { "@type": "ListItem", "position": 1, "name": "หน้าแรก", "item": siteUrl }
         ];
         
-        if (currentCategory !== 'all') {
+        if (currentCategory !== 'all' && currentCategory !== 'wishlist') {
             breadcrumbItems.push({ 
                 "@type": "ListItem", 
                 "position": 2, 
                 "name": currentCatLabel, 
                 "item": `${siteUrl}/?category=${encodeURIComponent(currentCategory)}` 
             });
+        }
+        
+        // Add 3rd level for Product if in URL
+        const params = new URLSearchParams(window.location.search);
+        const pid = params.get('productId');
+        if (pid && products.length > 0) {
+            const currentProduct = products.find(p => p.id === pid);
+            if (currentProduct) {
+                breadcrumbItems.push({
+                    "@type": "ListItem",
+                    "position": breadcrumbItems.length + 1,
+                    "name": currentProduct.title,
+                    "item": `${siteUrl}/?productId=${pid}`
+                });
+            }
         }
         
         breadcrumbScript.text = JSON.stringify({
