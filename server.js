@@ -131,10 +131,50 @@ app.get('/api/products', async (req, res) => {
     }
 
     // Unpaginated response (fallback for admin panel or no pagination request)
-    // We still limit to 1000 for data, but we MUST return the total count
-    const { data, error, count: totalCount } = await query.limit(1000);
-    if (error) throw error;
-    res.json({ products: data, total: totalCount });
+    // Fetch all items in chunks to bypass the 1000-row limit in Supabase
+    
+    // First, just execute the query to get the total count
+    const { count: totalCount, error: countError } = await query.limit(1);
+    if (countError) throw countError;
+
+    if (!totalCount || totalCount === 0) {
+      return res.json({ products: [], total: 0 });
+    }
+
+    let allData = [];
+    let from = 0;
+    const chunkSize = 800;
+    
+    // Loop to fetch all chunks
+    while (true) {
+      // Re-create the base query for each chunk to avoid state mutation issues
+      let chunkQuery = supabase
+        .from('products')
+        .select('id, title, price, originalPrice, discount, image, affiliateUrl, category, clicks, date, facebookPostId, twitterPostId, seo_keywords, seo_description, seo_title, commission, description, rating_value, review_count');
+
+      if (category && category !== 'all' && category !== 'ทั้งหมด') {
+        chunkQuery = chunkQuery.eq('category', category);
+      }
+      if (search) {
+        chunkQuery = chunkQuery.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+      }
+
+      // Supabase range is inclusive: range(0, 799) fetches 800 items
+      const { data: chunk, error: chunkError } = await chunkQuery
+        .order('date', { ascending: false })
+        .range(from, from + chunkSize - 1);
+        
+      if (chunkError) throw chunkError;
+      
+      if (!chunk || chunk.length === 0) break;
+      
+      allData = allData.concat(chunk);
+      
+      if (chunk.length < chunkSize) break;
+      from += chunkSize;
+    }
+
+    res.json({ products: allData, total: totalCount || allData.length });
 
   } catch (err) {
     console.error('Failed to read products from Supabase:', err);
