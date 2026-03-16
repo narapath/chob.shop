@@ -749,63 +749,87 @@ app.put('/api/settings', requireAuth, (req, res) => {
 });
 
 // --- POST categorize via Local Logic ---
-// ฟังก์ชันวิเคราะห์หมวดหมู่แบบ Local
-function generateLocalCategory(title, seoKeywords = []) {
+// ฟังก์ชันวิเคราะห์หมวดหมู่แบบ Local (Scoring Algorithm)
+function generateLocalCategory(title, seoKeywords = [], description = '') {
   if (!title) return "ทั่วไป";
   
-  const searchString = `${title} ${(seoKeywords || []).join(' ')}`.toLowerCase();
+  const textTitle = (title || '').toLowerCase();
+  const textDesc = (description || '').toLowerCase();
+  const textKw = Array.isArray(seoKeywords) ? seoKeywords.join(' ').toLowerCase() : (seoKeywords || '').toLowerCase();
 
-  // Dictionary ของหมวดหมู่และ Keyword (เรียงจากเฉพาะเจาะจงไปหาทั่วไป)
+  // สร้าง Dictionary คำศัพท์อย่างละเอียด
   const categoryMap = [
-      { name: "โทรศัพท์มือถือและอุปกรณ์เสริม", keywords: ['โทรศัพท์', 'มือถือ', 'iphone', 'samsung', 'oppo', 'vivo', 'xiaomi', 'เคส', 'สายชาร์จ', 'ฟิล์มกระจก', 'power bank', 'สมาร์ทโฟน', 'smartphone'] },
-      { name: "แท็บเล็ต", keywords: ['แท็บเล็ต', 'tablet', 'ipad', 'galaxy tab', 'ไอแพด'] },
-      { name: "คอมพิวเตอร์และแล็ปท็อป", keywords: ['คอมพิวเตอร์', 'แล็ปท็อป', 'notebook', 'โน๊ตบุ๊ค', 'macbook', 'pc', 'เมาส์', 'คีย์บอร์ด', 'monitor', 'จอมอนิเตอร์', 'แฟลชไดร์ฟ'] },
-      { name: "นาฬิกาและแว่นตา", keywords: ['นาฬิกา', 'แว่นตา', 'แว่นกันแดด', 'watch', 'smartwatch', 'สมาร์ทวอทช์', 'redmi watch', 'apple watch', 'แว่นตากรองแสง', 'สายนาฬิกา'] },
-      { name: "เครื่องเสียง", keywords: ['เครื่องเสียง', 'หูฟัง', 'ลำโพง', 'earbuds', 'headphone', 'speaker', 'ไมโครโฟน', 'ไมค์'] },
-      { name: "กล้องและอุปกรณ์ถ่ายภาพ", keywords: ['กล้อง', 'camera', 'เลนส์', 'ขาตั้งกล้อง', 'เว็บแคม', 'webcam', 'โกโปร', 'gopro', 'โพลารอยด์'] },
-      { name: "Gaming และอุปกรณ์เกม", keywords: ['gaming', 'เกม', 'nintendo', 'playstation', 'ps4', 'ps5', 'จอยสติ๊ก', 'แผ่นเกม', 'คอนโซล'] },
-      { name: "เครื่องใช้ไฟฟ้าในบ้าน", keywords: ['ทีวี', 'แอร์', 'เตารีด', 'พัดลม', 'เครื่องดูดฝุ่น', 'ไมโครเวฟ', 'หม้อหุงข้าว', 'ตู้เย็น', 'เครื่องซักผ้า', 'เครื่องฟอกอากาศ', 'หม้อทอด'] },
-      { name: "ผลิตภัณฑ์ดูแลผิว", keywords: ['เซรั่ม', 'ครีมกันแดด', 'โฟมล้างหน้า', 'มอยเจอร์ไรเซอร์', 'สลีปปิ้งมาสก์', 'โทนเนอร์', 'skincare', 'ดูแลผิว'] },
-      { name: "ความงาม", keywords: ['ครีม', 'สบู่', 'แชมพู', 'น้ำหอม', 'เครื่องสำอาง', 'บำรุงผิว', 'ดูแลผม', 'ลิป', 'รองพื้น', 'แป้งพัฟ', 'อายแชโดว์', 'บลัชออน', 'มาสคาร่า'] },
-      { name: "สุขภาพ", keywords: ['วิตามิน', 'อาหารเสริม', 'คอลลาเจน', 'เวย์โปรตีน', 'แมสก์', 'หน้ากากอนามัย', 'ยาสามัญ', 'เครื่องวัดความดัน', 'สมุนไพร'] },
-      { name: "เสื้อผ้าผู้หญิง", keywords: ['เสื้อผู้หญิง', 'สูทผู้หญิง', 'เดรส', 'กางเกงผู้หญิง', 'กระโปรง', 'ชุดชั้นในสตรี', 'ชุดว่ายน้ำผู้หญิง', 'เสื้อครอป'] },
-      { name: "เสื้อผ้าผู้ชาย", keywords: ['เสื้อผู้ชาย', 'กางเกงผู้ชาย', 'เสื้อเชิ้ต', 'กางเกงยีนส์', 'เสื้อยืดผู้ชาย', 'แจ็คเก็ต', 'ชุดว่ายน้ำชาย', 'กางเกงในชาย'] },
-      { name: "กระเป๋า", keywords: ['กระเป๋า', 'เป้', 'กระเป๋าสตางค์', 'bag', 'กระเป๋าสะพาย', 'กระเป๋าผ้า'] },
-      { name: "รองเท้าผู้หญิง", keywords: ['รองเท้าส้นสูง', 'รองเท้าแตะหญิง', 'รองเท้าผ้าใบสตรี', 'รองเท้าสตรี', 'รองเท้าผู้หญิง'] },
-      { name: "รองเท้าผู้ชาย", keywords: ['รองเท้าหนัง', 'รองเท้าแตะชาย', 'รองเท้าผ้าใบชาย', 'รองเท้าบูท', 'รองเท้าคัทชูชาย', 'รองเท้าบุรุษ', 'รองเท้าผู้ชาย'] },
-      { name: "เครื่องประดับ", keywords: ['เครื่องประดับ', 'สร้อยคอ', 'แหวน', 'ต่างหู', 'กำไล', 'สร้อยข้อมือ', 'จิวเวลรี่'] },
-      { name: "เครื่องใช้ในบ้าน", keywords: ['ผ้าปูที่นอน', 'กล่องเก็บของ', 'โคมไฟ', 'ม่าน', 'พรม', 'กระบอกน้ำ', 'ชั้นวางของ', 'เครื่องครัว', 'จานชาม', 'แก้วน้ำ'] },
-      { name: "บ้านและสวน", keywords: ['ต้นไม้', 'เมล็ดพันธุ์', 'กระถาง', 'อุปกรณ์แต่งสวน', 'ปุ๋ย', 'บัวรดน้ำ', 'พลั่ว'] },
-      { name: "อาหารและเครื่องดื่ม", keywords: ['อาหาร', 'เครื่องดื่ม', 'ขนม', 'กาแฟ', 'ชา', 'เบเกอรี่', 'อาหารแห้ง', 'น้ำแร่', 'ลูกอม', 'ช็อกโกแลต'] },
-      { name: "แม่และเด็ก", keywords: ['ผ้าอ้อม', 'นมผง', 'ขวดนม', 'รถเข็นเด็ก', 'แพมเพิส', 'ทารก', 'เครื่องปั๊มนม', 'คนท้อง', 'ชุดคลุมท้อง'] },
+      { name: "โทรศัพท์มือถือและอุปกรณ์เสริม", keywords: ['โทรศัพท์', 'มือถือ', 'สมาร์ทโฟน', 'iphone', 'samsung', 'oppo', 'vivo', 'xiaomi', 'เคส', 'สายชาร์จ', 'ฟิล์มกระจก', 'power bank', 'แบตสำรอง', 'หัวชาร์จ', 'สายเคเบิล', 'อะแดปเตอร์'] },
+      { name: "แท็บเล็ต", keywords: ['แท็บเล็ต', 'tablet', 'ipad', 'galaxy tab', 'ไอแพด', 'ปากกาไอแพด', 'เคสไอแพด', 'ฟิล์มไอแพด'] },
+      { name: "คอมพิวเตอร์และแล็ปท็อป", keywords: ['คอมพิวเตอร์', 'แล็ปท็อป', 'notebook', 'โน๊ตบุ๊ค', 'macbook', 'pc', 'เมาส์', 'คีย์บอร์ด', 'monitor', 'จอมอนิเตอร์', 'แฟลชไดร์ฟ', 'ฮาร์ดดิสก์', 'ssd', 'เมนบอร์ด', 'การ์ดจอ'] },
+      { name: "นาฬิกาและแว่นตา", keywords: ['นาฬิกา', 'แว่นตา', 'แว่นกันแดด', 'watch', 'smartwatch', 'สมาร์ทวอทช์', 'apple watch', 'สายนาฬิกา', 'แว่นกรองแสง', 'แว่นสายตา', 'กรอบแว่น'] },
+      { name: "เครื่องเสียง", keywords: ['หูฟัง', 'ลำโพง', 'earbuds', 'headphone', 'speaker', 'ไมโครโฟน', 'ไมค์', 'ไร้สาย', 'บลูทูธ', 'soundbar', 'แอมป์', 'เครื่องเล่นเพลง'] },
+      { name: "กล้องและอุปกรณ์ถ่ายภาพ", keywords: ['กล้อง', 'camera', 'เลนส์', 'ขาตั้งกล้อง', 'เว็บแคม', 'webcam', 'gopro', 'โกโปร', 'โพลารอยด์', 'ไฟฉาย', 'ไฟสตู', 'กิมบอล', 'เมมโมรี่การ์ด'] },
+      { name: "Gaming และอุปกรณ์เกม", keywords: ['gaming', 'เกม', 'nintendo', 'playstation', 'ps4', 'ps5', 'จอยสติ๊ก', 'แผ่นเกม', 'คอนโซล', 'เก้าอี้เกมมิ่ง', 'เมาส์เกมมิ่ง', 'คีย์บอร์ดเกมมิ่ง'] },
+      { name: "เครื่องใช้ไฟฟ้าในบ้าน", keywords: ['ทีวี', 'แอร์', 'เตารีด', 'พัดลม', 'เครื่องดูดฝุ่น', 'ไมโครเวฟ', 'หม้อหุงข้าว', 'ตู้เย็น', 'เครื่องซักผ้า', 'เครื่องฟอกอากาศ', 'หม้อทอด', 'กระทะไฟฟ้า', 'เครื่องปั่น', 'กาน้ำร้อน'] },
+      { name: "ผลิตภัณฑ์ดูแลผิว", keywords: ['เซรั่ม', 'ครีมกันแดด', 'โฟมล้างหน้า', 'มอยเจอร์ไรเซอร์', 'สลีปปิ้งมาสก์', 'โทนเนอร์', 'skincare', 'บำรุงหน้า', 'เจลแต้มสิว', 'คลีนซิ่ง', 'โลชั่น'] },
+      { name: "ความงาม", keywords: ['ครีม', 'สบู่', 'แชมพู', 'น้ำหอม', 'เครื่องสำอาง', 'ดูแลผม', 'ลิป', 'รองพื้น', 'แป้งพัฟ', 'อายแชโดว์', 'บลัชออน', 'มาสคาร่า', 'ที่ดัดขนตา', 'ยาทาเล็บ'] },
+      { name: "สุขภาพ", keywords: ['วิตามิน', 'อาหารเสริม', 'คอลลาเจน', 'เวย์โปรตีน', 'แมสก์', 'หน้ากากอนามัย', 'ยาสามัญ', 'เครื่องวัดความดัน', 'สมุนไพร', 'ผ้าพันแผล', 'เฝือก'] },
+      { name: "เสื้อผ้าผู้หญิง", keywords: ['เสื้อผู้หญิง', 'สูทผู้หญิง', 'เดรส', 'กางเกงผู้หญิง', 'กระโปรง', 'ชุดชั้นในสตรี', 'ชุดว่ายน้ำผู้หญิง', 'เสื้อครอป', 'เสื้อสายเดี่ยว', 'บรา', 'กางเกงในสตรี'] },
+      { name: "เสื้อผ้าผู้ชาย", keywords: ['เสื้อผู้ชาย', 'กางเกงผู้ชาย', 'เสื้อเชิ้ต', 'กางเกงยีนส์', 'เสื้อยืดผู้ชาย', 'แจ็คเก็ต', 'ชุดว่ายน้ำชาย', 'กางเกงในชาย', 'กางเกงสแล็ค', 'เสื้อโปโล'] },
+      { name: "กระเป๋า", keywords: ['กระเป๋า', 'เป้', 'กระเป๋าสตางค์', 'bag', 'กระเป๋าสะพาย', 'กระเป๋าผ้า', 'กระเป๋าถือ', 'กระเป๋าคาดอก', 'ถุงผ้า'] },
+      { name: "รองเท้าผู้หญิง", keywords: ['รองเท้าส้นสูง', 'รองเท้าแตะหญิง', 'รองเท้าผ้าใบสตรี', 'รองเท้าสตรี', 'รองเท้าผู้หญิง', 'สลิปเปอร์ผู้หญิง', 'คัทชูสตรี'] },
+      { name: "รองเท้าผู้ชาย", keywords: ['รองเท้าหนัง', 'รองเท้าแตะชาย', 'รองเท้าผ้าใบชาย', 'รองเท้าบูท', 'รองเท้าคัทชูชาย', 'รองเท้าบุรุษ', 'รองเท้าผู้ชาย', 'ผ้าใบชาย'] },
+      { name: "เครื่องประดับ", keywords: ['เครื่องประดับ', 'สร้อยคอ', 'แหวน', 'ต่างหู', 'กำไล', 'สร้อยข้อมือ', 'จิวเวลรี่', 'เข็มกลัด', 'กิ๊บ', 'ยางรัดผม'] },
+      { name: "เครื่องใช้ในบ้าน", keywords: ['ผ้าปูที่นอน', 'กล่องเก็บของ', 'โคมไฟ', 'ม่าน', 'พรม', 'กระบอกน้ำ', 'ชั้นวางของ', 'เครื่องครัว', 'จานชาม', 'แก้วน้ำ', 'ไม้แขวนเสื้อ', 'หมอน', 'ผ้าห่ม'] },
+      { name: "บ้านและสวน", keywords: ['ต้นไม้', 'เมล็ดพันธุ์', 'กระถาง', 'อุปกรณ์แต่งสวน', 'ปุ๋ย', 'บัวรดน้ำ', 'พลั่ว', 'เครื่องตัดหญ้า', 'สายยาง'] },
+      { name: "อาหารและเครื่องดื่ม", keywords: ['อาหาร', 'เครื่องดื่ม', 'ขนม', 'กาแฟ', 'ชา', 'เบเกอรี่', 'อาหารแห้ง', 'น้ำแร่', 'ลูกอม', 'ช็อกโกแลต', 'โซดา', 'มาม่า', 'บะหมี่'] },
+      { name: "แม่และเด็ก", keywords: ['ผ้าอ้อม', 'นมผง', 'ขวดนม', 'รถเข็นเด็ก', 'แพมเพิส', 'ทารก', 'เครื่องปั๊มนม', 'คนท้อง', 'ชุดคลุมท้อง', 'เป้อุ้มเด็ก'] },
       { name: "เสื้อผ้าเด็ก", keywords: ['เสื้อผ้าเด็ก', 'ชุดนอนเด็ก', 'กางเกงเด็ก', 'รองเท้าเด็ก', 'ถุงเท้าเด็ก', 'ชุดนักเรียน'] },
-      { name: "ของเล่น สินค้างานอดิเรก", keywords: ['ของเล่น', 'บอร์ดเกม', 'ฟิกเกอร์', 'เลโก้', 'โมเดล', 'ตุ๊กตา', 'จิ๊กซอว์'] },
-      { name: "กีฬาและกิจกรรมกลางแจ้ง", keywords: ['กีฬา', 'ดัมเบล', 'เสื่อโยคะ', 'ลูกฟุตบอล', 'แร็คเกต', 'เต็นท์', 'อุปกรณ์แคมป์', 'วิ่ง', 'จักรยาน'] },
-      { name: "การเดินทางและกระเป๋าเดินทาง", keywords: ['กระเป๋าเดินทาง', 'luggage', 'หมอนรองคอ', 'อุปกรณ์ท่องเที่ยว'] },
-      { name: "สัตว์เลี้ยง", keywords: ['อาหารสัตว์', 'อาหารหมา', 'อาหารแมว', 'ทรายแมว', 'ของเล่นสัตว์', 'ปลอกคอ', 'กรง', 'อาหารปลา'] },
-      { name: "ยานยนต์", keywords: ['ยานยนต์', 'รถยนต์', 'มอเตอร์ไซค์', 'อุปกรณ์แต่งรถ', 'น้ำมันเครื่อง', 'หมวกกันน็อค', 'ครอบพวงมาลัย', 'กล้องติดรถ'] },
-      { name: "หนังสือและสื่อบันเทิง", keywords: ['หนังสือ', 'นิยาย', 'การ์ตูน', 'นิตยสาร', 'มังงะ', 'วรรณกรรม', 'หนังสือเรียน'] },
-      { name: "ตั๋วและบัตรกำนัล", keywords: ['ตั๋ว', 'บัตรกำนัล', 'คูปอง', 'voucher', 'ตั๋วหนัง', 'บัตรเติมเงิน'] },
-      { name: "เครื่องเขียนและอุปกรณ์สำนักงาน", keywords: ['เครื่องเขียน', 'ปากกา', 'สมุด', 'ดินสอ', 'ยางลบ', 'แฟ้ม', 'กระดาษ', 'เครื่องคิดเลข', 'เก้าอี้สำนักงาน'] },
-      { name: "เสื้อผ้าแฟชั่น", keywords: ['เสื้อ', 'กางเกง', 'เดรส', 'รองเท้า', 'กระโปรง', 'หมวก', 'ถุงเท้า', 'ชุดนอน'] }
+      { name: "ของเล่น สินค้างานอดิเรก", keywords: ['ของเล่น', 'บอร์ดเกม', 'ฟิกเกอร์', 'เลโก้', 'โมเดล', 'ตุ๊กตา', 'จิ๊กซอว์', 'การ์ดเกม', 'รูบิค', 'รถบังคับ'] },
+      { name: "กีฬาและกิจกรรมกลางแจ้ง", keywords: ['กีฬา', 'ดัมเบล', 'เสื่อโยคะ', 'ลูกฟุตบอล', 'แร็คเกต', 'เต็นท์', 'อุปกรณ์แคมป์', 'วิ่ง', 'จักรยาน', 'สระว่ายน้ำ', 'รองเท้าสตั๊ด', 'ไม้แบด'] },
+      { name: "การเดินทางและกระเป๋าเดินทาง", keywords: ['กระเป๋าเดินทาง', 'luggage', 'หมอนรองคอ', 'อุปกรณ์ท่องเที่ยว', 'กระเป๋าจัดระเบียบ'] },
+      { name: "สัตว์เลี้ยง", keywords: ['อาหารสัตว์', 'อาหารหมา', 'อาหารแมว', 'ทรายแมว', 'ของเล่นสัตว์', 'ปลอกคอ', 'กรง', 'อาหารปลา', 'ห้องน้ำแมว', 'คอนโดแมว', 'ขนมหมา'] },
+      { name: "ยานยนต์", keywords: ['ยานยนต์', 'รถยนต์', 'มอเตอร์ไซค์', 'อุปกรณ์แต่งรถ', 'น้ำมันเครื่อง', 'หมวกกันน็อค', 'ครอบพวงมาลัย', 'กล้องติดรถ', 'ยางรถ', 'ล้อแม็ก', 'อะไหล่รถ'] },
+      { name: "หนังสือและสื่อบันเทิง", keywords: ['หนังสือ', 'นิยาย', 'การ์ตูน', 'นิตยสาร', 'มังงะ', 'วรรณกรรม', 'หนังสือเรียน', 'เตรียมสอบ', 'แบบฝึกหัด'] },
+      { name: "ตั๋วและบัตรกำนัล", keywords: ['ตั๋ว', 'บัตรกำนัล', 'คูปอง', 'voucher', 'ตั๋วหนัง', 'บัตรเติมเงิน', 'บัตรคอนเสิร์ต', 'e-voucher'] },
+      { name: "เครื่องเขียนและอุปกรณ์สำนักงาน", keywords: ['เครื่องเขียน', 'ปากกา', 'สมุด', 'ดินสอ', 'ยางลบ', 'แฟ้ม', 'กระดาษ', 'เครื่องคิดเลข', 'เก้าอี้สำนักงาน', 'โต๊ะทำงาน', 'กรรไกร', 'แม็ก'] },
+      { name: "เสื้อผ้าแฟชั่น", keywords: ['เสื้อ', 'กางเกง', 'เดรส', 'รองเท้า', 'กระโปรง', 'หมวก', 'ถุงเท้า', 'ชุดนอน', 'แฟชั่น'] }
   ];
 
-  // Loop เช็ค Keyword
-  for (const entry of categoryMap) {
-      if (entry.keywords.some(keyword => searchString.includes(keyword))) {
-          return entry.name;
+  let bestMatch = "ทั่วไป";
+  let highestScore = 0;
+
+  for (const category of categoryMap) {
+      let score = 0;
+      for (const keyword of category.keywords) {
+          const kwLower = keyword.toLowerCase();
+          
+          // Weight 1: Exact phrase in title (Highest priority)
+          if (textTitle.includes(kwLower)) {
+              score += 3;
+          }
+          // Weight 2: Keyword in SEO tags
+          if (textKw.includes(kwLower)) {
+              score += 2;
+          }
+          // Weight 3: Keyword in description (Contextual, lowest priority to avoid noise)
+          if (textDesc.includes(kwLower)) {
+              score += 1;
+          }
+      }
+
+      if (score > highestScore) {
+          highestScore = score;
+          bestMatch = category.name;
       }
   }
 
-  return "ทั่วไป"; // Default หากไม่ตรงกับอะไรเลย
+  // Debug (สามารถเปิดใช้ตอนทดสอบได้): console.log(`Categorizing "${title}" -> ${bestMatch} (Score: ${highestScore})`);
+  return bestMatch;
 }
 
 app.post('/api/categorize', requireAuth, async (req, res) => {
-  const { title, seo_keywords } = req.body;
+  const { title, seo_keywords, description } = req.body;
   if (!title) return res.status(400).json({ error: 'Title is required' });
 
   try {
-    const category = generateLocalCategory(title, seo_keywords);
+    const category = generateLocalCategory(title, seo_keywords, description);
     res.json({ success: true, category });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -831,9 +855,10 @@ app.post('/api/products/bulk/categorize', requireAuth, async (req, res) => {
 
       for (const id of idsToProcess) {
           try {
-              const { data: product } = await supabase.from('products').select('title, seo_keywords').eq('id', id).single();
+              const { data: product } = await supabase.from('products').select('title, seo_keywords, description').eq('id', id).single();
               if (product) {
-                  const newCategory = generateLocalCategory(product.title, product.seo_keywords);
+                  const newCategory = generateLocalCategory(product.title, product.seo_keywords, product.description);
+                  // Update only if category changes, optionally
                   await supabase.from('products').update({ category: newCategory }).eq('id', id);
                   updatedCount++;
               }
@@ -843,6 +868,43 @@ app.post('/api/products/bulk/categorize', requireAuth, async (req, res) => {
       }
       res.json({ success: true, updatedCount, failedCount });
   } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
+
+// --- POST categorize ALL ---
+app.post('/api/products/categorize-all', requireAuth, async (req, res) => {
+  try {
+      if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+      // Fetch all products that need categorization (or all of them)
+      const { data: products, error } = await supabase.from('products').select('id, title, seo_keywords, description, category');
+      
+      if (error) throw error;
+      if (!products || products.length === 0) return res.json({ success: true, updatedCount: 0, message: "No products found" });
+
+      let updatedCount = 0;
+      
+      // Batch processing to respect Supabase limits
+      const BATCH_SIZE = 50;
+      for (let i = 0; i < products.length; i += BATCH_SIZE) {
+          const batch = products.slice(i, i + BATCH_SIZE);
+          const updatePromises = batch.map(async (product) => {
+              const newCategory = generateLocalCategory(product.title, product.seo_keywords, product.description);
+              
+              // Only update if the category is actually different (saves API calls)
+              if (newCategory !== product.category) {
+                  const { error: updateError } = await supabase.from('products').update({ category: newCategory }).eq('id', product.id);
+                  if (!updateError) updatedCount++;
+              }
+          });
+          
+          await Promise.all(updatePromises);
+      }
+
+      res.json({ success: true, updatedCount, totalEvaluated: products.length });
+  } catch (error) {
+      console.error("Categorize All Error:", error);
       res.status(500).json({ error: error.message });
   }
 });
