@@ -3380,51 +3380,54 @@
                 h.includes('อัตราคอมมิชชั่น') || h.includes('คอมมิชชั่น') || h.includes('Commission') || 
                 h.includes('อัตราค่าคอมมิชชั่น') || h.includes('อัตราค่าคอมมิชชัน') || h.includes('commission')
             );
+            let colDiscount = headers.findIndex(h => 
+                h.includes('ส่วนลด') || h.includes('Discount') || h.includes('discount')
+            );
+            
+            let colRating = headers.findIndex(h => h.includes('Rating') || h.includes('คะแนน') || h.includes('คะแนนสินค้า'));
+            let colReviews = headers.findIndex(h => h.includes('Review') || h.includes('รีวิว'));
 
-                let colRating = headers.findIndex(h => h.includes('Rating') || h.includes('คะแนน') || h.includes('คะแนนสินค้า'));
-                let colReviews = headers.findIndex(h => h.includes('Review') || h.includes('รีวิว'));
+            console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal, colCommission, colDiscount, colRating, colReviews });
 
-                console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal, colCommission, colDiscount, colRating, colReviews });
+            if (colTitle === -1 || colUrl === -1) {
+                console.error('❌ Missing core columns (Title or Link)');
+                console.error('📋 Available headers:', headers);
+                return [];
+            }
 
-                if (colTitle === -1 || colUrl === -1) {
-                    console.error('❌ Missing core columns (Title or Link)');
-                    console.error('📋 Available headers:', headers);
-                    return [];
-                }
+            const parsedProducts = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const cols = splitLine(line);
+                if (cols.length <= Math.max(colTitle, colUrl)) continue;
 
-                const parsedProducts = [];
-                for (let i = 1; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line) continue;
-                    const cols = splitLine(line);
-                    if (cols.length <= Math.max(colTitle, colUrl)) continue;
+                const title = cols[colTitle];
+                const url = cols[colUrl];
+                if (!title || !url) continue;
 
-                    const title = cols[colTitle];
-                    const url = cols[colUrl];
-                    if (!title || !url) continue;
+                const price = colPrice !== -1 ? parseShopeePrice(cols[colPrice]) : '0';
+                const originalPrice = colOriginal !== -1 ? parseShopeePrice(cols[colOriginal]) : '';
+                const image = colImage !== -1 ? (cols[colImage] || '').trim() : '';
+                const commission = colCommission !== -1 ? parseFloat((cols[colCommission] || '0').replace(/[^0-9.]/g, '')) || 0 : 0;
+                const discount = colDiscount !== -1 ? parseInt((cols[colDiscount] || '0').replace(/[^0-9]/g, ''), 10) || 0 : 0;
+                const rating = colRating !== -1 ? parseFloat(cols[colRating]) || 0 : 0;
+                const reviews = colReviews !== -1 ? parseInt(cols[colReviews], 10) || 0 : 0;
 
-                    const price = colPrice !== -1 ? parseShopeePrice(cols[colPrice]) : '0';
-                    const originalPrice = colOriginal !== -1 ? parseShopeePrice(cols[colOriginal]) : '';
-                    const image = colImage !== -1 ? (cols[colImage] || '').trim() : '';
-                    const commission = colCommission !== -1 ? parseFloat((cols[colCommission] || '0').replace(/[^0-9.]/g, '')) || 0 : 0;
-                    const discount = colDiscount !== -1 ? parseInt((cols[colDiscount] || '0').replace(/[^0-9]/g, ''), 10) || 0 : 0;
-                    const rating = colRating !== -1 ? parseFloat(cols[colRating]) || 0 : 0;
-                    const reviews = colReviews !== -1 ? parseInt(cols[colReviews], 10) || 0 : 0;
-
-                    parsedProducts.push({
-                        title: title,
-                        affiliateUrl: url,
-                        category: importCategory === 'auto' ? autoCategorize(title) : importCategory,
-                        price: price,
-                        originalPrice: originalPrice,
-                        discount: discount || '',
-                        image: image,
-                        description: '',
-                        commission: commission,
-                        rating_value: rating,
-                        review_count: reviews
-                    });
-                }
+                parsedProducts.push({
+                    title: title,
+                    affiliateUrl: url,
+                    category: importCategory === 'auto' ? autoCategorize(title) : importCategory,
+                    price: price,
+                    originalPrice: originalPrice,
+                    discount: discount || '',
+                    image: image,
+                    description: '',
+                    commission: commission,
+                    rating_value: rating,
+                    review_count: reviews
+                });
+            }
             console.log('✅ Parsed products:', parsedProducts.length);
             return parsedProducts;
         }
