@@ -7,6 +7,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { createClient } = require('@supabase/supabase-js');
 const ogs = require('open-graph-scraper');
+const sharp = require('sharp');
+const { notifyGoogleIndexing, notifyBulkIndexing } = require('./indexingService');
 const {
   postToFacebook, postToInstagram, postToX, postToThreads,
   deleteFromFacebook, deleteFromX, generateAICaption, categorizeProduct,
@@ -280,6 +282,11 @@ app.post('/api/products', requireAuth, async (req, res) => {
     const { error } = await supabase.from('products').insert([newProduct]);
     if (error) throw error;
 
+    // 🔔 Fire-and-forget: Notify Google to index the new product URL
+    const siteUrl = process.env.SITE_URL || 'https://chob.shop';
+    const productUrl = `${siteUrl}/?productId=${newProduct.id}`;
+    notifyGoogleIndexing(productUrl).catch(e => console.error('Indexing notify error:', e.message));
+
     res.json({ success: true, product: newProduct });
   } catch (err) {
     console.error("Failed to add product:", err);
@@ -327,6 +334,11 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
 
     const { error } = await supabase.from('products').insert(itemsToAdd);
     if (error) throw error;
+
+    // 🔔 Background: Notify Google to index all new product URLs
+    const siteUrlForIndex = process.env.SITE_URL || 'https://chob.shop';
+    const productUrls = itemsToAdd.map(p => `${siteUrlForIndex}/?productId=${p.id}`);
+    notifyBulkIndexing(productUrls).catch(e => console.error('Bulk indexing error:', e.message));
 
     // Background Social Media Posting
     if (shouldPost) {
@@ -876,6 +888,138 @@ app.post('/api/products/bulk/categorize', requireAuth, async (req, res) => {
       res.json({ success: true, updatedCount, failedCount });
   } catch (error) {
       res.status(500).json({ error: error.message });
+  }
+});
+
+// --- Image Proxy (Auto WebP Conversion) ---
+const imageCache = new Map();
+const IMAGE_CACHE_MAX = 100;
+const IMAGE_CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+app.get('/api/image-proxy', async (req, res) => {
+  try {
+    const imageUrl = req.query.url;
+    if (!imageUrl) return res.status(400).json({ error: 'URL parameter required' });
+
+    // Validate URL
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(imageUrl);
+    } catch {
+      return res.status(400).json({ error: 'Invalid URL' });
+    }
+
+    // Only allow known image hosts for security
+    const allowedHosts = ['cf.shopee.co.th', 'down-th.img.susercontent.com', 'cf.shopee.com', 'img.lazcdn.com', 'placehold.co'];
+    const isAllowed = allowedHosts.some(h => parsedUrl.hostname.includes(h));
+    if (!isAllowed) {
+      return res.status(403).json({ error: 'Image host not allowed' });
+    }
+
+    // Check cache
+    const cacheKey = imageUrl;
+    const cached = imageCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp < IMAGE_CACHE_TTL)) {
+      res.set('Content-Type', 'image/webp');
+      res.set('Cache-Control', 'public, max-age=604800, immutable');
+      res.set('X-Cache', 'HIT');
+      return res.send(cached.buffer);
+    }
+
+    // Fetch the original image
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+    const response = await fetch(imageUrl, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'ChobShop-ImageProxy/1.0' }
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      return res.status(502).json({ error: `Failed to fetch image: ${response.status}` });
+    }
+
+    // Check size (max 5MB)
+    const contentLength = parseInt(response.headers.get('content-length') || '0', 10);
+    if (contentLength > 5 * 1024 * 1024) {
+      return res.status(413).json({ error: 'Image too large (max 5MB)' });
+    }
+
+    const imageBuffer = Buffer.from(await response.arrayBuffer());
+
+    // Convert to WebP with sharp
+    const webpBuffer = await sharp(imageBuffer)
+      .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+
+    // Store in cache (LRU eviction)
+    if (imageCache.size >= IMAGE_CACHE_MAX) {
+      const oldestKey = imageCache.keys().next().value;
+      imageCache.delete(oldestKey);
+    }
+    imageCache.set(cacheKey, { buffer: webpBuffer, timestamp: Date.now() });
+
+    res.set('Content-Type', 'image/webp');
+    res.set('Cache-Control', 'public, max-age=604800, immutable');
+    res.set('X-Cache', 'MISS');
+    res.send(webpBuffer);
+
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      return res.status(504).json({ error: 'Image fetch timeout' });
+    }
+    console.error('Image proxy error:', err.message);
+    res.status(500).json({ error: 'Image proxy failed', detail: err.message });
+  }
+});
+
+// --- Manual Google Indexing Submit ---
+app.post('/api/indexing/submit', requireAuth, async (req, res) => {
+  try {
+    const { url, urls } = req.body;
+
+    if (urls && Array.isArray(urls)) {
+      // Bulk submit
+      const result = await notifyBulkIndexing(urls);
+      return res.json(result);
+    }
+
+    if (url) {
+      // Single submit
+      const result = await notifyGoogleIndexing(url);
+      return res.json(result);
+    }
+
+    return res.status(400).json({ error: 'URL or URLs array required' });
+  } catch (err) {
+    res.status(500).json({ error: 'Indexing submit failed', detail: err.message });
+  }
+});
+
+// --- Reindex All Products ---
+app.post('/api/indexing/reindex-all', requireAuth, async (req, res) => {
+  try {
+    if (!supabase) return res.status(500).json({ error: 'Database not configured' });
+
+    const { data: products, error } = await supabase.from('products').select('id').order('date', { ascending: false });
+    if (error) throw error;
+
+    const siteUrl = process.env.SITE_URL || 'https://chob.shop';
+    const productUrls = products.map(p => `${siteUrl}/?productId=${p.id}`);
+
+    // Include homepage and sitemap
+    const allUrls = [`${siteUrl}/`, ...productUrls];
+
+    // Fire-and-forget background job
+    notifyBulkIndexing(allUrls).then(result => {
+      console.log(`📊 Reindex-all completed: ${JSON.stringify(result.results)}`);
+    }).catch(e => console.error('Reindex-all error:', e.message));
+
+    res.json({ success: true, message: `กำลังส่ง ${allUrls.length} URLs ให้ Google (background)`, totalUrls: allUrls.length });
+  } catch (err) {
+    res.status(500).json({ error: 'Reindex-all failed', detail: err.message });
   }
 });
 

@@ -18,10 +18,12 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.0",
+    "googleapis": "^171.4.0",
     "helmet": "^8.1.0",
     "oauth-1.0a": "^2.2.6",
     "open-graph-scraper": "^6.11.0",
     "puppeteer": "^24.38.0",
+    "sharp": "^0.34.5",
     "twitter-api-v2": "^1.29.0"
   }
 }
