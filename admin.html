@@ -2061,6 +2061,8 @@
         const API_BASE = '';
         // === State ===
         let products = [];
+        let totalProducts = 0;
+        let categoryCounts = {};
         let authToken = localStorage.getItem('vibe_admin_token');
 
         // === UI Logic ===
@@ -2148,9 +2150,26 @@
             }
         }
 
-        function updateStats() {
-            const count = products.length;
-            const categories = [...new Set(products.map(p => p.category).filter(c => c && c !== 'ทั้งหมด'))];
+        async function updateStats() {
+            // Use the total count from the API instead of products.length
+            const count = totalProducts;
+            
+            // Fetch precise category counts from backend
+            try {
+                const res = await fetchWithAuth('/api/categories/count');
+                const counts = await res.json();
+                categoryCounts = counts;
+            } catch (e) {
+                console.error('Failed to fetch category counts:', e);
+                // Fallback to local calculation if API fails
+                const localCats = [...new Set(products.map(p => p.category).filter(c => c && c !== 'ทั้งหมด'))];
+                categoryCounts = { all: count };
+                localCats.forEach(c => {
+                    categoryCounts[c] = products.filter(p => p.category === c).length;
+                });
+            }
+
+            const categories = Object.keys(categoryCounts).filter(c => c !== 'all' && c !== 'ทั้งหมด');
             
             // Update Dashboard Stats
             if(document.getElementById('totalProductsDashboard')) document.getElementById('totalProductsDashboard').textContent = count;
@@ -2161,6 +2180,7 @@
             if(document.getElementById('totalCategories2')) document.getElementById('totalCategories2').textContent = categories.length;
 
             // Total Clicks
+            // Note: This remains an estimate based on the loaded 1000 products
             const clickSum = products.reduce((sum, p) => sum + (p.clicks || 0), 0);
             if(document.getElementById('totalClicks')) document.getElementById('totalClicks').textContent = clickSum;
 
@@ -2170,7 +2190,7 @@
                 const currentValue = filter.value;
                 let options = '<option value="ทั้งหมด">📁 ทั้งหมด</option>';
                 categories.sort().forEach(cat => {
-                    options += `<option value="${cat}">${cat}</option>`;
+                    options += `<option value="${cat}">${cat} (${categoryCounts[cat] || 0})</option>`;
                 });
                 filter.innerHTML = options;
 
@@ -2271,11 +2291,18 @@
                 const res = await fetch(API_BASE + '/api/products');
                 const data = await res.json();
                 
-                // Handle both array and object responses
-                products = Array.isArray(data) ? data : (data.products || []);
+                // Handle new API format { products, total }
+                if (data.products && data.total !== undefined) {
+                    products = data.products;
+                    totalProducts = data.total;
+                } else {
+                    // Fallback for old API format or arrays
+                    products = Array.isArray(data) ? data : (data.products || []);
+                    totalProducts = products.length;
+                }
                 
                 renderProductList();
-                updateStats();
+                await updateStats();
                 renderDashboard(); // Added for new UI
             } catch (e) {
                 console.error('Failed to load products:', e);

@@ -129,10 +129,10 @@ app.get('/api/products', async (req, res) => {
     }
 
     // Unpaginated response (fallback for admin panel or no pagination request)
-    // Increase limit to 10,000 to ensure admin panel shows all products
-    const { data, error, count } = await query.limit(10000);
+    // We still limit to 1000 for data, but we MUST return the total count
+    const { data, error, count: totalCount } = await query.limit(1000);
     if (error) throw error;
-    res.json(data);
+    res.json({ products: data, total: totalCount });
 
   } catch (err) {
     console.error('Failed to read products from Supabase:', err);
@@ -155,10 +155,16 @@ app.get('/api/categories/count', async (req, res) => {
       return res.json(cachedCategoryCounts);
     }
 
+    // Get distinct categories and their counts
+    // For large datasets, we can use a simpler approach if needed
+    // But for 1000+ we can fetch all categories (just one column)
     const { data, error } = await supabase.from('products').select('category');
     if (error) throw error;
 
-    const counts = { all: data.length };
+    // Get true total count separately to be safe
+    const { count: trueTotal } = await supabase.from('products').select('*', { count: 'exact', head: true });
+
+    const counts = { all: trueTotal || data.length };
 
     data.forEach(item => {
       const cat = item.category || 'ทั่วไป';
