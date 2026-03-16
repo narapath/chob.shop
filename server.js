@@ -150,7 +150,7 @@ app.get('/api/products', async (req, res) => {
       // Re-create the base query for each chunk to avoid state mutation issues
       let chunkQuery = supabase
         .from('products')
-        .select('id, title, price, originalPrice, discount, image, affiliateUrl, category, clicks, date, facebookPostId, twitterPostId, seo_keywords, seo_description, seo_title, commission, description, rating_value, review_count');
+        .select('*');
 
       if (category && category !== 'all' && category !== 'ทั้งหมด') {
         chunkQuery = chunkQuery.eq('category', category);
