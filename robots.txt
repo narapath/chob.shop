@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+# Sitemap points to our dynamic generator in server.js
 Sitemap: https://chob.shop/sitemap.xml
 
 # ให้ความสำคัญกับ AI Crawlers (AIO Optimization)

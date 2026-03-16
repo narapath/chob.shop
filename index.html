@@ -754,6 +754,39 @@
         const metaTag = document.querySelector('meta[name="description"]');
         if (metaTag) metaTag.setAttribute('content', metaDesc);
 
+        // --- CANONICAL & OG:IMAGE (DYNAMIC CTR) ---
+        const canonicalTag = document.querySelector('link[rel="canonical"]');
+        if (canonicalTag) {
+            const currentUrl = new URL(window.location.href);
+            // Ensure canonical doesn't have messy tracking params, but keep category/productId
+            const canonUrl = new URL(siteUrl);
+            if (currentCategory !== 'all') canonUrl.searchParams.set('category', currentCategory);
+            if (searchTerm) canonUrl.searchParams.set('search', searchTerm);
+            
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('productId')) canonUrl.searchParams.set('productId', params.get('productId'));
+            
+            canonicalTag.setAttribute('href', canonUrl.toString());
+        }
+
+        // --- DYNAMIC OG:IMAGE & OG:SITE_NAME ---
+        const firstProduct = products[0];
+        const previewImg = firstProduct ? firstProduct.image : `${siteUrl}/preview0.png`;
+        
+        const ogImage = document.querySelector('meta[property="og:image"]');
+        if (ogImage) ogImage.setAttribute('content', previewImg);
+        const twitterImage = document.querySelector('meta[name="twitter:image"]');
+        if (twitterImage) twitterImage.setAttribute('content', previewImg);
+
+        // Ensure og:site_name exists
+        let ogSiteName = document.querySelector('meta[property="og:site_name"]');
+        if (!ogSiteName) {
+            ogSiteName = document.createElement('meta');
+            ogSiteName.setAttribute('property', 'og:site_name');
+            document.head.appendChild(ogSiteName);
+        }
+        ogSiteName.setAttribute('content', 'Chob.Shop ชอบช้อป');
+
         // 1. BRAND & SITE DNA (Organization & WebSite)
         let brandScript = document.getElementById('brand-jsonld');
         if (!brandScript) {
@@ -800,7 +833,35 @@
           }]
         });
 
-        // 3. PRODUCT LIST DNA
+        // 3. BREADCRUMBS DNA (Rich Snippets)
+        let breadcrumbScript = document.getElementById('breadcrumb-jsonld');
+        if (!breadcrumbScript) {
+            breadcrumbScript = document.createElement('script');
+            breadcrumbScript.id = 'breadcrumb-jsonld';
+            breadcrumbScript.type = 'application/ld+json';
+            document.head.appendChild(breadcrumbScript);
+        }
+        
+        const breadcrumbItems = [
+            { "@type": "ListItem", "position": 1, "name": "หน้าแรก", "item": siteUrl }
+        ];
+        
+        if (currentCategory !== 'all') {
+            breadcrumbItems.push({ 
+                "@type": "ListItem", 
+                "position": 2, 
+                "name": currentCatLabel, 
+                "item": `${siteUrl}/?category=${encodeURIComponent(currentCategory)}` 
+            });
+        }
+        
+        breadcrumbScript.text = JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": breadcrumbItems
+        });
+
+        // 4. PRODUCT LIST DNA
         const productJsonLd = {
             "@context": "https://schema.org/",
             "@type": "ItemList",

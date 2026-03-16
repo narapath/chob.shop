@@ -180,6 +180,63 @@ app.get('/api/categories/count', async (req, res) => {
   }
 });
 
+// --- Dynamic Sitemap.xml ---
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const siteUrl = 'https://chob.shop';
+    
+    // 1. Fetch all products and categories
+    const { data: products, error: pError } = await supabase
+      .from('products')
+      .select('id, category, date')
+      .order('date', { ascending: false });
+    
+    if (pError) throw pError;
+
+    // 2. Generate XML
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Home Page -->
+  <url>
+    <loc>${siteUrl}/</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>`;
+
+    // 3. Add Categories
+    const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+    categories.forEach(cat => {
+      xml += `
+  <url>
+    <loc>${siteUrl}/?category=${encodeURIComponent(cat)}</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+    });
+
+    // 4. Add Individual Products (Direct ID links for AI/Search context)
+    products.forEach(p => {
+      const pDate = p.date ? new Date(p.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+      xml += `
+  <url>
+    <loc>${siteUrl}/?productId=${p.id}</loc>
+    <lastmod>${pDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+    });
+
+    xml += `\n</urlset>`;
+
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (err) {
+    console.error('Failed to generate sitemap:', err);
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
 // POST a new product
 app.post('/api/products', requireAuth, async (req, res) => {
   try {
