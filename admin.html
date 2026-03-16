@@ -1604,7 +1604,7 @@
                             <label>ชื่อสินค้า *</label>
                             <input type="text" id="productTitle" placeholder="เช่น หูฟังไร้สาย Bluetooth 5.0" required />
                         </div>
-                        <div class="form-grid-3">
+                        <div class="form-grid-3" style="display: none;">
                             <div class="form-group">
                                 <label>Commission (%)</label>
                                 <input type="number" id="productCommission" placeholder="0" step="0.1" />
@@ -1993,7 +1993,7 @@
                             <input type="number" id="modalPrice" placeholder="299" />
                         </div>
                     </div>
-                    <div class="form-grid-3" style="margin-top: -6px;">
+                    <div class="form-grid-3" style="margin-top: -6px; display: none;">
                         <div class="form-group" style="background: rgba(99,102, 241, 0.03); border-left: 2px solid var(--accent); padding-left: 10px;">
                             <label style="color: var(--accent-light);">💰 Commission (%)</label>
                             <input type="number" id="modalCommission" placeholder="0" step="0.1" />
@@ -2754,8 +2754,6 @@
             document.getElementById('seoTitle').value = '';
             document.getElementById('seoDescription').value = '';
             document.getElementById('productCommission').value = '';
-            document.getElementById('productRating').value = '';
-            document.getElementById('productReviewCount').value = '';
         }
 
         // === Add product (Main Form) ===
@@ -2778,8 +2776,6 @@
             const seoTitle = document.getElementById('seoTitle').value.trim();
             const seoDescription = document.getElementById('seoDescription').value.trim();
             const commission = document.getElementById('productCommission').value || 0;
-            const rating_value = document.getElementById('productRating').value;
-            const review_count = document.getElementById('productReviewCount').value;
 
             if (!affiliateUrl) {
                 alert('กรุณาใส่ Shopee Affiliate Link ก่อนเพิ่มสินค้า');
@@ -2791,9 +2787,7 @@
             const body = {
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
                 toggleAI, seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
-                commission: parseFloat(commission),
-                rating_value: rating_value ? parseFloat(rating_value) : null,
-                review_count: review_count ? parseInt(review_count) : null
+                commission: parseFloat(commission)
             };
 
             const url = '/api/products';
@@ -2844,8 +2838,6 @@
             document.getElementById('modalSeoTitle').value = product.seo_title || '';
             document.getElementById('modalSeoDescription').value = product.seo_description || '';
             document.getElementById('modalCommission').value = product.commission || '';
-            document.getElementById('modalRating').value = product.rating_value || '';
-            document.getElementById('modalReviewCount').value = product.review_count || '';
 
             document.getElementById('modalEditId').value = product.id;
             
@@ -2946,8 +2938,6 @@
             const seoTitle = document.getElementById('modalSeoTitle').value.trim();
             const seoDescription = document.getElementById('modalSeoDescription').value.trim();
             const commission = document.getElementById('modalCommission').value || 0;
-            const rating_value = document.getElementById('modalRating').value;
-            const review_count = document.getElementById('modalReviewCount').value;
 
             if (!affiliateUrl || !title || !price) {
                 alert('กรุณากรอกข้อมูลที่จำเป็น (*) ให้ครบถ้วน');
@@ -2960,9 +2950,7 @@
             const body = {
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
                 seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
-                commission: parseFloat(commission),
-                rating_value: rating_value ? parseFloat(rating_value) : null,
-                review_count: review_count ? parseInt(review_count) : null
+                commission: parseFloat(commission)
             };
 
             try {
@@ -3384,10 +3372,8 @@
                 h.includes('ส่วนลด') || h.includes('Discount') || h.includes('discount')
             );
             
-            let colRating = headers.findIndex(h => h.includes('Rating') || h.includes('คะแนน') || h.includes('คะแนนสินค้า'));
-            let colReviews = headers.findIndex(h => h.includes('Review') || h.includes('รีวิว'));
 
-            console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal, colCommission, colDiscount, colRating, colReviews });
+            console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal, colCommission, colDiscount });
 
             if (colTitle === -1 || colUrl === -1) {
                 console.error('❌ Missing core columns (Title or Link)');
@@ -3411,8 +3397,6 @@
                 const image = colImage !== -1 ? (cols[colImage] || '').trim() : '';
                 const commission = colCommission !== -1 ? parseFloat((cols[colCommission] || '0').replace(/[^0-9.]/g, '')) || 0 : 0;
                 const discount = colDiscount !== -1 ? parseInt((cols[colDiscount] || '0').replace(/[^0-9]/g, ''), 10) || 0 : 0;
-                const rating = colRating !== -1 ? parseFloat(cols[colRating]) || 0 : 0;
-                const reviews = colReviews !== -1 ? parseInt(cols[colReviews], 10) || 0 : 0;
 
                 parsedProducts.push({
                     title: title,
@@ -3423,9 +3407,7 @@
                     discount: discount || '',
                     image: image,
                     description: '',
-                    commission: commission,
-                    rating_value: rating,
-                    review_count: reviews
+                    commission: commission
                 });
             }
             console.log('✅ Parsed products:', parsedProducts.length);
