@@ -2666,6 +2666,39 @@
             }
         }
 
+        // === RECATEGORIZE ALL (Local AI) ===
+        async function reCategorizeAll() {
+            if(!confirm(`แน่ใจหรือไม่? ระบบจะทำการวิเคราะห์และจัดหมวดหมู่ใหม่ให้กับสินค้า 'ทั้งหมด' ในร้านของคุณ อาจใช้เวลาสักครู่`)) return;
+
+            const btn = document.getElementById('reCategorizeAllBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="spinner" style="display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 1s linear infinite; margin-right:6px;"></span> กำลังวิเคราะห์...`;
+            btn.disabled = true;
+
+            showToast(`กำลังใช้งาน Local AI Data จัดหมวดหมู่สินค้าทั้งหมด...`);
+            
+            try {
+                const res = await fetchWithAuth(`/api/products/categorize-all`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showToast(`✅ จัดหมวดหมู่ใหม่สำเร็จ ${data.updatedCount} รายการ!`);
+                    await updateStats();
+                    await loadProducts();
+                } else {
+                    showToast(`❌ เกิดข้อผิดพลาด: ${data.error}`);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast(`❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์`);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
         async function fixMissingCategories() {
             const missing = products.filter(p => !p.category || p.category === 'ทั่วไป' || p.category === 'Other' || p.category === 'อื่นๆ' || p.category === 'ไม่ระบุ');
             
