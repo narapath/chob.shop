@@ -1748,7 +1748,7 @@
                     </div>
                     <div class="select-all-row">
                         <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
-                        <label for="selectAll" style="cursor: pointer;">เลืสกทั้งหมด</label>
+                        <label for="selectAll" style="cursor: pointer;">เลือกทั้งหมด</label>
                     </div>
                     <div class="product-table-container">
                         <table class="product-table" id="productTable">
@@ -1858,7 +1858,7 @@
             </div>
 
             <!-- ========== TAB: AI LEARNING ========== -->
-            <div class="tab-panel" id="tab-ai-learning" style="display: none;">
+            <div class="tab-panel" id="tab-ai-learning">
                 <div class="tab-header">
                     <h2>🧠 Self-Evolving AI Learning</h2>
                     <p>ระบบ AI ที่เรียนรู้และปรับปรุงตัวเองจากผลลัพธ์จริง</p>
@@ -2175,10 +2175,10 @@
 
         // === UI Logic ===
         function toggleSidebar() {
-            const sidebar = document.getElementById('adminSidebar');
+            const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             sidebar.classList.toggle('open');
-            overlay.classList.toggle('open');
+            overlay.classList.toggle('active');
         }
 
         function switchTab(tabId) {
@@ -2202,8 +2202,8 @@
 
             // Close sidebar on mobile after selection
             if (window.innerWidth <= 1024) {
-                document.getElementById('adminSidebar').classList.remove('open');
-                document.getElementById('sidebarOverlay').classList.remove('open');
+                document.getElementById('sidebar').classList.remove('open');
+                document.getElementById('sidebarOverlay').classList.remove('active');
             }
 
             // Optional: load data or refresh specific tab view
