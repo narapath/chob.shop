@@ -289,6 +289,21 @@
     </div>
   </section>
 
+  <!-- ===== PRODUCT DETAIL POPUP MODAL ===== -->
+  <div class="product-popup-overlay" id="productPopupOverlay">
+    <div class="product-popup" id="productPopup">
+      <button class="product-popup-close" id="productPopupClose" aria-label="ปิด">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="product-popup-content" id="productPopupContent">
+        <!-- Content will be injected dynamically -->
+      </div>
+    </div>
+  </div>
+
   <!-- ===== FOOTER ===== -->
   <footer id="footer">
     <div class="container footer-inner">
@@ -420,6 +435,323 @@
     .wish-toast.show {
       transform: translateX(-50%) translateY(0);
     }
+
+    /* ===== PRODUCT DETAIL POPUP ===== */
+    .product-popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .product-popup-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .product-popup {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      max-width: 900px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8);
+      border: 1px solid var(--border);
+      position: relative;
+      transform: translateY(30px) scale(0.95);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .product-popup-overlay.active .product-popup {
+      transform: translateY(0) scale(1);
+    }
+
+    .product-popup-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.6);
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.2s ease;
+      color: #fff;
+    }
+
+    .product-popup-close:hover {
+      background: var(--shopee-orange);
+      transform: rotate(90deg);
+    }
+
+    .product-popup-close svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .product-popup-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .product-popup-image {
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+    }
+
+    .product-popup-img {
+      max-width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .product-popup-details {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .product-popup-category {
+      display: inline-block;
+      padding: 6px 14px;
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--accent);
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 600;
+      width: max-content;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .product-popup-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .product-popup-rating {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .product-popup-stars {
+      color: #fbbf24;
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+
+    .product-popup-rating-text {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .product-popup-description {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 20px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+
+    .product-popup-highlights {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .product-popup-highlight-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .product-popup-highlight-item svg {
+      width: 18px;
+      height: 18px;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .product-popup-pricing {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(238, 77, 45, 0.1) 0%, rgba(238, 77, 45, 0.05) 100%);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(238, 77, 45, 0.3);
+    }
+
+    .product-popup-price {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--shopee-orange);
+    }
+
+    .product-popup-original {
+      font-size: 18px;
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .product-popup-discount {
+      background: var(--shopee-orange);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .product-popup-features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .product-popup-feature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+    }
+
+    .product-popup-feature svg {
+      width: 16px;
+      height: 16px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .product-popup-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .product-popup-btn {
+      flex: 1;
+      padding: 14px 24px;
+      border-radius: var(--radius-pill);
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .product-popup-btn-primary {
+      background: var(--shopee-orange);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4);
+    }
+
+    .product-popup-btn-primary:hover {
+      background: #d63f1f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(238, 77, 45, 0.5);
+    }
+
+    .product-popup-btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid var(--border);
+    }
+
+    .product-popup-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .product-popup-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .product-popup-content {
+        grid-template-columns: 1fr;
+      }
+
+      .product-popup-image {
+        padding: 16px;
+        max-height: 300px;
+      }
+
+      .product-popup-img {
+        max-height: 250px;
+      }
+
+      .product-popup-details {
+        padding: 20px;
+      }
+
+      .product-popup-title {
+        font-size: 20px;
+      }
+
+      .product-popup-price {
+        font-size: 26px;
+      }
+
+      .product-popup-features {
+        grid-template-columns: 1fr;
+      }
+
+      .product-popup-actions {
+        flex-direction: column;
+      }
+
+      .product-popup {
+        width: 95%;
+        max-height: 95vh;
+      }
+    }
   </style>
 
   <!-- Shop logic -->
@@ -482,6 +814,134 @@
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
       }, 3000);
+    }
+
+    // --- PRODUCT POPUP MODAL LOGIC ---
+    function openProductPopup(product) {
+      const overlay = document.getElementById('productPopupOverlay');
+      const content = document.getElementById('productPopupContent');
+
+      if (!overlay || !content) return;
+
+      // Generate popup HTML
+      content.innerHTML = createProductPopupHTML(product);
+
+      // Show popup with animation
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+      // Track popup view
+      try {
+        fetch(`${API_BASE}/api/products/${product.id}/view`, { method: 'POST' });
+      } catch (e) {
+        console.error('Failed to track popup view', e);
+      }
+    }
+
+    function closeProductPopup() {
+      const overlay = document.getElementById('productPopupOverlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+        document.body.style.overflow = ''; // Restore scrolling
+      }
+    }
+
+    function createProductPopupHTML(product) {
+      const rating = product.rating_value || (4.5 + Math.random() * 0.5).toFixed(1);
+      const displayRating = product.rating_value ? product.rating_value : rating;
+      const reviewCount = product.review_count || Math.floor(Math.random() * 200 + 50);
+      const fullStars = Math.floor(parseFloat(displayRating));
+      const starsHtml = '★'.repeat(fullStars) + (parseFloat(displayRating) % 1 >= 0.5 ? '★' : '');
+
+      const description = product.seo_description ||
+        `สินค้าคุณภาพจากหมวดหมู่ ${product.category || 'สินค้าแนะนำ'} คัดสรรมาเพื่อคุณโดย Chob.shop รับประกันความคุ้มค่าและคุณภาพ`;
+
+      const highlights = [
+        '✅ สินค้าคุณภาพผ่านการคัดสรร',
+        '✅ ราคาพิเศษจาก Shopee',
+        '✅ จัดส่งรวดเร็ว ปลอดภัย',
+        '✅ รับประกันความพึงพอใจ'
+      ];
+
+      const features = [
+        { icon: 'truck', text: 'จัดส่งรวดเร็ว' },
+        { icon: 'shield', text: 'ปลอดภัย 100%' },
+        { icon: 'star', text: 'รีวิวดีเยี่ยม' },
+        { icon: 'tag', text: 'ราคาคุ้มค่า' }
+      ];
+
+      const imageSrc = product.image ? (API_BASE + '/api/image-proxy?url=' + encodeURIComponent(product.image)) : 'https://placehold.co/300x300/f8fafc/ee4d2d?text=Chob.Shop';
+
+      return `
+        <div class="product-popup-image">
+          <img src="${imageSrc}" alt="${product.title}" class="product-popup-img" />
+        </div>
+        <div class="product-popup-details">
+          <span class="product-popup-category">${product.category || 'สินค้าแนะนำ'}</span>
+
+          <h2 class="product-popup-title">${product.title}</h2>
+
+          <div class="product-popup-rating">
+            <span class="product-popup-stars">${starsHtml}</span>
+            <span class="product-popup-rating-text">${displayRating} / 5</span>
+            <span class="product-popup-rating-text">(${reviewCount} รีวิว)</span>
+          </div>
+
+          <div class="product-popup-description">
+            <strong style="color: var(--accent); display: block; margin-bottom: 8px;">📝 รายละเอียดสินค้า</strong>
+            ${description}
+          </div>
+
+          <div class="product-popup-highlights">
+            ${highlights.map(h => `
+              <div class="product-popup-highlight-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>${h}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="product-popup-features">
+            ${features.map(f => `
+              <div class="product-popup-feature">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span>${f.text}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="product-popup-pricing">
+            <span class="product-popup-price">฿${Number(product.price).toLocaleString()}</span>
+            ${product.originalPrice ? `<span class="product-popup-original">฿${Number(product.originalPrice).toLocaleString()}</span>` : ''}
+            ${product.discount ? `<span class="product-popup-discount">-${product.discount}%</span>` : ''}
+          </div>
+
+          <div class="product-popup-actions">
+            <button class="product-popup-btn product-popup-btn-secondary" onclick="closeProductPopup()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              ปิด
+            </button>
+            <a href="${product.affiliateUrl}" target="_blank" rel="noopener noreferrer"
+               class="product-popup-btn product-popup-btn-primary"
+               onclick="trackClickAndRedirect(event, '${product.id}', '${product.affiliateUrl}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
+              ซื้อเลยที่ Shopee
+            </a>
+          </div>
+        </div>
+      `;
     }
 
     // --- APPLY THEME ---
@@ -786,19 +1246,22 @@
 
       const displayWishClass = isInWishlist(product.id) ? 'active' : '';
 
+      // Escape product data for safe use in onclick handlers
+      const productData = JSON.stringify(product).replace(/"/g, '&quot;').replace(/'/g, "\\'");
+
       return `
         <div class="card-wrap" style="position: relative;">
           <button class="heart-btn ${displayWishClass}" onclick="handleWishlistClick(event, '${product.id}', '${product.title.replace(/'/g, "\\'")}')" aria-label="Add to wishlist">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.94-8.94a5.5 5.5 0 0 0 0-7.78z"></path></svg>
           </button>
-          <a href="${product.affiliateUrl}" target="_blank" rel="noopener noreferrer" class="card" onclick="trackClickAndRedirect(event, '${product.id}', '${product.affiliateUrl}')">
+          <div class="card" onclick="openProductPopup(${productData})" style="cursor: pointer;">
           <div class="card-img-wrapper">
-            <img src="${product.image ? (API_BASE + '/api/image-proxy?url=' + encodeURIComponent(product.image)) : 'https://placehold.co/300x300/f8fafc/ee4d2d?text=Chob.Shop'}" 
-                 alt="${product.title}" 
-                 loading="lazy" 
+            <img src="${product.image ? (API_BASE + '/api/image-proxy?url=' + encodeURIComponent(product.image)) : 'https://placehold.co/300x300/f8fafc/ee4d2d?text=Chob.Shop'}"
+                 alt="${product.title}"
+                 loading="lazy"
                  decoding="async"
                  width="300" height="300"
-                 class="card-img" 
+                 class="card-img"
                  onload="this.classList.add('loaded')"
                  onerror="this.onerror=null;this.src='${product.image || 'https://placehold.co/300x300/f8fafc/ee4d2d?text=Chob.Shop'}'" />
             <span class="card-shopee-badge">
@@ -829,11 +1292,11 @@
             <div class="card-cta">
               <span class="shopee-btn">
                 <svg viewBox="0 0 24 24" fill="none" width="16" height="16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-                ดูสินค้าใน SHOPEE
+                ดูรายละเอียดสินค้า
               </span>
             </div>
           </div>
-        </a>
+        </div>
       </div>
       `;
     }
@@ -1126,6 +1589,24 @@
         nav.classList.add('sticky');
       } else {
         nav.classList.remove('sticky');
+      }
+    });
+
+    // ===== PRODUCT POPUP EVENT LISTENERS =====
+    // Close popup when clicking close button
+    document.getElementById('productPopupClose')?.addEventListener('click', closeProductPopup);
+
+    // Close popup when clicking overlay (outside the modal)
+    document.getElementById('productPopupOverlay')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        closeProductPopup();
+      }
+    });
+
+    // Close popup on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeProductPopup();
       }
     });
 
