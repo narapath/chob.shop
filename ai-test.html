@@ -141,7 +141,7 @@
 
     <script>
         const API_BASE = '';
-        let authToken = localStorage.getItem('adminToken') || '';
+        let authToken = localStorage.getItem('vibe_admin_token') || '';
 
         function log(msg, type = 'info') {
             const logDiv = document.getElementById('log');
@@ -296,10 +296,10 @@
             const token = params.get('token');
             if (token) {
                 authToken = token;
-                localStorage.setItem('adminToken', token);
+                localStorage.setItem('vibe_admin_token', token);
             }
             if (!authToken) {
-                alert('🔑 กรุณาเข้าสู่ระบบ Admin ก่อนใช้งานหน้านี้');
+                alert('🔑 กรุณาเข้าสู่ระบบ Admin ก่อนใช้งานหน้านี้ (Auth Token Missing)');
                 window.location.href = '/admin.html';
             }
         }
