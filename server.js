@@ -15,6 +15,7 @@ const {
   generateSEOData
 } = require('./socialMedia');
 const categoryMapper = require('./js/categories');
+const { ai, recordPrediction, recordCorrection, getKeywordWeight } = require('./js/selfEvolvingAI');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -971,13 +972,52 @@ app.put('/api/settings', requireAuth, (req, res) => {
   }
 });
 
-// --- POST categorize via Local Logic ---
-// ฟังก์ชันวิเคราะห์หมวดหมู่แบบ Local (Scoring Algorithm)
+// --- POST categorize via Local Logic with AI Learning ---
+// ฟังก์ชันวิเคราะห์หมวดหมู่แบบ Local พร้อมเรียนรู้
 function generateLocalCategory(title, seoKeywords = [], description = '') {
   if (!title) return "อื่นๆ";
 
-  // ใช้ categoryMapper ใหม่ที่มี keywords ละเอียดกว่า
-  return categoryMapper.categorize(title);
+  const t = title.toLowerCase();
+  const categories = categoryMapper.categories;
+
+  let bestMatch = 'อื่นๆ';
+  let highestScore = 0;
+
+  for (const [categoryName, categoryData] of Object.entries(categories)) {
+    if (!categoryData.keywords || categoryData.keywords.length === 0) continue;
+
+    let score = 0;
+    for (const keyword of categoryData.keywords) {
+      const kwLower = keyword.toLowerCase();
+
+      // Exact match gets higher score
+      if (t === kwLower) {
+        score += 5;
+      }
+      // Keyword in title
+      else if (t.includes(kwLower)) {
+        // Apply AI-learned weight
+        const learnedWeight = getKeywordWeight(kwLower, categoryName);
+        score += 3 * learnedWeight;
+      }
+    }
+
+    // Apply priority multiplier
+    if (score > 0) {
+      score *= (categoryData.priority || 1);
+    }
+
+    if (score > highestScore) {
+      highestScore = score;
+      bestMatch = categoryName;
+    }
+  }
+
+  // Record prediction for learning
+  const confidence = highestScore / 100; // Normalize to 0-1
+  recordPrediction(title, bestMatch, confidence);
+
+  return bestMatch;
 }
 
 app.post('/api/categorize', requireAuth, async (req, res) => {
@@ -986,7 +1026,77 @@ app.post('/api/categorize', requireAuth, async (req, res) => {
 
   try {
     const category = generateLocalCategory(title, seo_keywords, description);
-    res.json({ success: true, category });
+    res.json({ success: true, category, learningEnabled: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// === AI LEARNING ENDPOINTS ===
+
+// Record correction (user feedback)
+app.post('/api/ai/learn/correct', requireAuth, async (req, res) => {
+  const { title, predictedCategory, correctCategory } = req.body;
+
+  if (!title || !predictedCategory || !correctCategory) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const result = recordCorrection(title, predictedCategory, correctCategory);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Get AI learning statistics
+app.get('/api/ai/stats', requireAuth, async (req, res) => {
+  try {
+    const stats = ai.getStats();
+    res.json({ success: true, ...stats });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Analyze learning patterns
+app.get('/api/ai/analyze', requireAuth, async (req, res) => {
+  try {
+    const patterns = ai.analyzePatterns();
+    res.json({ success: true, ...patterns });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Export learning data
+app.get('/api/ai/export', requireAuth, async (req, res) => {
+  try {
+    const data = ai.exportLearningData();
+    res.json({ success: true, ...data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Import learning data
+app.post('/api/ai/import', requireAuth, async (req, res) => {
+  const { learningData, keywordWeights } = req.body;
+
+  try {
+    const result = ai.importLearningData({ learningData, keywordWeights });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Reset learning data
+app.post('/api/ai/reset', requireAuth, async (req, res) => {
+  try {
+    const result = ai.resetLearning();
+    res.json(result);
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
