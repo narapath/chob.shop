@@ -15,7 +15,7 @@ const {
   generateSEOData
 } = require('./socialMedia');
 const categoryMapper = require('./js/categories');
-const { ai, recordPrediction, recordCorrection, getKeywordWeight } = require('./js/selfEvolvingAI');
+const { ai, recordPrediction, recordCorrection, getKeywordWeight, extractKeywords } = require('./js/selfEvolvingAI');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -978,6 +978,7 @@ function generateLocalCategory(title, seoKeywords = [], description = '') {
   if (!title) return "อื่นๆ";
 
   const t = title.toLowerCase();
+  const titleKeywords = extractKeywords(title);
   const categories = categoryMapper.categories;
 
   let bestMatch = 'อื่นๆ';
@@ -987,18 +988,26 @@ function generateLocalCategory(title, seoKeywords = [], description = '') {
     if (!categoryData.keywords || categoryData.keywords.length === 0) continue;
 
     let score = 0;
+
+    // 1. Predefined keyword matching
     for (const keyword of categoryData.keywords) {
       const kwLower = keyword.toLowerCase();
+      // Use word-based match from titleKeywords or exact match
+      const isMatch = titleKeywords.includes(kwLower) || t === kwLower;
 
-      // Exact match gets higher score
-      if (t === kwLower) {
-        score += 5;
-      }
-      // Keyword in title
-      else if (t.includes(kwLower)) {
-        // Apply AI-learned weight
+      if (isMatch) {
         const learnedWeight = getKeywordWeight(kwLower, categoryName);
-        score += 3 * learnedWeight;
+        score += (t === kwLower ? 5 : 3) * learnedWeight;
+      }
+    }
+
+    // 2. AI Learned weights for all keywords in title
+    for (const kw of titleKeywords) {
+      const weight = getKeywordWeight(kw, categoryName);
+      if (weight > 1.0) {
+        score += (weight - 1.0) * 10;
+      } else if (weight < 1.0) {
+        score -= (1.0 - weight) * 5;
       }
     }
 
@@ -1014,7 +1023,7 @@ function generateLocalCategory(title, seoKeywords = [], description = '') {
   }
 
   // Record prediction for learning
-  const confidence = highestScore / 100; // Normalize to 0-1
+  const confidence = Math.min(1, highestScore / 100);
   recordPrediction(title, bestMatch, confidence);
 
   return bestMatch;

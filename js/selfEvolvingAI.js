@@ -318,6 +318,7 @@ module.exports = {
   ai,
   
   // Convenience functions
+  extractKeywords: (title) => ai.extractKeywords(title),
   recordPrediction: (title, category, confidence) => 
     ai.recordPrediction(title, category, confidence),
   
