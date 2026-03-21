@@ -3297,55 +3297,323 @@
             reader.readAsText(file);
         }
 
-        // Auto-categorize based on Shopee official dictionary keywords
+        // Auto-categorize ด้วย Shopee Official Dictionary แบบละเอียด (1000+ keywords)
         function autoCategorize(title) {
-            if (!title) return 'ทั่วไป';
+            if (!title) return 'อื่นๆ';
             const t = title.toLowerCase();
 
-            // Shopee Mapping Dictionary (Categories & Sub-keywords from image)
+            // หมวดหมู่ Shopee แบบละเอียด - ย่อมาจาก categories.js
             const shopeeDict = {
-                // --- PRIORITIZED IT & GADGETS (Check these first to avoid false fashion matches) ---
-                'โทรศัพท์มือถือและอุปกรณ์เสริม': ['โทรศัพท์มือถือ', 'สมาร์ทโฟน', 'แท็บเล็ต', 'มือถือ', 'iphone', 'samsung', 'oppo', 'vivo', 'เคส', 'ฟิล์ม', 'หัวชาร์จ', 'powerbank', 'แบตสำรอง'],
-                'คอมพิวเตอร์และแล็ปท็อป': ['อุปกรณ์เสริมคอมพิวเตอร์', 'แล็ปท็อป', 'คอมตั้งโต๊ะ', 'อุปกรณ์จัดเก็บข้อมูล', 'ปริ้นเตอร์', 'อุปกรณ์เน็ตเวิร์ค', 'ซอฟต์แวร์', 'ชิ้นส่วนคอมพิวเตอร์', 'โน๊ตบุ๊ค', 'notebook', 'ipad', 'เมาส์', 'คีย์บอร์ด'],
-                'เครื่องเสียง': ['ลำโพง', 'เครื่องเสียง', 'หูฟัง', 'media player', 'ไมค์', 'earbuds', 'headphone', 'microphone', 'ไมโครโฟน', 'ชุดลำโพง'],
-                'เครื่องใช้ไฟฟ้าในบ้าน': ['ไมโครเวฟ', 'เตาอบ', 'ตู้เย็น', 'เตาแก๊ส', 'เตาไฟฟ้า', 'เครื่องฟอกอากาศ', 'พัดลม', 'เครื่องปรับอากาศ', 'แอร์', 'เตารีด', 'เครื่องซักผ้า', 'เครื่องอบผ้า', 'เครื่องดูดฝุ่น', 'เครื่องทำน้ำอุ่น', 'หม้อทอด'],
-                'กล้องและอุปกรณ์ถ่ายภาพ': ['กล้อง', 'กล้องแอคชั่น', 'กล้องวงจรปิด', 'เลนส์', 'เมมโมรี่การ์ด', 'อุปกรณ์เสริมกล้อง', 'ขาตั้ง'],
-                'Gaming และอุปกรณ์เกม': ['อุปกรณ์เสริมเกม', 'แผ่นเกม', 'ตลับเกม', 'ps5', 'nintendo', 'switch', 'จอย'],
+                // === ELECTRONICS & TECH ===
+                'โทรศัพท์มือถือและอุปกรณ์เสริม': [
+                    'iphone', 'samsung', 'oppo', 'vivo', 'xiaomi', 'redmi', 'realme', 'honor', 'huawei', 'oneplus',
+                    'มือถือ', 'สมาร์ทโฟน', 'smartphone', 'โทรศัพท์', 'แท็บเล็ต', 'tablet', 'ipad', 'android', 'ios',
+                    'เคส', 'cover', 'case', 'ฟิล์ม', 'กระจก', 'tempered glass', 'ที่ชาร์จ', 'สายชาร์จ', 'charging cable',
+                    'powerbank', 'แบตสำรอง', 'หัวชาร์จ', 'adapter', 'สาย data', 'สาย usb', 'dock', 'stand',
+                    'ขาตั้ง', 'holder', 'ring', 'popsocket', 'airpods', 'หูฟัง', 'earphone', 'earbuds', 'bluetooth',
+                    'ไร้สาย', 'wireless', 'ชาร์จไร้สาย', 'wireless charger', 'magsafe', 'sim card', 'ซิม'
+                ],
+                'คอมพิวเตอร์และแล็ปท็อป': [
+                    'notebook', 'laptop', 'macbook', 'pro', 'air', 'desktop', 'คอม', 'คอมพิวเตอร์', 'pc',
+                    'mouse', 'คีย์บอร์ด', 'keyboard', 'mechanical', 'gaming mouse', 'gaming keyboard', 'rgb',
+                    'monitor', 'จอคอม', 'จอภาพ', 'lcd', 'led', 'oled', 'curved', '144hz', '2k', '4k',
+                    'ram', 'ssd', 'hdd', 'harddisk', 'flash drive', 'memory card', 'sd card', 'microsd', 'usb hub',
+                    'printer', 'ปริ้นเตอร์', 'เครื่องพิมพ์', 'ink', 'หมึกพิมพ์', 'สแกนเนอร์', 'scanner',
+                    'router', 'wifi', 'access point', 'switch', 'lan', 'ethernet', 'network', 'modem',
+                    'cpu', 'gpu', 'vga', 'cardจอ', 'mainboard', 'psu', 'caseคอม', 'พัดลมคอม', 'cooler',
+                    'โน้ตบุ๊ค', 'แล็ปท็อป', 'ultrabook', 'chromebook', 'gaming laptop'
+                ],
+                'เครื่องเสียง': [
+                    'ลำโพง', 'speaker', 'bluetooth speaker', 'portable speaker', 'soundbar', 'subwoofer', 'jbl', 'bose', 'sony',
+                    'หูฟัง', 'headphone', 'earphone', 'earbuds', 'airpods', 'galaxy buds', 'over ear', 'in ear',
+                    'ไมค์', 'microphone', 'mic', 'คอนเดนเซอร์', 'dynamic', 'wireless mic', 'lavalier',
+                    'เครื่องขยายเสียง', 'amplifier', 'amp', 'dac', 'audio interface', 'mixer',
+                    'หูฟังเกมมิ่ง', 'gaming headset', 'headset', 'มีไมค์', 'noise cancelling', 'anc'
+                ],
+                'เครื่องใช้ไฟฟ้าในบ้าน': [
+                    'ตู้เย็น', 'refrigerator', 'mini fridge', 'แอร์', 'เครื่องปรับอากาศ', 'air conditioner', 'inverter', 'daikin', 'mitsubishi',
+                    'พัดลม', 'fan', 'พัดลมไอเย็น', 'evaporative', 'tower fan', 'ceiling fan',
+                    'เครื่องฟอกอากาศ', 'air purifier', 'hepa', 'ionizer', 'pm2.5', 'xiaomi', 'sharp', 'philips',
+                    'เครื่องซักผ้า', 'washing machine', 'เครื่องอบผ้า', 'dryer', 'lg', 'samsung', 'electrolux',
+                    'เครื่องดูดฝุ่น', 'vacuum', 'robot vacuum', 'roomba', 'ecovacs', 'dreame', 'dyson',
+                    'เตารีด', 'iron', 'steam iron', 'เตาอบ', 'oven', 'ไมโครเวฟ', 'microwave',
+                    'หม้อทอด', 'air fryer', 'หม้อหุงข้าว', 'rice cooker', 'หม้อต้ม', 'pressure cooker',
+                    'เครื่องปั่น', 'blender', 'juicer', 'เครื่องชงกาแฟ', 'coffee maker', 'espresso',
+                    'กาต้มน้ำ', 'kettle', 'electric kettle', 'เครื่องปิ้งขนมปัง', 'toaster',
+                    'เครื่องทำน้ำอุ่น', 'water heater', 'เครื่องกรองน้ำ', 'water filter'
+                ],
+                'กล้องและอุปกรณ์ถ่ายภาพ': [
+                    'กล้อง', 'camera', 'dslr', 'mirrorless', 'action camera', 'gopro', 'insta360', 'dji', 'canon', 'nikon', 'sony',
+                    'กล้องวงจรปิด', 'cctv', 'security camera', 'ip camera', 'wifi camera', 'hikvision', 'dahua',
+                    'เลนส์', 'lens', 'wide', 'telephoto', 'macro', 'prime lens', 'zoom lens', 'sigma', 'tamron',
+                    'ขาตั้ง', 'tripod', 'monopod', 'gimbal', 'stabilizer', 'selfie stick', 'dji osmo',
+                    'เมมโมรี่', 'memory card', 'sd card', 'cf card', 'sandisk', 'lexar',
+                    'flash', 'แฟลช', 'softbox', 'ring light', 'ไฟถ่ายภาพ', 'backdrop', 'led panel'
+                ],
+                'Gaming และอุปกรณ์เกม': [
+                    'ps5', 'playstation', 'ps4', 'xbox', 'nintendo', 'switch', 'steam deck',
+                    'เกม', 'game', 'แผ่นเกม', 'ตลับเกม', 'digital code', 'gift card', 'psn', 'xbox live',
+                    'จอย', 'controller', 'gamepad', 'joystick', 'wheel', 'พวงมาลัย', 'racing wheel',
+                    'เก้าอี้เกมมิ่ง', 'gaming chair', 'โต๊ะเกม', 'gaming desk', 'mouse pad', 'desk mat'
+                ],
 
-                // --- FASHION & ACCESSORIES (With refined keywords) ---
-                'เสื้อผ้าผู้หญิง': [' เสื้อ ', 'เสื้อผู้หญิง', 'เสื้อผ้าผู้หญิง', 'เดรส', 'กางเกง', 'กระโปรง', 'ผ้ายีนส์', 'จั๊มสูท', 'ชุดชั้นใน', 'ชุดนอน', 'เสื้อผ้าสาวอวบ'],
-                'เสื้อผ้าผู้ชาย': ['เสื้อเชิ้ต', 'เสื้อโปโล', 'เสื้อยืดแขนสั้น', 'กางเกงขาสั้น', 'กางเกงขายาว', 'ชุดชั้นในชาย'],
-                'กระเป๋า': ['กระเป๋าถือ', 'กระเป๋าสะพายข้าง', 'กระเป๋าสตางค์', 'กระเป๋าผ้า', 'กระเป๋าคาดอก', 'กระเป๋าเป้', 'กระเป๋าเดินทาง'],
-                'รองเท้าผู้หญิง': ['รองเท้าส้นสูง', 'รองเท้าส้นแบน', 'รองเท้าผ้าใบ', 'รองเท้าบูท', 'รองเท้าแตะผู้หญิง'],
-                'รองเท้าผู้ชาย': ['รองเท้าหนัง', 'รองเท้าเซฟตี้', 'รองเท้าแตะผู้ชาย'],
-                'เครื่องประดับ': ['แหวน', 'สร้อยคอ', 'ต่างหู', 'ผ้าพันคอ', 'หมวก', 'เข็มขัด', 'กำไล'],
-                'นาฬิกาและแว่นตา': ['แว่นตา', 'แว่นตากันแดด', 'นาฬิกาผู้หญิง', 'นาฬิกาผู้ชาย'],
+                // === FASHION & ACCESSORIES ===
+                'เสื้อผ้าผู้หญิง': [
+                    'เสื้อ', 'shirt', 'blouse', 'top', 'tee', 't-shirt', 'crop top', 'tank top',
+                    'เดรส', 'dress', 'กระโปรง', 'skirt', 'mini skirt', 'maxi skirt', 'midi skirt',
+                    'กางเกง', 'pants', 'trousers', 'jeans', 'ยีนส์', 'leggings', 'shorts', 'ขาสั้น',
+                    'จั๊มสูท', 'jumpsuit', 'romper', 'overalls',
+                    'ชุดนอน', 'pajama', 'ชุดชั้นใน', 'underwear', 'bra', 'lingerie',
+                    'คาร์ดิแกน', 'cardigan', 'เสื้อกันหนาว', 'sweater', 'hoodie', 'sweatshirt',
+                    'blazer', 'jacket', 'เสื้อคลุม', 'coat', 'trench coat', 'vest',
+                    'สาวอวบ', 'plus size', 'big size', 'ไซส์ใหญ่', 'xl', 'xxl', 'xxxl'
+                ],
+                'เสื้อผ้าผู้ชาย': [
+                    'เสื้อเชิ้ต', 'shirt', 'formal shirt', 'business shirt',
+                    'เสื้อโปโล', 'polo', 'polo shirt', 'เสื้อคอปก',
+                    'เสื้อยืด', 't-shirt', 'tee', 'เสื้อยืดแขนสั้น', 'เสื้อยืดแขนยาว',
+                    'กางเกงขายาว', 'pants', 'trousers', 'chinos', 'slacks',
+                    'กางเกงขาสั้น', 'shorts', 'bermuda', 'gym shorts',
+                    'ยีนส์', 'jeans', 'denim', 'กางเกงยีนส์',
+                    'hoodie', 'sweatshirt', 'เสื้อกันหนาว', 'jacket', 'เสื้อคลุม',
+                    'ชุดนอน', 'pajama', 'ชุดชั้นใน', 'underwear', 'boxer', 'brief'
+                ],
+                'กระเป๋า': [
+                    'กระเป๋า', 'bag', 'handbag', 'shoulder bag', 'crossbody', 'sling bag', 'tote',
+                    'กระเป๋าถือ', 'clutch', 'tote bag', 'shopping bag',
+                    'กระเป๋าสตางค์', 'wallet', 'purse', 'long wallet', 'short wallet', 'card holder',
+                    'กระเป๋าผ้า', 'canvas bag', 'eco bag', 'ถุงผ้า',
+                    'กระเป๋าเป้', 'backpack', 'rucksack', 'bagpack', 'school bag',
+                    'กระเป๋าคาดอก', 'chest bag', 'waist bag', 'sling', 'belt bag', 'fanny pack',
+                    'กระเป๋าเดินทาง', 'travel bag', 'suitcase', 'luggage', 'carry on', 'duffel bag',
+                    'laptop bag', 'กระเป๋าโน้ตบุ๊ค', 'briefcase', 'messenger bag'
+                ],
+                'รองเท้าผู้หญิง': [
+                    'รองเท้า', 'shoes', 'footwear',
+                    'รองเท้าส้นสูง', 'heels', 'high heels', 'stilettos', 'pumps', 'wedges',
+                    'รองเท้าส้นแบน', 'flats', 'ballet flats', 'loafers',
+                    'รองเท้าผ้าใบ', 'sneakers', 'canvas shoes', 'sport shoes', 'nike', 'adidas', 'converse', 'vans',
+                    'รองเท้าบูท', 'boots', 'ankle boots', 'knee high', 'long boots', 'chelsea boots',
+                    'รองเท้าแตะ', 'sandals', 'slides', 'flip flops', 'mules', 'espadrille'
+                ],
+                'รองเท้าผู้ชาย': [
+                    'รองเท้า', 'shoes', 'footwear', 'men shoes',
+                    'รองเท้าผ้าใบ', 'sneakers', 'sport shoes', 'running shoes', 'basketball',
+                    'รองเท้าหนัง', 'leather shoes', 'formal shoes', 'oxford', 'derby', 'brogues',
+                    'รองเท้าโลฟเฟอร์', 'loafers', 'slip on',
+                    'รองเท้าบูท', 'boots', 'chelsea boots', 'combat boots', 'work boots', 'timberland',
+                    'รองเท้าแตะ', 'sandals', 'slides', 'flip flops', 'crocs',
+                    'รองเท้าเซฟตี้', 'safety shoes', 'steel toe'
+                ],
+                'เครื่องประดับ': [
+                    'แหวน', 'ring', 'jewelry', 'เครื่องประดับ',
+                    'สร้อยคอ', 'necklace', 'chain', 'pendant', 'choker',
+                    'ต่างหู', 'earrings', 'ear studs', 'hoops', 'ear clip',
+                    'กำไล', 'bracelet', 'bangle', 'ข้อมือ', 'wristband',
+                    'นาฬิกา', 'watch', 'smartwatch', 'นาฬิกาข้อมือ',
+                    'แว่น', 'glasses', 'spectacles', 'แว่นสายตา',
+                    'แว่นกันแดด', 'sunglasses', 'rayban', 'aviator',
+                    'หมวก', 'hat', 'cap', 'beanie', 'bucket hat', 'beret',
+                    'เข็มขัด', 'belt', 'สายรัด', 'leather belt',
+                    'ผ้าพันคอ', 'scarf', 'ผ้าคลุม', 'shawl'
+                ],
+                'นาฬิกาและแว่นตา': [
+                    'นาฬิกา', 'watch', 'wristwatch', 'นาฬิกาข้อมือ', 'นาฬิกาผู้หญิง', 'นาฬิกาผู้ชาย',
+                    'smartwatch', 'smart watch', 'นาฬิกาอัจฉริยะ', 'fitness tracker', 'apple watch', 'garmin',
+                    'casio', 'g-shock', 'baby-g', 'rolex', 'omega', 'seiko', 'citizen', 'fossil',
+                    'แว่น', 'glasses', 'spectacles', 'แว่นสายตา', 'optical',
+                    'แว่นกันแดด', 'sunglasses', 'rayban', 'aviator', 'polarized',
+                    'เลนส์แว่น', 'lens', 'กรอบแว่น', 'frame', 'clip on'
+                ],
 
-                // --- OTHERS ---
-                'ความงาม': ['เครื่องสำอาง', 'ลิป', 'แต่งหน้า', 'น้ำหอม', 'แป้ง', 'รองพื้น'],
-                'ผลิตภัณฑ์ดูแลผิว': ['ผิวหน้า', 'ผิวกาย', 'ดูแลผม', 'เล็บ', 'เซรั่ม', 'ครีม', 'กันแดด', 'สบู่', 'แชมพู'],
-                'สุขภาพ': ['อาหารเสริม', 'วิตามิน', 'คอลลาเจน', 'เวย์', 'แมสก์', 'หน้ากากอนามัย'],
-                'เครื่องใช้ในบ้าน': ['อุปกรณ์สำหรับจัดเก็บ', 'ตกแต่งบ้าน', 'เฟอร์นิเจอร์', 'โคมไฟ', 'ทิชชู่'],
-                'บ้านและสวน': ['สวน', 'ต้นไม้', 'กระถาง'],
-                'อาหารและเครื่องดื่ม': ['ขนม', 'อาหารสำเร็จรูป', 'เครื่องดื่ม'],
-                'ของเล่น สินค้างานอดิเรก': ['ของเล่น', 'ของสะสม', 'ตุ๊กตา', 'โมเดล', 'เลโก้'],
-                'แม่และเด็ก': ['อุปกรณ์สำหรับเด็ก', 'รถเข็น', 'ผ้าอ้อม', 'นมผง'],
-                'เสื้อผ้าเด็ก': ['เสื้อผ้าเด็กแรกเกิด', 'เสื้อผ้าเด็กผู้หญิง', 'เสื้อผ้าเด็กผู้ชาย'],
-                'กีฬาและกิจกรรมกลางแจ้ง': ['อุปกรณ์ฟิตเนส', 'การออกกำลังกาย', 'รองเท้ากีฬา', 'แคมป์ปิ้ง', 'ตกปลา'],
-                'ยานยนต์': ['อุปกรณ์ภายในรถยนต์', 'อุปกรณ์ภายนอกรถยนต์', 'รถยนต์', 'มอเตอร์ไซค์'],
-                'สัตว์เลี้ยง': ['อาหารสัตว์', 'อุปกรณ์สำหรับสัตว์เลี้ยง'],
+                // === BEAUTY & HEALTH ===
+                'ความงาม': [
+                    'เครื่องสำอาง', 'cosmetics', 'makeup', 'เมคอัพ',
+                    'ลิป', 'lipstick', 'lip gloss', 'lip tint', 'ลิปสติก', 'ลิปกลอส', 'ลิปทินท์', 'lip balm',
+                    'รองพื้น', 'foundation', 'cushion', 'powder', 'แป้ง', 'แป้งพัฟ', 'แป้งฝุ่น', 'bb cream', 'cc cream',
+                    'บลัชออน', 'blush', 'ไฮไลท์', 'highlighter', 'contour', 'bronzer',
+                    'อายแชโดว์', 'eyeshadow', 'มาสคาร่า', 'mascara', 'ที่ดัดขนตา', 'eyeliner', 'eyebrow', 'คิ้ว',
+                    'น้ำหอม', 'perfume', 'fragrance', 'cologne', 'body spray', 'กลิ่น', 'eau de parfum',
+                    'palette', 'เซตเครื่องสำอาง', 'ชุดเครื่องสำอาง', 'makeup set'
+                ],
+                'ผลิตภัณฑ์ดูแลผิว': [
+                    'สกินแคร์', 'skincare', 'ดูแลผิว', 'บำรุงผิว',
+                    'เซรั่ม', 'serum', 'essence', 'ampoule', 'treatment', 'niacinamide', 'vitamin c', 'retinol',
+                    'ครีม', 'cream', 'moisturizer', 'lotion', 'gel', 'emulsion', 'night cream', 'eye cream',
+                    'กันแดด', 'sunscreen', 'sun protection', 'spf', 'uv', 'กันแดดหน้า', 'กันแดดตัว', 'sunblock',
+                    'สบู่', 'soap', 'cleanser', 'โฟมล้างหน้า', 'face wash', 'cleansing oil', 'micellar water',
+                    'โทนเนอร์', 'toner', 'mist', 'สเปรย์', 'essence water',
+                    'มาส์ก', 'mask', 'sheet mask', 'sleeping mask', 'clay mask', 'peeling'
+                ],
+                'สุขภาพ': [
+                    'อาหารเสริม', 'supplement', 'วิตามิน', 'vitamin', 'minerals', 'multivitamin',
+                    'คอลลาเจน', 'collagen', 'glutathione', 'โปรตีน', 'protein', 'เวย์', 'whey',
+                    'แมสก์', 'mask', 'หน้ากากอนามัย', 'surgical mask', 'n95', 'kf94', 'kn95',
+                    'ปรอทวัดไข้', 'thermometer', 'เครื่องวัดไข้',
+                    'เครื่องวัดความดัน', 'blood pressure', 'monitor',
+                    'ยา', 'medicine', 'ยาแก้ปวด', 'painkiller', 'พารา', 'paracetamol',
+                    'สมุนไพร', 'herb', 'herbal', 'ยาหม่อง', 'balm', 'น้ำมันมวย',
+                    'อุปกรณ์การแพทย์', 'medical', 'wheelchair', 'ไม้เท้า', 'walker'
+                ],
+
+                // === HOME & LIVING ===
+                'บ้านและสวน': [
+                    'สวน', 'garden', 'ต้นไม้', 'plant', 'plants', 'กระถาง', 'pot', 'planter',
+                    'ดินปลูก', 'soil', 'ปุ๋ย', 'fertilizer', 'ยาฆ่าแมลง', 'pesticide',
+                    'อุปกรณ์ทำสวน', 'gardening tools', 'จอบ', 'เสียม', 'กรรไกรตัดกิ่ง',
+                    'ระบบน้ำ', 'irrigation', 'สายยาง', 'sprinkler', 'หัวฉีด',
+                    'ตกแต่งสวน', 'garden decor', 'โคมไฟสวน', 'water feature', 'น้ำพุ'
+                ],
+                'เครื่องใช้ในบ้าน': [
+                    'จัดเก็บ', 'storage', 'กล่อง', 'box', 'ตะกร้า', 'basket', 'ชั้นวาง', 'rack', 'shelf', 'organizer',
+                    'ตู้', 'cabinet', 'drawer', 'ลิ้นชัก', 'wardrobe', 'closet', 'bookshelf',
+                    'ไม้แขวน', 'hanger', 'ที่แขวน', 'hook', 'clip', 'คลิป',
+                    'ผ้าปูที่นอน', 'bed sheet', 'ผ้าห่ม', 'blanket', 'comforter', 'duvet',
+                    'หมอน', 'pillow', 'ที่นอน', 'mattress', 'topper', 'memory foam',
+                    'มุ้ง', 'mosquito net', 'ม่าน', 'curtain', 'blinds', 'ผ้าม่าน',
+                    'พรม', 'rug', 'carpet', 'mat', 'แผ่นรอง', 'floor mat', 'yoga mat',
+                    'โคมไฟ', 'lamp', 'light', 'led', 'bulb', 'ไฟ', 'ไฟตกแต่ง', 'ceiling light', 'table lamp',
+                    'เทียน', 'candle', 'diffuser', 'กลิ่น', 'น้ำหอมปรับอากาศ', 'air freshener',
+                    'นาฬิกาแขวน', 'wall clock', 'นาฬิกาตั้งโต๊ะ', 'alarm clock',
+                    'กระจก', 'mirror', 'กระจกแต่งตัว', 'กระจกเต็มตัว', 'vanity mirror'
+                ],
+                'อาหารและเครื่องดื่ม': [
+                    'อาหาร', 'food', 'ขนม', 'snack', 'ขนมขบเคี้ยว', 'chips', 'cookie', 'คุกกี้', 'cracker',
+                    'เครื่องดื่ม', 'drink', 'beverage', 'ชา', 'tea', 'กาแฟ', 'coffee', 'น้ำผลไม้', 'juice', 'นม', 'milk',
+                    'อาหารเสริม', 'health food', 'organic', 'ออร์แกนิค', 'คลีน', 'clean food', 'vegan',
+                    'อาหารแห้ง', 'dried food', 'อาหารกระป๋อง', 'canned food', 'instant food',
+                    'ซอส', 'sauce', 'เครื่องปรุง', 'seasoning', 'น้ำมัน', 'oil', 'น้ำปลา', 'soy sauce',
+                    'ขนมเค้ก', 'cake', 'เบเกอรี่', 'bakery', 'bread', 'ขนมปัง', 'pastry',
+                    'ช็อคโกแลต', 'chocolate', 'ลูกอม', 'candy', 'เยลลี่', 'jelly', 'gummy', 'ice cream'
+                ],
+                'ของเล่น สินค้างานอดิเรก': [
+                    'ของเล่น', 'toy', 'toys', 'ตุ๊กตา', 'doll', 'plush', 'teddy bear',
+                    'โมเดล', 'model', 'figure', 'action figure', 'nendoroid', 'funko', 'pop',
+                    'เลโก้', 'lego', 'ตัวต่อ', 'building blocks', 'brick',
+                    'ของสะสม', 'collectible', 'card', 'การ์ด', 'trading card', 'pokemon card',
+                    'jigsaw', 'จิ๊กซอว์', 'puzzle', 'board game', 'บอร์ดเกม', 'monopoly', 'uno',
+                    'remote control', 'rc car', 'รถบังคับ', 'โดรน', 'drone', 'dji',
+                    'ศิลปะ', 'art', 'สี', 'paint', 'brush', 'พู่กัน', 'canvas', 'งานฝีมือ', 'craft'
+                ],
+
+                // === BABY & KIDS ===
+                'แม่และเด็ก': [
+                    'เด็ก', 'baby', 'infant', 'toddler', 'เด็กเล็ก', 'เด็กอ่อน', 'newborn', 'คนท้อง', 'คุณแม่',
+                    'รถเข็น', 'stroller', 'pram', 'buggy', 'car seat', 'คาร์ซีท', 'combi', 'chicco',
+                    'ผ้าอ้อม', 'diaper', 'nappy', 'แพมเพิส', 'pampers', 'merries', 'moony', 'goon',
+                    'นมผง', 'formula', 'นมเด็ก', 'baby food', 'อาหารเด็ก', 'ขนมเด็ก', 'similac', 'enfamil',
+                    'ขวดนม', 'baby bottle', 'จุกนม', 'pacifier', 'pigeon', 'dr brown',
+                    'เสื้อผ้าเด็ก', 'baby clothes', 'ชุดเด็ก', 'ชุดทารก', 'onesie', 'romper',
+                    'ของเล่นเด็ก', 'baby toy', 'educational toy', 'พัฒนาการ', 'fisher price',
+                    'เตียงเด็ก', 'crib', 'baby bed', 'เปล', 'เบาะ', 'mattress',
+                    'อาบน้ำ', 'bathtub', 'แชมพู', 'baby shampoo', 'โลชั่น', 'baby lotion', 'johnson baby',
+                    'เป้อุ้ม', 'carrier', 'sling', 'ผ้าอุ้ม', 'ergobaby', 'hipseat'
+                ],
+                'เสื้อผ้าเด็ก': [
+                    'เสื้อผ้าเด็ก', 'kids clothes', 'children clothes', 'ชุดเด็ก',
+                    'เด็กแรกเกิด', 'newborn', 'baby wear', 'infant clothes',
+                    'เด็กผู้หญิง', 'girls', 'ชุดเด็กหญิง',
+                    'เด็กผู้ชาย', 'boys', 'ชุดเด็กชาย',
+                    'ชุดนอนเด็ก', 'kids pajama', 'ชุดอยู่บ้าน',
+                    'ชุดนักเรียน', 'school uniform', 'ชุดอนุบาล', 'ชุดประถม',
+                    'รองเท้าเด็ก', 'kids shoes', 'รองเท้าเด็กเล็ก', 'baby shoes',
+                    'ถุงเท้าเด็ก', 'kids socks', 'ชุดชั้นในเด็ก', 'kids underwear'
+                ],
+
+                // === SPORTS & OUTDOORS ===
+                'กีฬาและกิจกรรมกลางแจ้ง': [
+                    'กีฬา', 'sport', 'sports', 'ออกกำลังกาย', 'exercise', 'fitness', 'workout', 'gym',
+                    'รองเท้ากีฬา', 'sport shoes', 'running shoes', 'basketball shoes', 'football', 'soccer',
+                    'ลูกบอล', 'ball', 'ฟุตบอล', 'soccer', 'บาสเกตบอล', 'basketball', 'วอลเลย์บอล',
+                    'ไม้แบด', 'badminton', 'racket', 'เทนนิส', 'tennis', 'ปิงปอง', 'table tennis',
+                    'โยคะ', 'yoga', 'pilates', 'เสื่อโยคะ', 'mat', 'ยางยืด', 'resistance band',
+                    'ดัมเบล', 'dumbbell', 'barbell', 'weight', 'ลูกเหล็ก', 'kettlebell',
+                    'ลู่วิ่ง', 'treadmill', 'จักรยาน', 'bicycle', 'exercise bike',
+                    'แคมป์ปิ้ง', 'camping', 'เต็นท์', 'tent', 'ถุงนอน', 'sleeping bag',
+                    'ตกปลา', 'fishing', 'เบ็ด', 'rod', 'reel', 'เหยื่อ', 'lure',
+                    'ว่ายน้ำ', 'swimming', 'ชุดว่ายน้ำ', 'swimsuit', 'แว่นว่ายน้ำ', 'goggles',
+                    'มวย', 'boxing', 'นวม', 'gloves', 'กระสอบทราย', 'punching bag'
+                ],
+                'การเดินทางและกระเป๋าเดินทาง': [
+                    'กระเป๋าเดินทาง', 'travel bag', 'suitcase', 'luggage', 'carry on',
+                    'ล้อลาก', 'trolley', 'spinner', 'hard case', 'soft case', 'samsonite', 'american traveler',
+                    'เป้เดินทาง', 'travel backpack', 'rucksack', 'hiking bag', 'osprey', 'deuter',
+                    'กระเป๋าถือ', 'hand carry', 'cabin bag', 'boarding bag', 'weekender',
+                    'กระเป๋าเอกสาร', 'briefcase', 'laptop bag', 'messenger',
+                    'อุปกรณ์เดินทาง', 'travel accessories', 'หมอนรองคอ', 'neck pillow', 'eye mask', 'earplug',
+                    'tag กระเป๋า', 'luggage tag', 'lock', 'กุญแจกระเป๋า', 'tsa lock', 'cover', 'ปลอกกระเป๋า'
+                ],
+
+                // === AUTOMOTIVE & PETS ===
+                'ยานยนต์': [
+                    'รถยนต์', 'car', 'auto', 'automotive', 'รถ', 'vehicle',
+                    'มอเตอร์ไซค์', 'motorcycle', 'bike', 'motor', 'scooter',
+                    'อุปกรณ์ในรถยนต์', 'car accessories', 'ที่ชาร์จในรถ', 'car charger', 'phone holder',
+                    'น้ำหอมในรถ', 'car perfume', 'air freshener', 'ที่แขวน', 'car hook', 'ที่วาง', 'holder',
+                    'พรมปูพื้น', 'floor mat', 'ยางปูพื้น', 'car mat',
+                    'ฟิล์ม', 'film', 'tint', 'ฟิล์มกรองแสง', 'window film', '3m', 'llumar', 'v-kool',
+                    'กล้องติดรถ', 'dash cam', 'car camera', 'กล้องหน้ารถ', 'blackvue', 'thinkware',
+                    'เครื่องเสียง', 'car audio', 'ลำโพง', 'speaker', 'subwoofer', 'amplifier', 'pioneer', 'jbl',
+                    'ยาง', 'tire', 'tyre', 'ล้อ', 'wheel', 'แม็ก', 'rim',
+                    'น้ำมันเครื่อง', 'engine oil', 'lubricant', 'additive', 'น้ำยาหล่อเย็น',
+                    'แบตเตอรี่', 'battery', 'accu', 'ที่ชาร์จแบต', 'jump starter',
+                    'ทำความสะอาด', 'car care', 'wax', 'polish', 'shampoo', 'ผ้าไมโครไฟเบอร์',
+                    'หมวกกันน็อค', 'helmet', 'เสื้อกันฝน', 'rain coat'
+                ],
+                'สัตว์เลี้ยง': [
+                    'สัตว์เลี้ยง', 'pet', 'pets', 'สัตว์', 'animal',
+                    'สุนัข', 'dog', 'puppy', 'หมา',
+                    'แมว', 'cat', 'kitten',
+                    'อาหารสัตว์', 'pet food', 'อาหารสุนัข', 'dog food', 'อาหารแมว', 'cat food', 'royal canin', 'pedigree', 'whiskas',
+                    'ขนมสัตว์', 'pet snack', 'treats', 'jerhigh',
+                    'ทรายแมว', 'cat litter', 'กระบะทราย', 'litter box',
+                    'กรง', 'cage', 'kennel', 'กรงสุนัข', 'กรงแมว',
+                    'บ้านสัตว์', 'pet house', 'bed', 'ที่นอน', 'เบาะ', 'cat tree', 'cat condo',
+                    'เสื้อผ้าสัตว์', 'pet clothes', 'ชุดสุนัข', 'ชุดแมว',
+                    'ของเล่นสัตว์', 'pet toy', 'ของเล่นสุนัข', 'ของเล่นแมว',
+                    'สายจูง', 'leash', 'collar', 'ปลอกคอ', 'สายรัด', 'harness',
+                    'แชมพู', 'shampoo', 'grooming', 'กรูมมิ่ง', 'ตัดเล็บ', 'clipper'
+                ],
+
+                // === OTHERS ===
+                'หนังสือและสื่อบันเทิง': [
+                    'หนังสือ', 'book', 'books', 'นิยาย', 'novel', 'manga', 'การ์ตูน', 'comic', 'light novel',
+                    'kindle', 'reader', 'อ่าน', 'reading',
+                    'nft', 'digital art', 'crypto',
+                    'dvd', 'blu-ray', 'cd', 'แผ่น', 'movie', 'film', 'เพลง', 'music', 'album', 'vinyl', 'kpop'
+                ],
+                'ตั๋วและบัตรกำนัล': [
+                    'ตั๋ว', 'ticket', 'tickets', 'บัตร', 'card', 'voucher', 'coupon',
+                    'บัตรกำนัล', 'gift card', 'gift voucher', 'e-gift card',
+                    'travel voucher', 'โรงแรม', 'hotel', 'ที่พัก', 'resort', 'booking', 'agoda',
+                    'ตั๋วเครื่องบิน', 'flight ticket', 'air ticket',
+                    'บัตรคอนเสิร์ต', 'concert ticket', 'event ticket', 'งานแสดง',
+                    'ส่วนลด', 'discount', 'promotion', 'deal', 'offer', 'flash sale'
+                ],
+                'เครื่องเขียนและอุปกรณ์สำนักงาน': [
+                    'เครื่องเขียน', 'stationery', 'pen', 'ปากกา', 'pencil', 'ดินสอ', 'ballpoint', 'gel pen', 'marker',
+                    'สมุด', 'notebook', 'notepad', 'libretto', 'planner', 'diary', 'journal', 'bullet journal',
+                    'กระดาษ', 'paper', 'a4', 'print', 'photocopy', 'sticker', 'สติกเกอร์', 'label', 'washi tape',
+                    'กรรไกร', 'scissors', 'คัตเตอร์', 'cutter', 'มีด', 'knife', 'blade',
+                    'กาว', 'glue', 'tape', 'เทป', 'scotch tape', 'glue stick', 'hot glue',
+                    'folder', 'แฟ้ม', 'file', 'document', 'ซอง', 'envelope', 'pouch', 'binder',
+                    'calculator', 'เครื่องคิดเลข', 'stamp', 'ตรายาง', 'ink pad', 'หมึก',
+                    'whiteboard', 'กระดาน', 'marker', 'ปากกาไวท์บอร์ด', 'chalk', 'ชอล์ค',
+                    'organizer', 'ที่จัดเก็บ', 'box', 'กล่อง', 'tray', 'ถาด', 'stand', 'ขาตั้ง', 'pen holder'
+                ],
                 'อื่นๆ': []
             };
 
             // Loop through dictionary to find matching keywords
             for (const [categoryName, keywords] of Object.entries(shopeeDict)) {
+                if (keywords.length === 0) continue;
                 if (keywords.some(keyword => t.includes(keyword.toLowerCase()))) {
                     return categoryName;
                 }
             }
 
             // fallback
-            return 'ทั่วไป';
+            return 'อื่นๆ';
         }
 
         function parseShopeeCSV(csvText, importCategory) {
