@@ -165,7 +165,8 @@
         async function loadStats() {
             try {
                 log('Loading stats...', 'info');
-                const data = await fetchWithAuth('/api/ai/stats');
+                // Use public test endpoint first
+                const data = await fetch(`${API_BASE}/api/ai/test`).then(r => r.json());
                 document.getElementById('totalPredictions').innerText = data.totalPredictions;
                 document.getElementById('correctPredictions').innerText = data.correctPredictions;
                 document.getElementById('accuracy').innerText = data.accuracy;

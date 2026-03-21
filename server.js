@@ -1034,8 +1034,8 @@ app.post('/api/categorize', requireAuth, async (req, res) => {
 
 // === AI LEARNING ENDPOINTS ===
 
-// Test endpoint
-app.get('/api/ai/test', requireAuth, async (req, res) => {
+// Test endpoint (Public - no auth required for testing)
+app.get('/api/ai/test', async (req, res) => {
   try {
     const stats = ai.getStats();
     res.json({

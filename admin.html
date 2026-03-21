@@ -4010,6 +4010,13 @@
         async function loadAIStats() {
             try {
                 console.log('🔄 Loading AI stats...');
+                console.log('   Auth token:', authToken ? 'Present' : 'Missing');
+
+                if (!authToken) {
+                    console.warn('⚠️ No auth token, skipping AI stats load');
+                    return;
+                }
+
                 const res = await fetchWithAuth('/api/ai/stats');
                 console.log('📊 AI Stats response:', res.status);
                 const data = await res.json();
@@ -4031,9 +4038,13 @@
                     }
                 } else {
                     console.error('❌ AI Stats failed:', data);
+                    showToast('❌ โหลดสถิติ AI ล้มเหลว: ' + (data.error || 'Unknown error'));
                 }
             } catch (err) {
                 console.error('❌ Failed to load AI stats:', err);
+                if (err.message !== 'Unauthorized') {
+                    showToast('❌ ไม่สามารถโหลดข้อมูล AI ได้');
+                }
             }
         }
 
