@@ -66,58 +66,39 @@ function generateHashtags(product) {
  * Falls back to a high-quality template if the API key is missing or fails.
  */
 async function generateAICaption(product) {
-    const apiKey = process.env.GEMINI_API_KEY;
     const title = product.title || '';
     const price = Number(product.price).toLocaleString();
-    const brand = title.split(' ')[0]; // Simple brand extraction
+    const category = product.category || 'ทั่วไป';
 
-    if (!apiKey) {
-        // High-quality template fallback (Reviewer Style)
-        const templates = [
-            `🌟 บอกพิกัดของดี! ${title} ตัวนี้คือที่สุดดคุ้มมากกก\n💰 ราคาแค่ ฿${price} เท่านั้น (ราคาดีมากก)\n🛒 ใครหาอยู่รีบเลยย กดที่ลิ้งค์ได้เลยน้าา`,
-            `🔥 ป้ายยาแรงๆ! ${title} ของมันต้องมีจริงๆ ทุกคนน\n💸 ค่าตัวน้องอยู่ที่ ฿${price} (คุ้มค่าตัวสุดๆ)\n📍 พิกัดความปังจิ้มเล้ยย`,
-            `✨ รีวิวสั้นๆ: ${title} ใช้แล้วชอบมากกก ดีไซน์สวย ใช้งานดี\n💵 ราคา ฿${price} (ราคานี้คือต้องจัดแล้วว)\n🔗 สนใจจิ้มตรงนี้ได้เลยย`,
-        ];
-        return templates[Math.floor(Math.random() * templates.length)];
-    }
+    // Fallback template (Reviewer Style)
+    const fallbackTemplates = [
+        `🌟 บอกพิกัดของดี! ${title} ตัวนี้คือที่สุดดคุ้มมากกก\n💰 ราคาแค่ ฿${price} เท่านั้น (ราคาดีมากก)\n🛒 ใครหาอยู่รีบเลยย กดที่ลิ้งค์ได้เลยน้าา`,
+        `🔥 ป้ายยาแรงๆ! ${title} ของมันต้องมีจริงๆ ทุกคนน\n💸 ค่าตัวน้องอยู่ที่ ฿${price} (คุ้มค่าตัวสุดๆ)\n📍 พิกัดความปังจิ้มเล้ยย`,
+        `✨ รีวิวสั้นๆ: ${title} ใช้แล้วชอบมากกก ดีไซน์สวย ใช้งานดี\n💵 ราคา ฿${price} (ราคานี้คือต้องจัดแล้วว)\n🔗 สนใจจิ้มตรงนี้ได้เลยย`,
+    ];
 
     try {
-        const prompt = `คุณคือ Blogger นักรีวิวสินค้าสาย "ป้ายยา" ตัวแม่ระดับพระกาฬ ที่เขียนโพสต์ได้น่าดึงดูด เป็นธรรมชาติ และไม่ซ้ำซากจำเจ (ห้ามใช้แพทเทิร์นเดิมๆ ทุกโพสต์เด็ดขาด)
-        
-ข้อมูลสินค้า:
-- ชื่อสินค้า: ${title}
-- ราคา: ฿${price}
-        
-คำสั่งพิเศษสำหรับการเขียนโพสต์นี้:
-1. การเปิดเรื่อง (Hook): ให้สุ่มเลือกสไตล์การเปิดเรื่องแบบใดแบบหนึ่ง (เช่น ร้องกรี๊ด, เล่าปัญหาชีวิต, กระซิบของดี, ประกาศโปรลับ, หรือท้าให้ลอง) ให้แต่ละโพสต์เริ่มต้นไม่เหมือนกัน
-2. สไตล์ภาษา: ใช้ภาษาพูดวัยรุ่น เป็นกันเอง ดึงดูดความสนใจ คล้ายกำลังเมาท์มอยยาป้ายเพื่อนสนิท
-3. การรีวิว: ดึงจุดเด่นจากชื่อสินค้ามาอวยแบบเนียนๆ ว่าทำไม "ของมันต้องมี" หรือ "ไม่มีคือพลาดมาก"
-4. ความคุ้มค่า: เน้นย้ำราคา ${price} บาท ว่ามันคุ้มค่า หรือถูกเหมือนแจกฟรี
-5. Call to Action (CTA): จบประโยคด้วยการบิ๊วให้คนรีบกดลิงก์ด่วนๆ (แต่ไม่ต้องใส่ลิงก์หรือ Hashtag มาให้ เรามีระบบใส่ให้เอง)
-6. Emojis: ใส่ Emoji ที่เข้ากับบริบทให้ดูน่ารักและมีสีสัน แต่อย่าใส่จุดเดิมๆ ซ้ำกัน
-        
-กฎเหล็ก: คิดให้สร้างสรรค์ที่สุด ห้ามเขียนออกมาเป็นหุ่นยนต์ และให้ความรู้สึกรีวิวจริงๆ
+        const templatesPath = path.join(__dirname, 'category_templates.json');
+        if (fs.existsSync(templatesPath)) {
+            const fileData = fs.readFileSync(templatesPath, 'utf8');
+            const allTemplates = JSON.parse(fileData);
 
-เขียนโพสต์สำหรับสินค้านี้มา 1 โพสต์สั้นๆ (ไม่เกิน 4-5 บรรทัด):`;
-
-        const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-            {
-                contents: [{ parts: [{ text: prompt }] }]
+            if (allTemplates[category] && allTemplates[category].length > 0) {
+                // Pick a random template for this category
+                const templates = allTemplates[category];
+                const selected = templates[Math.floor(Math.random() * templates.length)];
+                
+                // Replace placeholders with real product data
+                let caption = selected.replace(/{title}/g, title).replace(/{price}/g, price);
+                return caption;
             }
-        );
-
-        const aiText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        return aiText || "ลองดูนี่! " + title + " ราคา " + price + " บาท ดีมากกก";
-    } catch (err) {
-        const errorMsg = err.response?.data?.error?.message || err.message;
-        console.error('⚠️ Gemini AI Error:', errorMsg);
-        // Log to debug file if we are in bulk mode
-        if (fs.existsSync('debug_social.log')) {
-            fs.appendFileSync('debug_social.log', `[${new Date().toISOString()}] ❌ Gemini API Error: ${errorMsg}\n`);
         }
-        return `🌟 แนะนำเลย! ${title} ราคา ฿${price} คุ้มสุดๆ ต้องจัดแล้วว`;
+    } catch (err) {
+        console.error('⚠️ Error reading category templates:', err.message);
     }
+
+    // Use fallback if json is missing or category not found
+    return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
 }
 
 /**
@@ -696,7 +677,7 @@ ${categories.map(c => `- ${c}`).join('\n')}
 หมวดหมู่ที่เลือกคือ:`;
 
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
             {
                 contents: [{ parts: [{ text: prompt }] }]
             }
@@ -744,7 +725,7 @@ async function generateSEOData(product) {
 ตอบกลับเฉพาะ JSON เท่านั้น และห้ามมีตัวอักษรอื่น:`;
 
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
             {
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: { response_mime_type: "application/json" }
