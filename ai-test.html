@@ -298,6 +298,10 @@
                 authToken = token;
                 localStorage.setItem('adminToken', token);
             }
+            if (!authToken) {
+                alert('🔑 กรุณาเข้าสู่ระบบ Admin ก่อนใช้งานหน้านี้');
+                window.location.href = '/admin.html';
+            }
         }
 
         // Initialize
