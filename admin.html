@@ -4009,8 +4009,11 @@
         // Load AI stats on page load
         async function loadAIStats() {
             try {
+                console.log('🔄 Loading AI stats...');
                 const res = await fetchWithAuth('/api/ai/stats');
+                console.log('📊 AI Stats response:', res.status);
                 const data = await res.json();
+                console.log('📊 AI Stats data:', data);
 
                 if (data.success) {
                     document.getElementById('aiTotalPredictions').innerText = data.totalPredictions.toLocaleString();
@@ -4026,9 +4029,11 @@
                     } else {
                         badge.style.display = 'none';
                     }
+                } else {
+                    console.error('❌ AI Stats failed:', data);
                 }
             } catch (err) {
-                console.error('Failed to load AI stats:', err);
+                console.error('❌ Failed to load AI stats:', err);
             }
         }
 

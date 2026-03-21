@@ -1034,9 +1034,25 @@ app.post('/api/categorize', requireAuth, async (req, res) => {
 
 // === AI LEARNING ENDPOINTS ===
 
+// Test endpoint
+app.get('/api/ai/test', requireAuth, async (req, res) => {
+  try {
+    const stats = ai.getStats();
+    res.json({
+      success: true,
+      message: 'AI Learning is working!',
+      ...stats
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Record correction (user feedback)
 app.post('/api/ai/learn/correct', requireAuth, async (req, res) => {
   const { title, predictedCategory, correctCategory } = req.body;
+
+  console.log('🎓 Learning correction:', { title, predictedCategory, correctCategory });
 
   if (!title || !predictedCategory || !correctCategory) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -1044,8 +1060,10 @@ app.post('/api/ai/learn/correct', requireAuth, async (req, res) => {
 
   try {
     const result = recordCorrection(title, predictedCategory, correctCategory);
+    console.log('✅ Learning result:', result);
     res.json(result);
   } catch (err) {
+    console.error('❌ Learning error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

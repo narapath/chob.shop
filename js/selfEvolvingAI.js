@@ -4,23 +4,44 @@
 const fs = require('fs');
 const path = require('path');
 
-const LEARNING_DATA_PATH = path.join(__dirname, '../data/learning_data.json');
-const KEYWORD_WEIGHTS_PATH = path.join(__dirname, '../data/keyword_weights.json');
+const DATA_DIR = path.join(__dirname, '../data');
+const LEARNING_DATA_PATH = path.join(DATA_DIR, 'learning_data.json');
+const KEYWORD_WEIGHTS_PATH = path.join(DATA_DIR, 'keyword_weights.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  console.log('📁 Created data directory');
+}
+
+// Initialize files if they don't exist
+if (!fs.existsSync(LEARNING_DATA_PATH)) {
+  fs.writeFileSync(LEARNING_DATA_PATH, JSON.stringify({
+    totalPredictions: 0,
+    correctPredictions: 0,
+    corrections: [],
+    categoryHistory: {}
+  }, null, 2));
+  console.log('📄 Created learning_data.json');
+}
+
+if (!fs.existsSync(KEYWORD_WEIGHTS_PATH)) {
+  fs.writeFileSync(KEYWORD_WEIGHTS_PATH, JSON.stringify({}, null, 2));
+  console.log('📄 Created keyword_weights.json');
+}
 
 class SelfEvolvingAI {
   constructor() {
-    this.learningData = this.loadData(LEARNING_DATA_PATH, {
-      totalPredictions: 0,
-      correctPredictions: 0,
-      corrections: [],
-      categoryHistory: {}
-    });
-    
-    this.keywordWeights = this.loadData(KEYWORD_WEIGHTS_PATH, {});
+    this.learningData = this.loadData(LEARNING_DATA_PATH);
+    this.keywordWeights = this.loadData(KEYWORD_WEIGHTS_PATH);
+    console.log('🧠 AI Learning System initialized');
+    console.log(`   - Total predictions: ${this.learningData.totalPredictions}`);
+    console.log(`   - Corrections: ${this.learningData.corrections.length}`);
+    console.log(`   - Keyword weights: ${Object.keys(this.keywordWeights).length}`);
   }
 
   // Load data from JSON file
-  loadData(filePath, defaultData) {
+  loadData(filePath) {
     try {
       if (fs.existsSync(filePath)) {
         const data = fs.readFileSync(filePath, 'utf8');
@@ -29,11 +50,7 @@ class SelfEvolvingAI {
     } catch (err) {
       console.error('⚠️ Error loading learning data:', err.message);
     }
-    
-    // Create default file
-    this.ensureDirectoryExists(filePath);
-    fs.writeFileSync(filePath, JSON.stringify(defaultData, null, 2));
-    return defaultData;
+    return { totalPredictions: 0, correctPredictions: 0, corrections: [], categoryHistory: {} };
   }
 
   // Save data to JSON file
