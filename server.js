@@ -337,14 +337,36 @@ app.post('/api/products', requireAuth, async (req, res) => {
 app.post('/api/products/bulk', requireAuth, async (req, res) => {
   try {
     if (!supabase) throw new Error("Supabase is not configured.");
-    const { items, autoPostFB, autoPostIG, autoPostX, autoPostThreads, toggleAI } = req.body;
+    const { items, autoPostFB, autoPostIG, autoPostX, autoPostThreads } = req.body;
     const shouldPost = autoPostFB || autoPostIG || autoPostX || autoPostThreads;
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Expected an array of products' });
     }
 
-    const itemsToAdd = items.map(p => {
+    // Auto Generate SEO สำหรับสินค้าที่ยังไม่มี
+    const itemsWithSEO = await Promise.all(items.map(async (p) => {
+      // ถ้ามี SEO อยู่แล้ว ใช้ได้เลย
+      if (p.seo_description && p.seo_keywords && p.seo_keywords.length > 0) {
+        return p;
+      }
+
+      // Generate SEO ใหม่
+      try {
+        const seoData = generateLocalSEO(p.title, p.category, p.price);
+        return {
+          ...p,
+          seo_keywords: seoData.seo_keywords,
+          seo_description: seoData.seo_description,
+          seo_title: seoData.seo_title
+        };
+      } catch (err) {
+        console.error('Failed to generate SEO for:', p.title, err.message);
+        return p;
+      }
+    }));
+
+    const itemsToAdd = itemsWithSEO.map(p => {
       const parsedPrice = parseFloat(p.price) || 0;
       const parsedOriginalPrice = p.originalPrice ? parseFloat(p.originalPrice) : null;
       const parsedDiscount = p.discount ? parseInt(p.discount, 10) : null;
@@ -387,24 +409,27 @@ app.post('/api/products/bulk', requireAuth, async (req, res) => {
           const logMsg = (m) => fs.appendFileSync('debug_social.log', `[${new Date().toISOString()}] ${m}\n`);
           logMsg(`📝 Processing social media for: ${product.title}`);
 
+          // Generate AI Caption สำหรับโซเชียลมีเดีย
           let aiCaption = null;
-          if (toggleAI) {
+          try {
             aiCaption = await generateAICaption(product);
+          } catch (err) {
+            console.error('Failed to generate AI caption:', err.message);
           }
 
           let fbPostId = null, xPostId = null, threadsPostId = null;
 
           if (autoPostFB) {
-            const fbRes = await postToFacebook(product, siteUrl, toggleAI, aiCaption);
+            const fbRes = await postToFacebook(product, siteUrl, true, aiCaption);
             if (fbRes.success && fbRes.postId) fbPostId = fbRes.postId;
           }
-          if (autoPostIG) await postToInstagram(product, siteUrl, toggleAI, aiCaption);
+          if (autoPostIG) await postToInstagram(product, siteUrl, true, aiCaption);
           if (autoPostX) {
-            const xRes = await postToX(product, siteUrl, toggleAI, aiCaption);
+            const xRes = await postToX(product, siteUrl, true, aiCaption);
             if (xRes.success && xRes.tweetId) xPostId = xRes.tweetId;
           }
           if (autoPostThreads) {
-            const tRes = await postToThreads(product, siteUrl, toggleAI, aiCaption);
+            const tRes = await postToThreads(product, siteUrl, true, aiCaption);
             if (tRes.success && tRes.threadId) threadsPostId = tRes.threadId;
           }
 

@@ -1843,10 +1843,10 @@
                                 <label class="toggle-switch"><input type="checkbox" id="toggleThreads" checked><span class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row" style="border-color: var(--accent); background: rgba(233,69,96,0.05);">
-                                <span class="toggle-label"><span class="platform-icon">🤖</span> ใช้ AI เขียนโพสต์ และคิด SEO (แนะนำ)</span>
-                                <label class="toggle-switch"><input type="checkbox" id="toggleAI" checked><span class="toggle-slider"></span></label>
+                                <span class="toggle-label"><span class="platform-icon">✨</span> Auto Generate คอนเทนต์สินค้า (ใหม่!)</span>
+                                <label class="toggle-switch"><input type="checkbox" id="toggleAI" checked disabled><span class="toggle-slider"></span></label>
                             </div>
-                            <p class="hint" style="margin-top: 4px;">เปิดสวิตช์เพื่อโพสต์สินค้าลงโซเชียลมีเดียอัตโนมัติเมื่อนำเข้า CSV (ต้องตั้งค่า API Key ในหน้า Settings ก่อน)</p>
+                            <p class="hint" style="margin-top: 4px;">ระบบจะสร้างคอนเทนต์รีวิวอัตโนมัติเมื่ออัพโหลด CSV — ไม่ต้องตั้งค่าเพิ่มเติม</p>
                         </div>
                     </div>
                 </div>
@@ -2742,7 +2742,7 @@
             const missing = products.filter(p => !p.seo_keywords || p.seo_keywords.length === 0);
             if (missing.length === 0) return showToast('✨ สินค้าทุกชิ้นมี SEO ครบถ้วนแล้วครับ');
 
-            if (!confirm(`ตรวจสอบพบสินค้า ${missing.length} รายการที่ยังไม่มี SEO\nต้องการให้ระบบสร้างให้อัตโนมัติย้อนหลังหรือไม่?`)) return;
+            if (!confirm(`ตรวจสอบพบสินค้า ${missing.length} รายการที่ยังไม่มี SEO\nต้องการให้ระบบสร้างให้อัตโนมัติย����อนหลังหรือไม่?`)) return;
 
             const ids = missing.map(p => p.id);
             const btn = document.getElementById('fixSeoBtn');
@@ -2832,7 +2832,6 @@
             const image = document.getElementById('productImage').value;
             const affiliateUrl = document.getElementById('affiliateUrl').value;
             const description = document.getElementById('productDescription').value;
-            const toggleAI = document.getElementById('toggleAI').checked; 
             const seoKeywords = document.getElementById('seoKeywords').value.split(',').map(k => k.trim()).filter(k => k);
             const seoTitle = document.getElementById('seoTitle').value.trim();
             const seoDescription = document.getElementById('seoDescription').value.trim();
@@ -2847,7 +2846,7 @@
 
             const body = {
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
-                toggleAI, seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
+                seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
                 commission: parseFloat(commission)
             };
 
@@ -3164,24 +3163,23 @@
                 };
                 const hasSocial = socialMedia.facebook || socialMedia.instagram || socialMedia.x || socialMedia.threads;
 
-                // --- NEW SCRAPING & AI CATEGORIZATION LOGIC ---
-                // Only scrape if AI toggle is ON to prevent massive delays during CSV upload
-                const toggleAI = document.getElementById('toggleAI').checked;
-                const needsScrape = toggleAI ? productsArray.filter(p => p.affiliateUrl && !p.image) : [];
+                // --- AUTO SEO GENERATION + SCRAPING & AI CATEGORIZATION LOGIC ---
+                // Auto generate SEO เสมอ + scrape image ถ้ายังไม่มี
+                const needsScrape = productsArray.filter(p => p.affiliateUrl && !p.image);
                 const needsAICat = importCat === 'auto';
-                
-                if (needsScrape.length > 0 || needsAICat || toggleAI) {
+
+                if (needsScrape.length > 0 || needsAICat) {
                     const totalTasks = productsArray.length;
                     showToast(`⏳ เริ่มต้นการดึงข้อมูลและจัดการ AI... (0/${totalTasks})`);
                     let processedCount = 0;
-                    
+
                     // --- BATCH PROCESSING (5 items per batch) to prevent Rate Limit (15 RPM) ---
                     const batchSize = 5;
                     for (let i = 0; i < productsArray.length; i += batchSize) {
                         const batch = productsArray.slice(i, i + batchSize);
-                        
+
                         showToast(`🚀 กำลังประมวลผลชุดที่ ${Math.floor(i/batchSize) + 1} (${processedCount}/${totalTasks})...`);
-                        
+
                         const batchPromises = batch.map(async (product) => {
                             // 1. AI Categorization
                             if (needsAICat) {
@@ -3214,21 +3212,19 @@
                                 } catch (err) { console.error('Scraping failed:', err); }
                             }
                             
-                            // 3. AI SEO Generation (Gemini 1.5 Flash)
-                            if (toggleAI) {
-                                try {
-                                    const seoRes = await fetchWithAuth('/api/ai/seo', {
-                                        method: 'POST',
-                                        body: JSON.stringify({ title: product.title, category: product.category })
-                                    });
-                                    const seoData = await seoRes.json();
-                                    if (seoData.success) {
-                                        product.seo_keywords = seoData.seo_keywords || seoData.keywords || [];
-                                        product.seo_description = seoData.seo_description || seoData.description || '';
-                                        product.seo_title = seoData.seo_title || seoData.title || '';
-                                    }
-                                } catch (err) { console.error('AI SEO failed during upload:', err); }
-                            }
+                            // 3. AI SEO Generation - Auto generate เสมอเมื่ออัพโหลด CSV
+                            try {
+                                const seoRes = await fetchWithAuth('/api/ai/seo', {
+                                    method: 'POST',
+                                    body: JSON.stringify({ title: product.title, category: product.category, price: product.price })
+                                });
+                                const seoData = await seoRes.json();
+                                if (seoData.success) {
+                                    product.seo_keywords = seoData.seo_keywords || seoData.keywords || [];
+                                    product.seo_description = seoData.seo_description || seoData.description || '';
+                                    product.seo_title = seoData.seo_title || seoData.title || '';
+                                }
+                            } catch (err) { console.error('AI SEO failed during upload:', err); }
 
                             processedCount++;
                         });
@@ -3260,11 +3256,10 @@
                     const autoPostIG = document.getElementById('toggleInstagram').checked;
                     const autoPostX = document.getElementById('toggleX').checked;
                     const autoPostThreads = document.getElementById('toggleThreads').checked;
-                    const toggleAI = document.getElementById('toggleAI').checked;
 
-                    if (toggleAI) {
-                        confirmMsg += ` (เปิดระบบ AI ช่วยคิด SEO อัตโนมัติ 🪄)`;
-                    }
+                    // แจ้งว่า auto generate SEO เสมอ
+                    confirmMsg += ` (✨ Auto generate คอนเทนต์สินค้าอัตโนมัติ 🪄)`;
+
                     showToast(confirmMsg);
 
                     const res = await fetchWithAuth('/api/products/bulk', {
@@ -3274,8 +3269,7 @@
                             autoPostFB,
                             autoPostIG,
                             autoPostX,
-                            autoPostThreads,
-                            toggleAI
+                            autoPostThreads
                         })
                     });
                     const data = await res.json();
