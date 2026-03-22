@@ -15,7 +15,6 @@ const {
   generateSEOData
 } = require('./socialMedia');
 const categoryMapper = require('./js/categories');
-const { ai, recordPrediction, recordCorrection, getKeywordWeight, extractKeywords } = require('./js/selfEvolvingAI');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -972,61 +971,10 @@ app.put('/api/settings', requireAuth, (req, res) => {
   }
 });
 
-// --- POST categorize via Local Logic with AI Learning ---
-// ฟังก์ชันวิเคราะห์หมวดหมู่แบบ Local พร้อมเรียนรู้
+// --- POST categorize via Local Logic ---
 function generateLocalCategory(title, seoKeywords = [], description = '') {
   if (!title) return "อื่นๆ";
-
-  const t = title.toLowerCase();
-  const titleKeywords = extractKeywords(title);
-  const categories = categoryMapper.categories;
-
-  let bestMatch = 'อื่นๆ';
-  let highestScore = 0;
-
-  for (const [categoryName, categoryData] of Object.entries(categories)) {
-    if (!categoryData.keywords || categoryData.keywords.length === 0) continue;
-
-    let score = 0;
-
-    // 1. Predefined keyword matching
-    for (const keyword of categoryData.keywords) {
-      const kwLower = keyword.toLowerCase();
-      // Use word-based match from titleKeywords or exact match
-      const isMatch = titleKeywords.includes(kwLower) || t === kwLower;
-
-      if (isMatch) {
-        const learnedWeight = getKeywordWeight(kwLower, categoryName);
-        score += (t === kwLower ? 5 : 3) * learnedWeight;
-      }
-    }
-
-    // 2. AI Learned weights for all keywords in title
-    for (const kw of titleKeywords) {
-      const weight = getKeywordWeight(kw, categoryName);
-      if (weight > 1.0) {
-        score += (weight - 1.0) * 10;
-      } else if (weight < 1.0) {
-        score -= (1.0 - weight) * 5;
-      }
-    }
-
-    // Apply priority multiplier
-    if (score > 0) {
-      score *= (categoryData.priority || 1);
-    }
-
-    if (score > highestScore) {
-      highestScore = score;
-      bestMatch = categoryName;
-    }
-  }
-
-  // Record prediction for learning
-  const confidence = Math.min(1, highestScore / 100);
-  recordPrediction(title, bestMatch, confidence);
-
-  return bestMatch;
+  return categoryMapper.categorize(title);
 }
 
 app.post('/api/categorize', requireAuth, async (req, res) => {
@@ -1035,95 +983,7 @@ app.post('/api/categorize', requireAuth, async (req, res) => {
 
   try {
     const category = generateLocalCategory(title, seo_keywords, description);
-    res.json({ success: true, category, learningEnabled: true });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// === AI LEARNING ENDPOINTS ===
-
-// Test endpoint (Public - no auth required for testing)
-app.get('/api/ai/test', async (req, res) => {
-  try {
-    const stats = ai.getStats();
-    res.json({
-      success: true,
-      message: 'AI Learning is working!',
-      ...stats
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Record correction (user feedback)
-app.post('/api/ai/learn/correct', requireAuth, async (req, res) => {
-  const { title, predictedCategory, correctCategory } = req.body;
-
-  console.log('🎓 Learning correction:', { title, predictedCategory, correctCategory });
-
-  if (!title || !predictedCategory || !correctCategory) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-
-  try {
-    const result = recordCorrection(title, predictedCategory, correctCategory);
-    console.log('✅ Learning result:', result);
-    res.json(result);
-  } catch (err) {
-    console.error('❌ Learning error:', err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Get AI learning statistics
-app.get('/api/ai/stats', requireAuth, async (req, res) => {
-  try {
-    const stats = ai.getStats();
-    res.json({ success: true, ...stats });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Analyze learning patterns
-app.get('/api/ai/analyze', requireAuth, async (req, res) => {
-  try {
-    const patterns = ai.analyzePatterns();
-    res.json({ success: true, ...patterns });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Export learning data
-app.get('/api/ai/export', requireAuth, async (req, res) => {
-  try {
-    const data = ai.exportLearningData();
-    res.json({ success: true, ...data });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Import learning data
-app.post('/api/ai/import', requireAuth, async (req, res) => {
-  const { learningData, keywordWeights } = req.body;
-
-  try {
-    const result = ai.importLearningData({ learningData, keywordWeights });
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Reset learning data
-app.post('/api/ai/reset', requireAuth, async (req, res) => {
-  try {
-    const result = ai.resetLearning();
-    res.json(result);
+    res.json({ success: true, category });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
