@@ -645,6 +645,7 @@ async function postToSocialMedia(product, platforms = {}) {
 
 /**
  * Use Gemini AI to categorize a product based on its title.
+ * Enhanced with context analysis and examples for better accuracy.
  */
 async function categorizeProduct(title) {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -662,31 +663,60 @@ async function categorizeProduct(title) {
     ];
 
     try {
-        const prompt = `คุณคือผู้เชี่ยวชาญด้านการจัดหมวดหมู่สินค้าอีคอมเมิร์ซ จงวิเคราะห์ชื่อสินค้าต่อไปนี้และเลือก "หมวดหมู่ที่เหมาะสมที่สุดเพียงหมวดหมู่เดียว" จากรายการที่กำหนดให้เท่านั้น
+        const prompt = `คุณคือผู้เชี่ยวชาญด้านการจัดหมวดหมู่สินค้าอีคอมเมิร์ซที่มีความแม่นยำสูง จงวิเคราะห์ชื่อสินค้าและเลือกหมวดหมู่ที่เหมาะสมที่สุด
 
 ชื่อสินค้า: "${title}"
 
-รายการหมวดหมู่ที่อนุญาต:
+รายการหมวดหมู่ที่อนุญาต (เลือกได้เพียง 1 หมวดหมู่):
 ${categories.map(c => `- ${c}`).join('\n')}
 
-กฎเหล็ก:
-1. ตอบ "เฉพาะชื่อหมวดหมู่" ที่เลือกมาเท่านั้น ห้ามมีคำอธิบายอื่น
-2. หากไม่แน่ใจจริงๆ ให้ตอบว่า "อื่นๆ"
-3. เลือกจากรายการด้านบนเท่านั้น ห้ามคิดหมวดหมู่ใหม่เอง
+ตัวอย่างการวิเคราะห์ที่ถูกต้อง:
+- "เก้าอี้แคมป์ปิ้ง แบบพับได้" → "กีฬาและกิจกรรมกลางแจ้ง" (เพราะเป็นอุปกรณ์แคมป์ปิ้ง/กลางแจ้ง)
+- "เก้าอี้เกมมิ่ง" → "Gaming และอุปกรณ์เกม" (เพราะเป็นอุปกรณ์เกมมิ่ง)
+- "เก้าอี้ทำงาน" → "เครื่องใช้ในบ้าน" (เพราะเป็นเฟอร์นิเจอร์ในบ้าน/สำนักงาน)
+- "เสื้อยืดผู้หญิง" → "เสื้อผ้าผู้หญิง"
+- "รองเท้าวิ่ง" → "กีฬาและกิจกรรมกลางแจ้ง" (เพราะเป็นรองเท้ากีฬา)
+- "รองเท้าผ้าใบ" → "รองเท้าผู้หญิง" หรือ "รองเท้าผู้ชาย" (ขึ้นอยู่กับบริบท)
+- "เคสไอโฟน" → "โทรศัพท์มือถือและอุปกรณ์เสริม"
+- "อาหารเสริมคอลลาเจน" → "สุขภาพ"
+- "เซรั่มวิตามินซี" → "ผลิตภัณฑ์ดูแลผิว"
+- "ลิปสติก" → "ความงาม"
 
-หมวดหมู่ที่เลือกคือ:`;
+กฎเหล็ก:
+1. ตอบ "เฉพาะชื่อหมวดหมู่" ที่เลือกมาเท่านั้น (ตามรายการด้านบนเป๊ะๆ)
+2. วิเคราะห์บริบทของสินค้า ไม่ใช่แค่คำเดียว เช่น "เก้าอี้แคมป์" ต้องดูว่าเป็นอุปกรณ์กลางแจ้ง
+3. หากสินค้าเกี่ยวข้องกับกีฬา/กิจกรรมกลางแจ้ง ให้優先หมวด "กีฬาและกิจกรรมกลางแจ้ง"
+4. หากไม่แน่ใจจริงๆ ให้ตอบว่า "อื่นๆ"
+5. ห้ามมีคำอธิบายอื่น ห้ามมีเครื่องหมายวรรคตอน
+
+หมวดหมู่ที่เลือก:`;
 
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
             {
-                contents: [{ parts: [{ text: prompt }] }]
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    temperature: 0.1, // Low temperature for more deterministic output
+                    maxOutputTokens: 50
+                }
             }
         );
 
         const aiText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        
-        // Clean up the response (sometimes AI adds quotes or markdown)
-        const cleanedText = aiText ? aiText.replace(/["'#*]/g, '').trim() : null;
+
+        // Clean up the response (sometimes AI adds quotes, markdown, or extra text)
+        let cleanedText = aiText ? aiText.replace(/["'#*`]/g, '').trim() : null;
+
+        // Remove any prefix/suffix text that AI might add
+        if (cleanedText) {
+            // Try to extract just the category name
+            for (const cat of categories) {
+                if (cleanedText.includes(cat)) {
+                    cleanedText = cat;
+                    break;
+                }
+            }
+        }
 
         // Validate that the returned category is in our allowed list
         if (categories.includes(cleanedText)) {
