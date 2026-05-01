@@ -10,11 +10,11 @@ const sharp = require('sharp');
 
 const { supabase } = require('./lib/supabase');
 const { notifyGoogleIndexing, notifyBulkIndexing } = require('./indexingService');
-const { deleteFromFacebook, deleteFromX } = require('./socialMedia');
+const { deleteFromFacebook, deleteFromX, categorizeProduct, generateSEOData } = require('./socialMedia');
 const categoryMapper = require('./js/categories');
 
 // Routes
-const { router: authRouter } = require('./routes/auth');
+const { router: authRouter, requireAuth } = require('./routes/auth');
 const productsRouter = require('./routes/products');
 
 const app = express();
@@ -160,6 +160,83 @@ app.get('/api/theme', (req, res) => {
     CARD_THEME: process.env.CARD_THEME || 'theme-white',
     STATS_THEME: process.env.STATS_THEME || 'stats-premium'
   });
+});
+
+// GET current settings (masked)
+app.get('/api/settings', requireAuth, (req, res) => {
+  const mask = (val) => {
+    if (!val) return '';
+    if (val.length <= 10) return '***';
+    return val.substring(0, 6) + '...' + val.substring(val.length - 6);
+  };
+  res.json({
+    FB_PAGE_ACCESS_TOKEN: mask(process.env.FB_PAGE_ACCESS_TOKEN),
+    THREADS_USER_ID: process.env.THREADS_USER_ID || '',
+    THREADS_ACCESS_TOKEN: mask(process.env.THREADS_ACCESS_TOKEN),
+    GEMINI_API_KEY: mask(process.env.GEMINI_API_KEY),
+    SUPABASE_URL: mask(process.env.SUPABASE_URL),
+    SUPABASE_KEY: mask(process.env.SUPABASE_KEY),
+    CARD_THEME: process.env.CARD_THEME || 'theme-white',
+    STATS_THEME: process.env.STATS_THEME || 'stats-premium'
+  });
+});
+
+// PUT update settings (writes to .env and hot-reloads)
+app.put('/api/settings', requireAuth, (req, res) => {
+  try {
+    const allowedKeys = ['FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN', 'GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_KEY', 'CARD_THEME', 'STATS_THEME'];
+    const updates = req.body;
+
+    const envPath = path.join(__dirname, '.env');
+    let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
+
+    let updatedCount = 0;
+    for (const key of allowedKeys) {
+      if (updates[key] !== undefined && updates[key] !== '') {
+        const regex = new RegExp(`^${key}=.*$`, 'm');
+        if (envContent.match(regex)) {
+          envContent = envContent.replace(regex, `${key}=${updates[key]}`);
+        } else {
+          envContent += `\n${key}=${updates[key]}`;
+        }
+        process.env[key] = updates[key];
+        updatedCount++;
+      }
+    }
+
+    fs.writeFileSync(envPath, envContent, 'utf-8');
+    res.json({ success: true, updatedCount });
+  } catch (err) {
+    console.error('Settings update error:', err);
+    res.status(500).json({ error: 'Failed to update settings', detail: err.message });
+  }
+});
+
+// --- POST categorize via AI ---
+app.post('/api/categorize', requireAuth, async (req, res) => {
+  const { title } = req.body;
+  if (!title) return res.status(400).json({ error: 'Title is required' });
+
+  try {
+    const category = await categorizeProduct(title);
+    res.json({ success: true, category });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// --- POST generate SEO content via AI (Unsaved) ---
+app.post('/api/ai/seo', requireAuth, async (req, res) => {
+  const { title, category } = req.body;
+  if (!title) return res.status(400).json({ error: 'Title is required' });
+
+  try {
+    const seoData = await generateSEOData({ title, category });
+    res.json({ success: true, seo_keywords: seoData.keywords, seo_description: seoData.description, seo_title: seoData.seo_title });
+  } catch (err) {
+    console.error('AI SEO Gen Error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Image Proxy
