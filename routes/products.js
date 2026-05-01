@@ -95,27 +95,8 @@ router.get('/', async (req, res) => {
     }
 });
 
-// GET category counts
-router.get('/categories/count', async (req, res) => {
-    try {
-        if (!supabase) return res.json({});
-        const { data: allCategories, error } = await supabase.from('products').select('category');
-        if (error) throw error;
-
-        const { count: trueTotal } = await supabase.from('products').select('*', { count: 'exact', head: true });
-        const counts = { all: trueTotal || allCategories.length };
-
-        allCategories.forEach(item => {
-            const cat = item.category || 'ทั่วไป';
-            counts[cat] = (counts[cat] || 0) + 1;
-        });
-
-        res.json(counts);
-    } catch (err) {
-        console.error('Failed to count categories:', err);
-        res.status(500).json({ error: 'Failed to count categories' });
-    }
-});
+// Note: Categories count was moved to a separate mount point if needed.
+// For now, let's keep it here but realize it might be hit as /api/products/categories/count
 
 // POST a new product
 router.post('/', requireAuth, async (req, res) => {

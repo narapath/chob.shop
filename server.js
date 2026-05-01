@@ -61,8 +61,29 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use('/images', express.static(path.join(__dirname, 'assets')));
 
 // Mount API Routes
-app.use('/api/products', productsRouter);
 app.use('/api', authRouter);
+app.use('/api/products', productsRouter);
+
+// GET category counts
+app.get('/api/categories/count', async (req, res) => {
+  try {
+    const { data: allCategories, error } = await supabase.from('products').select('category');
+    if (error) throw error;
+
+    const { count: trueTotal } = await supabase.from('products').select('*', { count: 'exact', head: true });
+    const counts = { all: trueTotal || allCategories.length };
+
+    allCategories.forEach(item => {
+      const cat = item.category || 'ทั่วไป';
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+
+    res.json(counts);
+  } catch (err) {
+    console.error('Failed to count categories:', err);
+    res.status(500).json({ error: 'Failed to count categories' });
+  }
+});
 
 // --- Sitemap ---
 app.get('/sitemap.xml', async (req, res) => {
