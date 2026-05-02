@@ -89,7 +89,14 @@
             --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.7);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
         body {
             font-family: 'Inter', 'Noto Sans Thai', sans-serif;
             background: var(--bg-deep);
@@ -119,31 +126,44 @@
         }
 
         @keyframes bgFloat {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(2%, 2%) scale(1.05); }
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(2%, 2%) scale(1.05);
+            }
         }
 
         /* === PREMIUM SCROLLBAR === */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
         ::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.02);
+            background: rgba(255, 255, 255, 0.02);
             border-radius: 10px;
         }
+
         ::-webkit-scrollbar-thumb {
             background: linear-gradient(180deg, var(--accent) 0%, var(--accent-light) 100%);
             border-radius: 10px;
             border: 2px solid var(--bg-deep);
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: var(--gold-gradient);
             box-shadow: 0 0 15px var(--accent-glow);
         }
 
         /* === APP WRAPPER === */
-        #appWrapper { 
-            display: flex; 
-            width: 100%; 
-            min-height: 100vh; 
+        #appWrapper {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
             position: relative;
         }
 
@@ -196,13 +216,20 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
             animation: brandShine 6s ease-in-out infinite;
         }
 
         @keyframes brandShine {
-            0%, 100% { transform: translateX(-100%) rotate(45deg); }
-            50% { transform: translateX(100%) rotate(45deg); }
+
+            0%,
+            100% {
+                transform: translateX(-100%) rotate(45deg);
+            }
+
+            50% {
+                transform: translateX(100%) rotate(45deg);
+            }
         }
 
         .brand-icon {
@@ -215,8 +242,17 @@
         }
 
         @keyframes pulse-glow {
-            0%, 100% { filter: drop-shadow(0 0 8px var(--accent-glow)); transform: scale(1); }
-            50% { filter: drop-shadow(0 0 16px var(--accent-glow), 0 0 24px var(--accent-gold)); transform: scale(1.05); }
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 8px var(--accent-glow));
+                transform: scale(1);
+            }
+
+            50% {
+                filter: drop-shadow(0 0 16px var(--accent-glow), 0 0 24px var(--accent-gold));
+                transform: scale(1.05);
+            }
         }
 
         .brand-text {
@@ -350,7 +386,7 @@
         /* Premium Toggle Button */
         .sidebar-toggle-btn {
             margin-top: auto;
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
             border: 1px solid var(--border-glow);
             color: var(--text-secondary);
             padding: 12px;
@@ -415,7 +451,7 @@
         }
 
         .header-actions .back-link:hover {
-            background: rgba(255,255,255,0.04);
+            background: rgba(255, 255, 255, 0.04);
             color: var(--text-primary);
             border-color: var(--border-bright);
         }
@@ -436,11 +472,27 @@
         }
 
         /* === TAB PANELS === */
-        .tab-panel { display: none; max-width: 1300px; margin: 0 auto; animation: fadeInUp 0.35s ease; }
-        .tab-panel.active { display: block; }
+        .tab-panel {
+            display: none;
+            max-width: 1300px;
+            margin: 0 auto;
+            animation: fadeInUp 0.35s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* === TAB HEADERS === */
@@ -449,6 +501,7 @@
             padding-bottom: 20px;
             border-bottom: 1px solid var(--border);
         }
+
         .tab-header h2 {
             font-size: 22px;
             font-weight: 700;
@@ -456,6 +509,7 @@
             margin-bottom: 6px;
             letter-spacing: -0.3px;
         }
+
         .tab-header p {
             font-size: 14px;
             color: var(--text-muted);
@@ -571,14 +625,14 @@
             align-items: center;
             gap: 14px;
             padding: 10px 12px;
-            background: rgba(255,255,255,0.015);
+            background: rgba(255, 255, 255, 0.015);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
             transition: var(--transition-fast);
         }
 
         .product-list-item:hover {
-            background: rgba(255,255,255,0.04);
+            background: rgba(255, 255, 255, 0.04);
             transform: translateX(4px);
             border-color: var(--border-glow);
         }
@@ -592,28 +646,52 @@
             flex-shrink: 0;
         }
 
-        .list-info { flex: 1; min-width: 0; }
-        .list-title { 
-            font-size: 13px; 
-            font-weight: 600; 
-            color: var(--text-primary); 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
+        .list-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             margin-bottom: 2px;
         }
-        .list-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 10px; }
-        .list-stat { color: var(--accent-light); font-weight: 700; font-size: 16px; }
+
+        .list-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 10px;
+        }
+
+        .list-stat {
+            color: var(--accent-light);
+            font-weight: 700;
+            font-size: 16px;
+        }
 
         .empty-list {
             padding: 36px;
             text-align: center;
             background: var(--bg-section);
             border-radius: var(--radius-lg);
-            border: 1px dashed rgba(255,255,255,0.06);
+            border: 1px dashed rgba(255, 255, 255, 0.06);
         }
-        .empty-list .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.25; }
-        .empty-list p { color: var(--text-muted); font-size: 13px; }
+
+        .empty-list .icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+            opacity: 0.25;
+        }
+
+        .empty-list p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
 
         /* === TABLES REFINED === */
         .content-card {
@@ -662,23 +740,32 @@
             font-weight: 700;
         }
 
-        .table-wrap { overflow-x: auto; }
-        .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .admin-table th { 
-            background: rgba(255,255,255,0.015); 
-            padding: 14px 20px; 
-            font-size: 11px; 
-            font-weight: 700; 
-            color: var(--text-muted); 
-            text-transform: uppercase; 
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .admin-table th {
+            background: rgba(255, 255, 255, 0.015);
+            padding: 14px 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
             letter-spacing: 0.8px;
             border-bottom: 1px solid var(--border);
         }
-        .admin-table td { 
-            padding: 16px 20px; 
-            border-bottom: 1px solid var(--border); 
-            font-size: 13px; 
-            vertical-align: middle; 
+
+        .admin-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            vertical-align: middle;
             transition: var(--transition-fast);
         }
 
@@ -691,13 +778,18 @@
             border: 1px solid var(--border);
             background: #0a0a14;
         }
-        .col-thumb { width: 70px; }
+
+        .col-thumb {
+            width: 70px;
+        }
+
         .product-title-cell {
             display: flex;
             flex-direction: column;
             gap: 4px;
             max-width: 300px;
         }
+
         .product-title-cell .title {
             font-size: 14px;
             font-weight: 600;
@@ -711,37 +803,44 @@
             white-space: normal;
             line-height: 1.4;
         }
+
         .cat-badge {
             font-size: 11px;
             color: var(--text-muted);
         }
+
         .price-box {
             display: flex;
             flex-direction: column;
             gap: 2px;
         }
+
         .main-price {
             font-size: 14px;
             font-weight: 700;
             color: var(--accent-light);
         }
+
         .old-price {
             font-size: 11px;
             color: var(--text-muted);
             text-decoration: line-through;
         }
+
         .seo-cell {
             max-width: 250px;
         }
+
         .kw-tag {
             font-size: 10px;
-            background: rgba(233,69,96,0.05);
+            background: rgba(233, 69, 96, 0.05);
             color: var(--accent2);
             padding: 2px 6px;
             border-radius: 4px;
-            border: 1px solid rgba(233,69,96,0.1);
+            border: 1px solid rgba(233, 69, 96, 0.1);
             white-space: nowrap;
         }
+
         .desc-preview {
             font-size: 11px;
             color: var(--text-muted);
@@ -755,10 +854,16 @@
         }
 
         /* === FORM CONTROLS === */
-        input[type="text"], input[type="number"], input[type="password"], select, textarea, .form-control {
+        input[type="text"],
+        input[type="number"],
+        input[type="password"],
+        select,
+        textarea,
+        .form-control {
             width: 100%;
             padding: 12px 16px;
-            background: #0f172a; /* Solid dark background */
+            background: #0f172a;
+            /* Solid dark background */
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
             color: var(--text-primary);
@@ -772,20 +877,26 @@
         select {
             color-scheme: dark;
         }
-        
-        select option, select optgroup {
-            background-color: #0a0a16; /* Dark background */
+
+        select option,
+        select optgroup {
+            background-color: #0a0a16;
+            /* Dark background */
             color: var(--text-primary);
         }
-        
-        input:focus, select:focus, textarea:focus, .form-control:focus {
+
+        input:focus,
+        select:focus,
+        textarea:focus,
+        .form-control:focus {
             outline: none;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
         }
 
-        input::placeholder, textarea::placeholder {
+        input::placeholder,
+        textarea::placeholder {
             color: var(--text-muted);
             font-weight: 400;
         }
@@ -799,11 +910,23 @@
             letter-spacing: 0.3px;
         }
 
-        .form-group { margin-bottom: 20px; }
-        .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
-        .admin-table tr { transition: var(--transition-fast); }
-        .admin-table tr:hover { 
-            background: rgba(255,255,255,0.02); 
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .admin-table tr {
+            transition: var(--transition-fast);
+        }
+
+        .admin-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
         }
 
         /* === STATUS PILLS === */
@@ -815,8 +938,18 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .status-success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(52, 211, 153, 0.15); }
-        .status-warning { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(251, 191, 36, 0.15); }
+
+        .status-success {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid rgba(52, 211, 153, 0.15);
+        }
+
+        .status-warning {
+            background: var(--warning-bg);
+            color: var(--warning);
+            border: 1px solid rgba(251, 191, 36, 0.15);
+        }
 
         /* === PREMIUM BUTTONS === */
         .btn {
@@ -852,7 +985,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             transition: var(--transition);
         }
 
@@ -871,14 +1004,14 @@
         }
 
         .btn-secondary {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             color: var(--text-secondary);
             border: 1px solid var(--border);
             backdrop-filter: blur(10px);
         }
 
         .btn-secondary:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             color: var(--text-primary);
             border-color: var(--border-bright);
             transform: translateY(-2px);
@@ -919,6 +1052,7 @@
             width: 100%;
             background: var(--bg-deep);
         }
+
         .login-box {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -931,18 +1065,26 @@
             box-shadow: var(--shadow-premium);
             animation: fadeInUp 0.5s ease;
         }
+
         .login-box h1 {
             font-size: 22px;
             font-weight: 700;
             margin-bottom: 6px;
             color: var(--text-primary);
         }
+
         .login-box p {
             font-size: 13px;
             color: var(--text-muted);
             margin-bottom: 28px;
         }
-        .login-box .btn { width: 100%; padding: 12px; margin-top: 8px; }
+
+        .login-box .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+        }
+
         .login-error {
             display: none;
             margin-top: 12px;
@@ -953,6 +1095,7 @@
             color: var(--error);
             font-size: 13px;
         }
+
         .back-link {
             display: inline-flex;
             align-items: center;
@@ -962,7 +1105,10 @@
             font-size: 13px;
             transition: var(--transition-fast);
         }
-        .back-link:hover { color: var(--accent-light); }
+
+        .back-link:hover {
+            color: var(--accent-light);
+        }
 
         /* === TOAST === */
         .toast {
@@ -985,6 +1131,7 @@
             pointer-events: none;
             max-width: 420px;
         }
+
         .toast.show {
             transform: translateY(0);
             opacity: 1;
@@ -1000,7 +1147,8 @@
             background: rgba(5, 5, 13, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            z-index: 10001; /* Higher than sidebar */
+            z-index: 10001;
+            /* Higher than sidebar */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1009,10 +1157,12 @@
             pointer-events: none;
             transition: var(--transition);
         }
+
         .modal-overlay.show {
             opacity: 1;
             pointer-events: all;
         }
+
         .edit-modal {
             background: var(--bg-card);
             border: 1px solid var(--border-bright);
@@ -1022,13 +1172,15 @@
             max-height: 90vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 32px 64px rgba(0,0,0,0.8), 0 0 40px var(--accent-glow);
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.8), 0 0 40px var(--accent-glow);
             transform: scale(0.95) translateY(20px);
             transition: var(--transition);
         }
+
         .modal-overlay.show .edit-modal {
             transform: scale(1) translateY(0);
         }
+
         .modal-header {
             padding: 20px 24px;
             border-bottom: 1px solid var(--border);
@@ -1036,6 +1188,7 @@
             align-items: center;
             justify-content: space-between;
         }
+
         .modal-header h2 {
             font-size: 18px;
             font-weight: 700;
@@ -1043,7 +1196,11 @@
             align-items: center;
             gap: 10px;
         }
-        .modal-header h2 span { color: var(--accent); }
+
+        .modal-header h2 span {
+            color: var(--accent);
+        }
+
         .btn-close {
             background: none;
             border: none;
@@ -1053,20 +1210,25 @@
             transition: var(--transition-fast);
             line-height: 1;
         }
-        .btn-close:hover { color: var(--error); transform: rotate(90deg); }
-        
+
+        .btn-close:hover {
+            color: var(--error);
+            transform: rotate(90deg);
+        }
+
         .modal-body {
             padding: 24px;
             overflow-y: auto;
             flex: 1;
         }
+
         .modal-footer {
             padding: 16px 24px;
             border-top: 1px solid var(--border);
             display: flex;
             justify-content: flex-end;
             gap: 12px;
-            background: rgba(255,255,255,0.01);
+            background: rgba(255, 255, 255, 0.01);
         }
 
         /* === SETTINGS GRID === */
@@ -1075,12 +1237,14 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 20px;
         }
+
         .setting-group {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
             padding: 24px;
         }
+
         .setting-group h3 {
             font-size: 15px;
             font-weight: 600;
@@ -1090,11 +1254,13 @@
             align-items: center;
             gap: 8px;
         }
+
         .setting-group .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 14px;
         }
+
         .hint {
             font-size: 12px;
             color: var(--text-muted);
@@ -1109,6 +1275,7 @@
             padding: 24px;
             margin-bottom: 20px;
         }
+
         .panel-title {
             font-size: 17px;
             font-weight: 700;
@@ -1126,11 +1293,13 @@
             padding-bottom: 20px;
             border-bottom: 1px solid var(--border);
         }
+
         .manage-products-header h2 {
             font-size: 22px;
             font-weight: 700;
             margin-bottom: 4px;
         }
+
         .manage-products-header p {
             font-size: 13px;
             color: var(--text-muted);
@@ -1141,6 +1310,7 @@
             gap: 12px;
             margin-bottom: 20px;
         }
+
         .stat-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -1149,11 +1319,13 @@
             text-align: center;
             min-width: 120px;
         }
+
         .stat-card .num {
             font-size: 24px;
             font-weight: 700;
             color: var(--accent-light);
         }
+
         .stat-card .label {
             font-size: 11px;
             color: var(--text-muted);
@@ -1169,6 +1341,7 @@
             align-items: center;
             margin-bottom: 16px;
         }
+
         .filter-controls .form-group {
             flex: 1;
             margin-bottom: 0;
@@ -1185,6 +1358,7 @@
             border-radius: var(--radius-lg);
             margin-bottom: 20px;
         }
+
         .collapsible-form.open {
             max-height: 2000px;
             opacity: 1;
@@ -1214,11 +1388,13 @@
             margin-bottom: 16px;
             background: var(--bg-section);
         }
+
         .image-preview img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+
         .image-preview .placeholder {
             font-size: 32px;
             opacity: 0.2;
@@ -1245,7 +1421,11 @@
             margin-bottom: 12px;
             animation: fadeInUp 0.3s ease;
         }
-        .bulk-actions-bar.show { display: flex; }
+
+        .bulk-actions-bar.show {
+            display: flex;
+        }
+
         .btn-bulk {
             padding: 6px 14px;
             border-radius: var(--radius-sm);
@@ -1256,10 +1436,12 @@
             font-family: inherit;
             transition: var(--transition-fast);
         }
+
         .btn-bulk.btn-danger {
             background: var(--error-bg);
             color: var(--error);
         }
+
         .btn-bulk.btn-danger:hover {
             background: rgba(248, 113, 113, 0.2);
         }
@@ -1277,8 +1459,15 @@
         }
 
         /* === PRODUCT TABLE === */
-        .product-table-container { overflow-x: auto; }
-        .product-table { width: 100%; border-collapse: collapse; }
+        .product-table-container {
+            overflow-x: auto;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
         .product-table thead th {
             padding: 12px 16px;
             font-size: 11px;
@@ -1288,16 +1477,23 @@
             letter-spacing: 0.6px;
             text-align: left;
             border-bottom: 1px solid var(--border);
-            background: rgba(255,255,255,0.01);
+            background: rgba(255, 255, 255, 0.01);
         }
+
         .product-table tbody td {
             padding: 14px 16px;
             border-bottom: 1px solid var(--border);
             font-size: 13px;
             vertical-align: middle;
         }
-        .product-table tbody tr { transition: var(--transition-fast); }
-        .product-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+        .product-table tbody tr {
+            transition: var(--transition-fast);
+        }
+
+        .product-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
 
         .product-title-cell .title {
             font-size: 13px;
@@ -1309,20 +1505,24 @@
             text-overflow: ellipsis;
             margin-bottom: 4px;
         }
+
         .cat-badge {
             font-size: 11px;
             color: var(--text-muted);
         }
+
         .price-box {
             display: flex;
             flex-direction: column;
             gap: 2px;
         }
+
         .main-price {
             font-size: 14px;
             font-weight: 700;
             color: var(--text-primary);
         }
+
         .old-price {
             font-size: 11px;
             color: var(--text-muted);
@@ -1330,7 +1530,10 @@
         }
 
         /* === SEO CELL === */
-        .seo-cell { max-width: 280px; }
+        .seo-cell {
+            max-width: 280px;
+        }
+
         .kw-tag {
             display: inline-block;
             padding: 2px 6px;
@@ -1341,6 +1544,7 @@
             color: var(--accent-light);
             font-weight: 600;
         }
+
         .desc-preview {
             font-size: 11px;
             color: var(--text-muted);
@@ -1351,7 +1555,13 @@
             overflow: hidden;
             line-height: 1.4;
         }
-        .empty-seo { display: flex; flex-direction: column; gap: 4px; }
+
+        .empty-seo {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
         .status-missing {
             background: var(--warning-bg);
             color: var(--warning);
@@ -1370,16 +1580,20 @@
             transition: var(--transition-fast);
             background: transparent;
         }
+
         .btn-table-edit {
             color: var(--accent-light);
         }
+
         .btn-table-edit:hover {
             background: var(--accent-soft);
             border-color: var(--border-glow);
         }
+
         .btn-table-delete {
             color: var(--error);
         }
+
         .btn-table-delete:hover {
             background: var(--error-bg);
             border-color: rgba(248, 113, 113, 0.15);
@@ -1391,6 +1605,7 @@
             font-weight: 600;
             margin-bottom: 14px;
         }
+
         .toggle-row {
             display: flex;
             align-items: center;
@@ -1401,9 +1616,11 @@
             margin-bottom: 8px;
             transition: var(--transition-fast);
         }
+
         .toggle-row:hover {
-            background: rgba(255,255,255,0.02);
+            background: rgba(255, 255, 255, 0.02);
         }
+
         .toggle-label {
             display: flex;
             align-items: center;
@@ -1411,7 +1628,10 @@
             font-size: 13px;
             color: var(--text-secondary);
         }
-        .platform-icon { font-size: 16px; }
+
+        .platform-icon {
+            font-size: 16px;
+        }
 
         /* === TOGGLE SWITCH === */
         .toggle-switch {
@@ -1420,15 +1640,25 @@
             width: 40px;
             height: 22px;
         }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
         .toggle-slider {
             position: absolute;
             cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.1);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 22px;
             transition: var(--transition-fast);
         }
+
         .toggle-slider::before {
             content: '';
             position: absolute;
@@ -1440,10 +1670,12 @@
             border-radius: 50%;
             transition: var(--transition-fast);
         }
-        .toggle-switch input:checked + .toggle-slider {
+
+        .toggle-switch input:checked+.toggle-slider {
             background: var(--accent);
         }
-        .toggle-switch input:checked + .toggle-slider::before {
+
+        .toggle-switch input:checked+.toggle-slider::before {
             transform: translateX(18px);
             background: #fff;
         }
@@ -1455,6 +1687,7 @@
             padding: 32px !important;
             transition: var(--transition-fast);
         }
+
         #csvDropzone:hover {
             border-color: var(--accent) !important;
             background: var(--accent-soft) !important;
@@ -1462,27 +1695,84 @@
 
         /* Mobile Adjustments */
         @media (max-width: 1024px) {
-            :root { --sidebar-w: 0px; }
-            .admin-sidebar { transform: translateX(-100%); width: 272px !important; }
-            .admin-sidebar.open { transform: translateX(0); }
-            .admin-header, .admin-main { left: 0; margin-left: 0; }
-            .admin-main { padding: 24px 16px; }
-            .dash-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .sidebar-toggle-btn { display: none; }
-            .hamburger { display: flex !important; }
-            .settings-grid { grid-template-columns: 1fr; }
-            .setting-group .form-row { grid-template-columns: 1fr; }
-            .form-grid-3 { grid-template-columns: 1fr; }
-            .manage-products-header { flex-direction: column; align-items: flex-start; }
-            .filter-controls { flex-direction: column; }
-            .stats-bar { flex-wrap: wrap; }
+            :root {
+                --sidebar-w: 0px;
+            }
+
+            .admin-sidebar {
+                transform: translateX(-100%);
+                width: 272px !important;
+            }
+
+            .admin-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .admin-header,
+            .admin-main {
+                left: 0;
+                margin-left: 0;
+            }
+
+            .admin-main {
+                padding: 24px 16px;
+            }
+
+            .dash-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .sidebar-toggle-btn {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex !important;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .setting-group .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .manage-products-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+            }
+
+            .stats-bar {
+                flex-wrap: wrap;
+            }
         }
 
         @media (max-width: 640px) {
-            .dash-grid { grid-template-columns: 1fr; }
-            .bento-card { padding: 20px; }
-            .card-stat-val { font-size: 28px; }
-            .admin-main { padding: 16px 12px; }
+            .dash-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bento-card {
+                padding: 20px;
+            }
+
+            .card-stat-val {
+                font-size: 28px;
+            }
+
+            .admin-main {
+                padding: 16px 12px;
+            }
         }
 
         /* === EDIT PRODUCT MODAL === */
@@ -1492,7 +1782,8 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(5, 5, 13, 0.85); /* Sapphire Dark base with opacity */
+            background: rgba(5, 5, 13, 0.85);
+            /* Sapphire Dark base with opacity */
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             z-index: 9999;
@@ -1518,7 +1809,8 @@
             max-height: 90vh;
             display: flex;
             flex-direction: column;
-            box-shadow: var(--shadow-premium), 0 0 40px rgba(99, 102, 241, 0.15); /* Accent glow */
+            box-shadow: var(--shadow-premium), 0 0 40px rgba(99, 102, 241, 0.15);
+            /* Accent glow */
             transform: translateY(20px) scale(0.95);
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             overflow: hidden;
@@ -1569,9 +1861,15 @@
             overflow-y: auto;
             flex: 1;
         }
-        
-        .modal-body::-webkit-scrollbar { width: 6px; }
-        .modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
 
         .modal-footer {
             padding: 16px 24px;
@@ -1605,7 +1903,7 @@
 
         .mobile-close-btn {
             display: none;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             color: var(--text-primary);
             width: 32px;
@@ -1619,8 +1917,14 @@
         }
 
         @media (max-width: 1024px) {
-            .mobile-close-btn { display: flex; }
-            .sidebar-brand { justify-content: space-between; padding-right: 12px; }
+            .mobile-close-btn {
+                display: flex;
+            }
+
+            .sidebar-brand {
+                justify-content: space-between;
+                padding-right: 12px;
+            }
         }
     </style>
 </head>
@@ -1662,7 +1966,8 @@
             <div class="sidebar-brand">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div class="brand-icon">💎</div>
-                    <div class="brand-text">Chob.Shop <span style="color:var(--text-muted);font-size:12px;font-weight:400;">ADMIN</span></div>
+                    <div class="brand-text">Chob.Shop <span
+                            style="color:var(--text-muted);font-size:12px;font-weight:400;">ADMIN</span></div>
                 </div>
                 <button class="mobile-close-btn" onclick="toggleSidebarMobile()">×</button>
             </div>
@@ -1701,7 +2006,8 @@
         <!-- === HEADER === -->
         <header class="admin-header" style="justify-content: space-between;">
             <div class="header-left">
-                <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebarMobile()" style="display:none; background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">
+                <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebarMobile()"
+                    style="display:none; background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">
                     <span>☰</span>
                 </button>
             </div>
@@ -1741,29 +2047,38 @@
                         <h3 style="margin-bottom: 16px; font-size: 18px; display: flex; align-items: center; gap: 8px;">
                             <span>🔥</span> Top 5 สินค้ายอดคลิก
                         </h3>
-                        <div id="topClicksList" class="product-list" style="display: flex; flex-direction: column; gap: 8px;">
-                            <div class="empty-list"><div class="icon">📊</div><p>ยังไม่มีข้อมูล</p></div>
+                        <div id="topClicksList" class="product-list"
+                            style="display: flex; flex-direction: column; gap: 8px;">
+                            <div class="empty-list">
+                                <div class="icon">📊</div>
+                                <p>ยังไม่มีข้อมูล</p>
+                            </div>
                         </div>
                     </div>
                     <div class="dash-section">
                         <h3 style="margin-bottom: 16px; font-size: 18px; display: flex; align-items: center; gap: 8px;">
                             <span>🕐</span> สินค้าเพิ่มล่าสุด
                         </h3>
-                        <div id="recentProductsList" class="product-list" style="display: flex; flex-direction: column; gap: 8px;">
-                            <div class="empty-list"><div class="icon">📊</div><p>ยังไม่มีข้อมูล</p></div>
+                        <div id="recentProductsList" class="product-list"
+                            style="display: flex; flex-direction: column; gap: 8px;">
+                            <div class="empty-list">
+                                <div class="icon">📊</div>
+                                <p>ยังไม่มีข้อมูล</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-                        <!-- ========== TAB: MANAGE PRODUCTS (Merged) ========== -->
+            <!-- ========== TAB: MANAGE PRODUCTS (Merged) ========== -->
             <div class="tab-panel" id="tab-products">
                 <div class="manage-products-header">
                     <div class="tab-header" style="margin-bottom:0;">
                         <h2>📦 จัดการสินค้า</h2>
                         <p>จัดการ แก้ไข และเพิ่มสินค้าใหม่ในหน้าเดียว</p>
                     </div>
-                    <button class="btn btn-primary" id="toggleFormBtn" onclick="toggleProductForm()" style="width:auto; padding: 10px 20px;">
+                    <button class="btn btn-primary" id="toggleFormBtn" onclick="toggleProductForm()"
+                        style="width:auto; padding: 10px 20px;">
                         ➚ เพิ่มสินค้าใหม่
                     </button>
                 </div>
@@ -1772,13 +2087,16 @@
                     <div class="panel-title" id="formTitle">➚ เพิ่มสินค้าใหม่</div>
                     <div class="link-input-area">
                         <div style="font-size:24px;margin-bottom:8px;">🔗</div>
-                        <input type="text" id="affiliateUrl" placeholder="วาง 'ลิงก์ข้อเสนอ' (Offer Link) จาก Shopee ที่นี่..." />
-                        <p class="hint">ใช้ 'ลิงก์ข้อเสนอ' (เช่น https://s.shopee.co.th/xxxxx) เพื่อให้ระบบเก็บค่าคอมมิชชั่นได้ถูกต้อง</p>
+                        <input type="text" id="affiliateUrl"
+                            placeholder="วาง 'ลิงก์ข้อเสนอ' (Offer Link) จาก Shopee ที่นี่..." />
+                        <p class="hint">ใช้ 'ลิงก์ข้อเสนอ' (เช่น https://s.shopee.co.th/xxxxx)
+                            เพื่อให้ระบบเก็บค่าคอมมิชชั่นได้ถูกต้อง</p>
                     </div>
                     <form id="productForm">
                         <div class="form-group">
                             <label>ชื่อสินค้า *</label>
-                            <input type="text" id="productTitle" placeholder="เช่น หูฟังไร้สาย Bluetooth 5.0" required />
+                            <input type="text" id="productTitle" placeholder="เช่น หูฟังไร้สาย Bluetooth 5.0"
+                                required />
                         </div>
                         <div class="form-grid-3" style="display: none;">
                             <div class="form-group">
@@ -1803,7 +2121,8 @@
                                 <label>ส่วนลด (%)</label>
                                 <input type="number" id="productDiscount" placeholder="50" />
                             </div>
-                            <div class="form-group" style="background: rgba(233,69,96,0.03); border-left: 2px solid var(--accent2); padding-left: 10px;">
+                            <div class="form-group"
+                                style="background: rgba(233,69,96,0.03); border-left: 2px solid var(--accent2); padding-left: 10px;">
                                 <label style="color: var(--accent2);">💰 ราคาหลังหักส่วนลด (B)</label>
                                 <input type="number" id="productPrice" placeholder="299" />
                             </div>
@@ -1857,14 +2176,19 @@
                             <label>คำอธิบาย</label>
                             <textarea id="productDescription" placeholder="รายละเอียดสินค้าเพิ่มเติม..."></textarea>
                         </div>
-                        <div class="form-group" style="border: 1px solid var(--border); padding: 12px; border-radius: var(--radius-sm); background: rgba(233,69,96,0.02);">
-                            <label style="color: var(--accent2); display: flex; align-items: center; gap: 8px;">🚀 SEO Power Metadata (AI Generated)</label>
+                        <div class="form-group"
+                            style="border: 1px solid var(--border); padding: 12px; border-radius: var(--radius-sm); background: rgba(233,69,96,0.02);">
+                            <label style="color: var(--accent2); display: flex; align-items: center; gap: 8px;">🚀 SEO
+                                Power Metadata (AI Generated)</label>
                             <div class="form-group">
                                 <label style="display: flex; justify-content: space-between; align-items: center;">
                                     SEO Keywords (คั่นด้วยคอมม่า)
-                                    <button type="button" class="btn btn-secondary btn-sm" onclick="genAISEOInline(event)" style="font-size: 11px; padding: 4px 8px;">🪄 Gen with AI</button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        onclick="genAISEOInline(event)" style="font-size: 11px; padding: 4px 8px;">🪄
+                                        Gen with AI</button>
                                 </label>
-                                <input type="text" id="seoKeywords" placeholder="เช่น หูฟั����, หูฟังไร้สาย, bluetooth, ราคาถูก..." />
+                                <input type="text" id="seoKeywords"
+                                    placeholder="เช่น หูฟั����, หูฟังไร้สาย, bluetooth, ราคาถูก..." />
                             </div>
                             <div class="form-group">
                                 <label>SEO Optimized Title (AI)</label>
@@ -1872,7 +2196,8 @@
                             </div>
                             <div class="form-group">
                                 <label>SEO Description (150-160 ตัวอักษร)</label>
-                                <textarea id="seoDescription" placeholder="ใส่คำอธิบายสั้นๆ เพื่อให้ติดอันดับ Google..."></textarea>
+                                <textarea id="seoDescription"
+                                    placeholder="ใส่คำอธิบายสั้นๆ เพื่อให้ติดอันดับ Google..."></textarea>
                             </div>
                         </div>
                         <input type="hidden" id="editProductId" value="">
@@ -1880,7 +2205,8 @@
                             <button type="submit" class="btn btn-primary" id="submitBtn" style="flex: 2;">
                                 🛒 เพิ่มสินค้าใหม่
                             </button>
-                            <button type="button" class="btn btn-secondary" id="cancelEditBtn" onclick="toggleProductForm(false)" style="flex: 1;">
+                            <button type="button" class="btn btn-secondary" id="cancelEditBtn"
+                                onclick="toggleProductForm(false)" style="flex: 1;">
                                 ยกเลิก
                             </button>
                         </div>
@@ -1907,15 +2233,25 @@
                                 <option value="ทั้งหมด">📁 ทั้งหมด</option>
                             </select>
                         </div>
-                        <button class="btn btn-secondary" id="fixSeoBtn" onclick="genMissingSEO()" style="height: 100%; white-space: nowrap; background: rgba(233,69,96,0.1); color: var(--accent2);">🪄 SEO Fix (รายการที่ว่าง)</button>
-                        <button class="btn btn-primary" id="fixCatBtn" onclick="fixMissingCategories()" style="height: 100%; white-space: nowrap; background: rgba(99,102,241,0.1); color: var(--accent-light);">🗂 จัดหมวดหมู่ (ที่ยังเป็น 'ทั่วไป')</button>
-                        <button class="btn btn-primary" id="reCategorizeAllBtn" onclick="reCategorizeAll()" style="height: 100%; white-space: nowrap;">🤖 จัดหมวดหมู่ใหม่ทั้งหมด (AI Data Local)</button>
+                        <button class="btn btn-secondary" id="fixSeoBtn" onclick="genMissingSEO()"
+                            style="height: 100%; white-space: nowrap; background: rgba(233,69,96,0.1); color: var(--accent2);">🪄
+                            SEO Fix (รายการที่ว่าง)</button>
+                        <button class="btn btn-primary" id="fixCatBtn" onclick="fixMissingCategories()"
+                            style="height: 100%; white-space: nowrap; background: rgba(99,102,241,0.1); color: var(--accent-light);">🗂
+                            จัดหมวดหมู่ (ที่ยังเป็น 'ทั่วไป')</button>
+                        <button class="btn btn-primary" id="reCategorizeAllBtn" onclick="reCategorizeAll()"
+                            style="height: 100%; white-space: nowrap;">🤖 จัดหมวดหมู่ใหม่ทั้งหมด (AI Data
+                            Local)</button>
                     </div>
                     <div class="bulk-actions-bar" id="bulkActionsBar">
-                        <div style="font-size: 14px; font-weight: 500;">เลืสกอยู่ <span id="selectedCount" style="color: var(--accent); font-weight: 700;">0</span> รายการ</div>
+                        <div style="font-size: 14px; font-weight: 500;">เลืสกอยู่ <span id="selectedCount"
+                                style="color: var(--accent); font-weight: 700;">0</span> รายการ</div>
                         <button class="btn-bulk btn-danger" onclick="bulkDelete()">🗑 ลบ</button>
-                        <button class="btn-bulk btn-secondary" onclick="bulkGenSEO()" style="background: rgba(233,69,96,0.1); color: var(--accent2);">🪄 Gen SEO</button>
-                        <button class="btn-bulk btn-primary" onclick="bulkCategorize()" style="background: rgba(99,102,241,0.1); color: var(--accent-light); border: 1px solid var(--accent);">🗂 จัดหมวดหมู่อัตโนมัติ</button>
+                        <button class="btn-bulk btn-secondary" onclick="bulkGenSEO()"
+                            style="background: rgba(233,69,96,0.1); color: var(--accent2);">🪄 Gen SEO</button>
+                        <button class="btn-bulk btn-primary" onclick="bulkCategorize()"
+                            style="background: rgba(99,102,241,0.1); color: var(--accent-light); border: 1px solid var(--accent);">🗂
+                            จัดหมวดหมู่อัตโนมัติ</button>
                     </div>
                     <div class="select-all-row">
                         <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
@@ -1940,19 +2276,20 @@
                             </tbody>
                         </table>
                     </div>
-                        <div class="empty-list">
-                            <div class="icon">📣</div>
-                            <p>ยังไม่มีสินค้า — เพิ่มสินค้าแรกได้เลย!</p>
-                        </div>
+                    <div class="empty-list">
+                        <div class="icon">📣</div>
+                        <p>ยังไม่มีสินค้า — เพิ่มสินค้าแรกได้เลย!</p>
                     </div>
                 </div>
+            </div>
 
 
             <!-- ========== TAB: CSV IMPORT ========== -->
             <div class="tab-panel" id="tab-csv-import">
                 <div class="tab-header">
                     <h2>📁 นำเข้าสินค้าจาก Shopee CSV</h2>
-                    <p>อัปโหลดไฟล์ CSV จาก Shopee Affiliate (ระบบจะดึง <b>"ลิงก์ข้อเสนอ"</b> เป็นหลักเพื่อความแม่นยำของค่าคอมมิชชั่น)</p>
+                    <p>อัปโหลดไฟล์ CSV จาก Shopee Affiliate (ระบบจะดึง <b>"ลิงก์ข้อเสนอ"</b>
+                        เป็นหลักเพื่อความแม่นยำของค่าคอมมิชชั่น)</p>
                 </div>
                 <div>
                     <div class="panel">
@@ -1994,7 +2331,8 @@
                         <div style="border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px; text-align: center; cursor: pointer; transition: 0.2s;"
                             id="csvDropzone" onclick="document.getElementById('csvFileInput').click()">
                             <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
-                            <p style="color: var(--text2); margin: 0;">คลิกเพื่ออัปโหลด หรือ ลากไฟล์ .csv มาวางที่นี่</p>
+                            <p style="color: var(--text2); margin: 0;">คลิกเพื่ออัปโหลด หรือ ลากไฟล์ .csv มาวางที่นี่
+                            </p>
                             <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
                         </div>
                     </div>
@@ -2004,25 +2342,33 @@
                             <h3>📢 โพสต์อัตโนมัติเมื่อนำเข้า CSV</h3>
                             <div class="toggle-row">
                                 <span class="toggle-label"><span class="platform-icon">📘</span> Facebook Page</span>
-                                <label class="toggle-switch"><input type="checkbox" id="toggleFacebook" checked><span class="toggle-slider"></span></label>
+                                <label class="toggle-switch"><input type="checkbox" id="toggleFacebook" checked><span
+                                        class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
                                 <span class="toggle-label"><span class="platform-icon">📷</span> Instagram</span>
-                                <label class="toggle-switch"><input type="checkbox" id="toggleInstagram"><span class="toggle-slider"></span></label>
+                                <label class="toggle-switch"><input type="checkbox" id="toggleInstagram"><span
+                                        class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
                                 <span class="toggle-label"><span class="platform-icon">✨</span> X (Twitter)</span>
-                                <label class="toggle-switch"><input type="checkbox" id="toggleX" checked><span class="toggle-slider"></span></label>
+                                <label class="toggle-switch"><input type="checkbox" id="toggleX" checked><span
+                                        class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
                                 <span class="toggle-label"><span class="platform-icon">🧵</span> Threads</span>
-                                <label class="toggle-switch"><input type="checkbox" id="toggleThreads" checked><span class="toggle-slider"></span></label>
+                                <label class="toggle-switch"><input type="checkbox" id="toggleThreads" checked><span
+                                        class="toggle-slider"></span></label>
                             </div>
-                            <div class="toggle-row" style="border-color: var(--accent); background: rgba(233,69,96,0.05);">
-                                <span class="toggle-label"><span class="platform-icon">✨</span> Auto Generate คอนเทนต์สินค้า (ใหม่!)</span>
-                                <label class="toggle-switch"><input type="checkbox" id="toggleAI" checked disabled><span class="toggle-slider"></span></label>
+                            <div class="toggle-row"
+                                style="border-color: var(--accent); background: rgba(233,69,96,0.05);">
+                                <span class="toggle-label"><span class="platform-icon">✨</span> Auto Generate
+                                    คอนเทนต์สินค้า (ใหม่!)</span>
+                                <label class="toggle-switch"><input type="checkbox" id="toggleAI" checked disabled><span
+                                        class="toggle-slider"></span></label>
                             </div>
-                            <p class="hint" style="margin-top: 4px;">ระบบจะสร้างคอนเทนต์รีวิวอัตโนมัติเมื่ออัพโหลด CSV — ไม่ต้องตั้งค่าเพิ่มเติม</p>
+                            <p class="hint" style="margin-top: 4px;">ระบบจะสร้างคอนเทนต์รีวิวอัตโนมัติเมื่ออัพโหลด CSV —
+                                ไม่ต้องตั้งค่าเพิ่มเติม</p>
                         </div>
                     </div>
                 </div>
@@ -2037,11 +2383,16 @@
                 <div>
                     <div class="panel">
                         <h2 class="panel-title">💾 Backup & Restore</h2>
-                        <p class="hint" style="margin-bottom: 20px;">ระบบจะรวมข้อมูลสินค้าและการตั้งค่า API ทั้งหมดไว้ในไฟล์เดียว</p>
+                        <p class="hint" style="margin-bottom: 20px;">ระบบจะรวมข้อมูลสินค้าและการตั้งค่า API
+                            ทั้งหมดไว้ในไฟล์เดียว</p>
                         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                            <button class="btn btn-secondary" onclick="exportBackup()" style="flex: 1; min-width: 200px;">⬇️ ดาวน์โหลด Backup (JSON)</button>
-                            <button class="btn btn-primary" onclick="document.getElementById('importBackupInput').click()" style="flex: 1; min-width: 200px;">⬆️ อัปโหลดไฟล์กู้คืน</button>
-                            <input type="file" id="importBackupInput" accept=".json" style="display: none;" onchange="importBackup(event)">
+                            <button class="btn btn-secondary" onclick="exportBackup()"
+                                style="flex: 1; min-width: 200px;">⬇️ ดาวน์โหลด Backup (JSON)</button>
+                            <button class="btn btn-primary"
+                                onclick="document.getElementById('importBackupInput').click()"
+                                style="flex: 1; min-width: 200px;">⬆️ อัปโหลดไฟล์กู้คืน</button>
+                            <input type="file" id="importBackupInput" accept=".json" style="display: none;"
+                                onchange="importBackup(event)">
                         </div>
                     </div>
                 </div>
@@ -2081,24 +2432,33 @@
                             <small class="hint">Choose the visual style for the store overview statistics bar.</small>
                         </div>
                     </div>
-                    <div class="setting-group" id="supabaseSettingGroup" style="grid-column: 1 / -1; border-color: var(--accent); background: rgba(99, 102, 241, 0.05); border-width: 2px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <h3 style="color: var(--accent); margin: 0;"><span id="lockIcon">🔒</span> Database Connection (Embedded)</h3>
-                            <button type="button" class="btn btn-secondary btn-sm" id="lockToggleBtn" onclick="toggleSupabaseLock()" 
+                    <div class="setting-group" id="supabaseSettingGroup"
+                        style="grid-column: 1 / -1; border-color: var(--accent); background: rgba(99, 102, 241, 0.05); border-width: 2px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="color: var(--accent); margin: 0;"><span id="lockIcon">🔒</span> Database
+                                Connection (Embedded)</h3>
+                            <button type="button" class="btn btn-secondary btn-sm" id="lockToggleBtn"
+                                onclick="toggleSupabaseLock()"
                                 style="padding: 4px 12px; font-size: 11px; background: rgba(99, 102, 241, 0.1); border: 1px solid var(--accent); color: var(--accent);">
                                 🔓 Unlock to Override
                             </button>
                         </div>
-                        <p class="hint" style="margin-bottom: 12px; color: var(--text-primary); font-weight: 500;">✨ ระบบใช้ค่าเริ่มต้นที่ฝังไว้ในตัวโค้ดเพื่อความปลอดภัย (Locked by default)</p>
+                        <p class="hint" style="margin-bottom: 12px; color: var(--text-primary); font-weight: 500;">✨
+                            ระบบใช้ค่าเริ่มต้นที่ฝังไว้ในตัวโค้ดเพื่อความปลอดภัย (Locked by default)</p>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Supabase Project URL</label>
-                                <input type="text" id="supabaseUrlInput" placeholder="https://<project>.supabase.co" readonly style="background: rgba(255,255,255,0.03); cursor: not-allowed; border-color: transparent;">
+                                <input type="text" id="supabaseUrlInput" placeholder="https://<project>.supabase.co"
+                                    readonly
+                                    style="background: rgba(255,255,255,0.03); cursor: not-allowed; border-color: transparent;">
                                 <small class="hint">Project Settings > API</small>
                             </div>
                             <div class="form-group">
                                 <label>Supabase Anon/Public Key</label>
-                                <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." readonly style="background: rgba(255,255,255,0.03); cursor: not-allowed; border-color: transparent;">
+                                <input type="password" id="supabaseKeyInput"
+                                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." readonly
+                                    style="background: rgba(255,255,255,0.03); cursor: not-allowed; border-color: transparent;">
                                 <small class="hint">Project Settings > API</small>
                             </div>
                         </div>
@@ -2132,7 +2492,8 @@
                     </div>
                 </div>
                 <div style="margin-top: 20px; max-width: 300px;">
-                    <button class="btn btn-primary" onclick="saveSettings()" id="saveSettingsBtn">💾 บันทึกการตั้งค่า</button>
+                    <button class="btn btn-primary" onclick="saveSettings()" id="saveSettingsBtn">💾
+                        บันทึกการตั้งค่า</button>
                 </div>
             </div>
 
@@ -2165,13 +2526,15 @@
                             <label>ส่วนลด (%)</label>
                             <input type="number" id="modalDiscount" placeholder="50" />
                         </div>
-                        <div class="form-group" style="background: rgba(233,69,96,0.03); border-left: 2px solid var(--accent2); padding-left: 10px;">
+                        <div class="form-group"
+                            style="background: rgba(233,69,96,0.03); border-left: 2px solid var(--accent2); padding-left: 10px;">
                             <label style="color: var(--accent2);">💰 ราคาหลังหักส่วนลด (B)</label>
                             <input type="number" id="modalPrice" placeholder="299" />
                         </div>
                     </div>
                     <div class="form-grid-3" style="margin-top: -6px; display: none;">
-                        <div class="form-group" style="background: rgba(99,102, 241, 0.03); border-left: 2px solid var(--accent); padding-left: 10px;">
+                        <div class="form-group"
+                            style="background: rgba(99,102, 241, 0.03); border-left: 2px solid var(--accent); padding-left: 10px;">
                             <label style="color: var(--accent-light);">💰 Commission (%)</label>
                             <input type="number" id="modalCommission" placeholder="0" step="0.1" />
                         </div>
@@ -2203,15 +2566,20 @@
                     </div>
                     <div class="form-group">
                         <label>คำอธิบาย</label>
-                        <textarea id="modalDescription" placeholder="รายละเอียดสินค้า..." style="min-height: 100px;"></textarea>
+                        <textarea id="modalDescription" placeholder="รายละเอียดสินค้า..."
+                            style="min-height: 100px;"></textarea>
                     </div>
-                    
-                    <div class="form-group" style="border: 1px solid var(--border); padding: 12px; border-radius: var(--radius-sm); background: rgba(99, 102, 241, 0.03); margin-top: 10px;">
-                        <label style="color: var(--accent-light); display: flex; align-items: center; gap: 8px;">🚀 SEO Power Metadata (AI Generated)</label>
+
+                    <div class="form-group"
+                        style="border: 1px solid var(--border); padding: 12px; border-radius: var(--radius-sm); background: rgba(99, 102, 241, 0.03); margin-top: 10px;">
+                        <label style="color: var(--accent-light); display: flex; align-items: center; gap: 8px;">🚀 SEO
+                            Power Metadata (AI Generated)</label>
                         <div class="form-group">
                             <label style="display: flex; justify-content: space-between; align-items: center;">
                                 SEO Keywords (คั่นด้วยคอมม่า)
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="genAISEOModal(event)" style="font-size: 11px; padding: 4px 8px; background: rgba(99, 102, 241, 0.1);">🪄 Gen with AI</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="genAISEOModal(event)"
+                                    style="font-size: 11px; padding: 4px 8px; background: rgba(99, 102, 241, 0.1);">🪄
+                                    Gen with AI</button>
                             </label>
                             <input type="text" id="modalSeoKeywords" placeholder="เช่น หูฟัง, หูฟังไร้สาย..." />
                         </div>
@@ -2221,7 +2589,8 @@
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label>SEO Description (150-160 ตัวอักษร)</label>
-                            <textarea id="modalSeoDescription" placeholder="ใส่คำอธิบายสั้นๆ..." style="min-height: 80px;"></textarea>
+                            <textarea id="modalSeoDescription" placeholder="ใส่คำอธิบายสั้นๆ..."
+                                style="min-height: 80px;"></textarea>
                         </div>
                     </div>
                     <input type="hidden" id="modalEditId" value="">
@@ -2229,7 +2598,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeEditModal()">ยกเลิก</button>
-                <button type="button" class="btn btn-primary" id="modalSaveBtn" onclick="submitEditModal()">💾 บันทึกการแก้ไข</button>
+                <button type="button" class="btn btn-primary" id="modalSaveBtn" onclick="submitEditModal()">💾
+                    บันทึกการแก้ไข</button>
             </div>
         </div>
     </div>
@@ -2330,7 +2700,7 @@
         async function updateStats() {
             // Use the total count from the API instead of products.length
             const count = totalProducts;
-            
+
             // Fetch precise category counts from backend
             try {
                 const res = await fetchWithAuth('/api/categories/count');
@@ -2347,19 +2717,19 @@
             }
 
             const categories = Object.keys(categoryCounts).filter(c => c !== 'all' && c !== 'ทั้งหมด');
-            
+
             // Update Dashboard Stats
-            if(document.getElementById('totalProductsDashboard')) document.getElementById('totalProductsDashboard').textContent = count;
-            if(document.getElementById('totalCategoriesDashboard')) document.getElementById('totalCategoriesDashboard').textContent = categories.length;
-            
+            if (document.getElementById('totalProductsDashboard')) document.getElementById('totalProductsDashboard').textContent = count;
+            if (document.getElementById('totalCategoriesDashboard')) document.getElementById('totalCategoriesDashboard').textContent = categories.length;
+
             // Update Products Tab Stats
-            if(document.getElementById('totalProducts2')) document.getElementById('totalProducts2').textContent = count;
-            if(document.getElementById('totalCategories2')) document.getElementById('totalCategories2').textContent = categories.length;
+            if (document.getElementById('totalProducts2')) document.getElementById('totalProducts2').textContent = count;
+            if (document.getElementById('totalCategories2')) document.getElementById('totalCategories2').textContent = categories.length;
 
             // Total Clicks
             // Note: This remains an estimate based on the loaded 1000 products
             const clickSum = products.reduce((sum, p) => sum + (p.clicks || 0), 0);
-            if(document.getElementById('totalClicks')) document.getElementById('totalClicks').textContent = clickSum;
+            if (document.getElementById('totalClicks')) document.getElementById('totalClicks').textContent = clickSum;
 
             // Update category filter dropdown
             const filter = document.getElementById('adminCategoryFilter');
@@ -2377,7 +2747,7 @@
                     filter.value = 'ทั้งหมด';
                 }
             }
-            
+
             // Sync dashboard
             renderDashboard();
         }
@@ -2467,7 +2837,7 @@
             try {
                 const res = await fetch(API_BASE + '/api/products');
                 const data = await res.json();
-                
+
                 // Handle new API format { products, total }
                 if (data.products && data.total !== undefined) {
                     products = data.products;
@@ -2477,7 +2847,7 @@
                     products = Array.isArray(data) ? data : (data.products || []);
                     totalProducts = products.length;
                 }
-                
+
                 renderProductList();
                 await updateStats();
                 renderDashboard(); // Added for new UI
@@ -2668,11 +3038,11 @@
             // Only fetch if title and image are empty
             const titleInput = document.getElementById('productTitle');
             const imageInput = document.getElementById('productImage');
-            
+
             if (titleInput.value !== '' || imageInput.value !== '') return;
 
             clearTimeout(scrapeTimeout);
-            
+
             // Add a small loading indicator
             const hint = e.target.nextElementSibling;
             const originalHint = hint.textContent;
@@ -2686,7 +3056,7 @@
                         body: JSON.stringify({ url })
                     });
                     const data = await res.json();
-                    
+
                     if (data.success) {
                         if (data.title && titleInput.value === '') {
                             let cleanTitle = data.title;
@@ -2711,7 +3081,7 @@
                     hint.textContent = '❌ ดึงข้อมูลไม่สำเร็จ';
                     hint.style.color = '#f44336';
                 }
-                
+
                 // Reset hint text after 3 seconds
                 setTimeout(() => {
                     hint.textContent = originalHint;
@@ -2751,7 +3121,7 @@
                     const keywords = Array.isArray(data.seo_keywords) ? data.seo_keywords : (Array.isArray(data.keywords) ? data.keywords : []);
                     const description = data.seo_description || data.description || '';
                     const seoTitle = data.seo_title || data.title || '';
-                    
+
                     document.getElementById('seoKeywords').value = keywords.join(', ');
                     document.getElementById('seoTitle').value = seoTitle; // Add this line which was missing
                     document.getElementById('seoDescription').value = description;
@@ -2777,7 +3147,7 @@
             if (!confirm(`ต้องการสร้างเนื้อหา SEO อัตโนมัติให้สินค้า ${ids.length} รายการที่เลือกหรือไม่?`)) return;
 
             showToast(`⏳ กำลังเตรียมการสำหรับ ${ids.length} รายการ...`);
-            
+
             let success = 0;
             let failed = 0;
 
@@ -2814,7 +3184,7 @@
         async function bulkCategorize() {
             const checkboxes = document.querySelectorAll('.product-checkbox:checked');
             const selectedIds = Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
-            
+
             if (selectedIds.length === 0) {
                 return showToast("❌ กรุณาเลือกสินค้าที่ต้องการจัดหมวดหมู่");
             }
@@ -2822,13 +3192,13 @@
             if (!confirm(`ต้องการให้ระบบจัดหมวดหมู่อัตโนมัติให้สินค้า ${selectedIds.length} รายการ?`)) return;
 
             showToast(`⏳ กำลังจัดหมวดหมู่ให้ ${selectedIds.length} รายการ...`);
-            
+
             try {
                 const response = await fetchWithAuth('/api/products/bulk/categorize', {
                     method: 'POST',
                     body: JSON.stringify({ productIds: selectedIds })
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     showToast(`✅ จัดหมวดหมู่สำเร็จ ${result.updatedCount} รายการ`);
@@ -2844,7 +3214,7 @@
 
         // === RECATEGORIZE ALL (Local AI) ===
         async function reCategorizeAll() {
-            if(!confirm(`แน่ใจหรือไม่? ระบบจะทำการวิเคราะห์และจัดหมวดหมู่ใหม่ให้กับสินค้า 'ทั้งหมด' ในร้านของคุณ อาจใ��้เวลาสักครู่`)) return;
+            if (!confirm(`แน่ใจหรือไม่? ระบบจะทำการวิเคราะห์และจัดหมวดหมู่ใหม่ให้กับสินค้า 'ทั้งหมด' ในร้านของคุณ อาจใ��้เวลาสักครู่`)) return;
 
             const btn = document.getElementById('reCategorizeAllBtn');
             const originalText = btn.innerHTML;
@@ -2852,13 +3222,14 @@
             btn.disabled = true;
 
             showToast(`กำลังใช้งาน Local AI Data จัดหมวดหมู่สินค้าทั้งหมด...`);
-            
+
+            console.log("🚀 Starting reCategorizeAll...");
             try {
                 const res = await fetchWithAuth(`/api/products/categorize-all`, {
                     method: 'POST'
                 });
                 const data = await res.json();
-                
+
                 if (data.success) {
                     showToast(`✅ จัดหมวดหมู่ใหม่สำเร็จ ${data.updatedCount} รายการ!`);
                     await updateStats();
@@ -2877,7 +3248,7 @@
 
         async function fixMissingCategories() {
             const missing = products.filter(p => !p.category || p.category === 'ทั่วไป' || p.category === 'Other' || p.category === 'อื่นๆ' || p.category === 'ไม่ระบุ');
-            
+
             if (missing.length === 0) {
                 return showToast('✨ สินค้าทุกชิ้นได้รับการจัดหมวดหมู่แล้ว');
             }
@@ -2891,13 +3262,13 @@
             btn.disabled = true;
 
             showToast(`⏳ กำลังจัดหมวดหมู่ให้ ${ids.length} รายการ...`);
-            
+
             try {
                 const response = await fetchWithAuth('/api/products/bulk/categorize', {
                     method: 'POST',
                     body: JSON.stringify({ productIds: ids })
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     showToast(`✅ จัดหมวดหมู่สำเร็จ ${result.updatedCount} รายการ`);
@@ -2915,7 +3286,8 @@
         }
 
         async function genMissingSEO() {
-            const missing = products.filter(p => !p.seo_keywords || p.seo_keywords.length === 0);
+            const missing = products.filter(p => !p.seo_keywords || p.seo_keywords.length === 0 || p.seo_keywords === "[]" || !p.seo_description);
+            console.log("🔎 Missing SEO items found:", missing.length);
             if (missing.length === 0) return showToast('✨ สินค้าทุกชิ้นมี SEO คร��ถ้วนแล้วครับ');
 
             if (!confirm(`ตรวจสอบพบสินค้า ${missing.length} รายการที่ยังไม่มี SEO\nต้องการให้ระบบสร้างให้อัตโนมัติย����อนหลังหรือไม่?`)) return;
@@ -2961,12 +3333,12 @@
                 btn.disabled = false;
             }
         }
-                // === Toggle Product Form ===
+        // === Toggle Product Form ===
         function toggleProductForm(show) {
             const container = document.getElementById('productFormCollapsible');
             const toggleBtn = document.getElementById('toggleFormBtn');
             const editId = document.getElementById('editProductId').value;
-            
+
             if (show === undefined) show = !container.classList.contains('open');
 
             if (show) {
@@ -3076,7 +3448,7 @@
             document.getElementById('modalCommission').value = product.commission || '';
 
             document.getElementById('modalEditId').value = product.id;
-            
+
             // Image Preview trigger
             const imgInput = document.getElementById('modalImage');
             const preview = document.getElementById('modalImagePreview');
@@ -3085,7 +3457,7 @@
             } else {
                 preview.innerHTML = '<span class="placeholder">🖼</span>';
             }
-            
+
             // Live preview listener
             imgInput.oninput = (e) => {
                 const url = e.target.value.trim();
@@ -3129,7 +3501,7 @@
                     const keywords = Array.isArray(data.seo_keywords) ? data.seo_keywords : (Array.isArray(data.keywords) ? data.keywords : []);
                     const description = data.seo_description || data.description || '';
                     const seoTitle = data.seo_title || data.title || '';
-                    
+
                     document.getElementById('modalSeoKeywords').value = keywords.join(', ');
                     document.getElementById('modalSeoTitle').value = seoTitle;
                     document.getElementById('modalSeoDescription').value = description;
@@ -3153,7 +3525,7 @@
         }
 
         // Close on outside click
-        document.getElementById('editModalOverlay').addEventListener('click', function(e) {
+        document.getElementById('editModalOverlay').addEventListener('click', function (e) {
             if (e.target === this) closeEditModal();
         });
 
@@ -3215,13 +3587,23 @@
         // === Delete product ===
         async function deleteProduct(id) {
             if (!confirm('ต้องการลบสินค้านี้หรือไม่?')) return;
+            console.log("Deleting product:", id);
             try {
-                await fetchWithAuth(`/api/products/${id}`, { method: 'DELETE' });
-                showToast('🗑 ลบสินค้าแล้ว');
-                await loadProducts();
+                const res = await fetchWithAuth(`/api/products/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('🗑 ลบสินค้าแล้ว');
+                    // Remove from local array immediately for better UX
+                    products = products.filter(p => p.id !== id);
+                    renderProductList();
+                    await updateStats();
+                } else {
+                    const data = await res.json();
+                    showToast(`❌ ลบไม่สำเร็จ: ${data.error || res.statusText}`);
+                }
             } catch (e) {
+                console.error("Delete error:", e);
                 if (e.message !== 'Unauthorized') {
-                    showToast('❌ ลบไม่สำเร็จ');
+                    showToast(`❌ เกิดข้อผิดพลาดในการลบ: ${e.message}`);
                 }
             }
         }
@@ -3299,7 +3681,7 @@
                 // --- DUPLICATE CHECK ---
                 const existingUrls = new Set(products.map(p => (p.affiliateUrl || '').trim().toLowerCase()));
                 const initialCount = productsArray.length;
-                
+
                 // 1. Remove duplicates within CSV itself
                 const uniqueInCSV = [];
                 const seenInCSV = new Set();
@@ -3310,7 +3692,7 @@
                         uniqueInCSV.push(p);
                     }
                 }
-                
+
                 // 2. Remove items already in database
                 productsArray = uniqueInCSV.filter(p => {
                     const url = (p.affiliateUrl || '').trim().toLowerCase();
@@ -3354,7 +3736,7 @@
                     for (let i = 0; i < productsArray.length; i += batchSize) {
                         const batch = productsArray.slice(i, i + batchSize);
 
-                        showToast(`🚀 กำลังประมวลผลชุดที่ ${Math.floor(i/batchSize) + 1} (${processedCount}/${totalTasks})...`);
+                        showToast(`🚀 กำลังประมวลผลชุดที่ ${Math.floor(i / batchSize) + 1} (${processedCount}/${totalTasks})...`);
 
                         const batchPromises = batch.map(async (product) => {
                             // 1. AI Categorization
@@ -3387,7 +3769,7 @@
                                     }
                                 } catch (err) { console.error('Scraping failed:', err); }
                             }
-                            
+
                             // 3. AI SEO Generation - Auto generate เสมอเมื่ออัพโหลด CSV
                             try {
                                 const seoRes = await fetchWithAuth('/api/ai/seo', {
@@ -3404,9 +3786,9 @@
 
                             processedCount++;
                         });
-                        
+
                         await Promise.all(batchPromises);
-                        
+
                         // Small delay between batches to prevent overwhelming the server
                         if (i + batchSize < productsArray.length) {
                             showToast(`⏳ กำลังประมวลผลต่อ... (${processedCount}/${totalTasks})`);
@@ -3688,45 +4070,45 @@
             console.log('📋 Headers identified:', headers);
 
             // Robust mapping for Shopee Affiliate CSVs (covering both TH/EN)
-            let colTitle = headers.findIndex(h => 
+            let colTitle = headers.findIndex(h =>
                 h === 'ชื่อสินค้า' || h === 'Product Name' || h === 'Item Name' || h === 'Title' ||
                 h.includes('ชื่อสินค้า') || h.includes('Item Title')
             );
-            
-            let colUrl = headers.findIndex(h => 
-                h === 'ลิงก์ข้อเสนอ' || h === 'Offer Link' || h === 'Shopee Affiliate Link' || 
+
+            let colUrl = headers.findIndex(h =>
+                h === 'ลิงก์ข้อเสนอ' || h === 'Offer Link' || h === 'Shopee Affiliate Link' ||
                 h.includes('Offer Link') || h.includes('ลิงก์ข้อเสนอ')
             );
-            
+
             // If Offer Link not found, fallback to generic product links
             if (colUrl === -1) {
-                colUrl = headers.findIndex(h => 
-                    h === 'ลิงก์สินค้า' || h === 'Product Link' || h === 'URL' || 
+                colUrl = headers.findIndex(h =>
+                    h === 'ลิงก์สินค้า' || h === 'Product Link' || h === 'URL' ||
                     h.includes('Affiliate Link') || h.includes('ลิงก์')
                 );
             }
 
-            let colPrice = headers.findIndex(h => 
-                h === 'ราคา' || h === 'Price' || 
+            let colPrice = headers.findIndex(h =>
+                h === 'ราคา' || h === 'Price' ||
                 (h.includes('ราคา') && !h.includes('เดิม') && !h.includes('ปกติ') && !h.includes('ลด'))
             );
 
-            let colImage = headers.findIndex(h => 
+            let colImage = headers.findIndex(h =>
                 h.includes('รูป') || h.includes('Image') || h.includes('Photo') || h.includes('Picture') || h.includes('Thumbnail')
             );
-            
-            let colOriginal = headers.findIndex(h => 
+
+            let colOriginal = headers.findIndex(h =>
                 h.includes('ราคาเดิม') || h.includes('ราคาปกติ') || h.includes('Original Price') || h.includes('Regular Price')
             );
 
-            let colCommission = headers.findIndex(h => 
-                h.includes('อัตราคอมมิชชั่น') || h.includes('คอมมิชชั่น') || h.includes('Commission') || 
+            let colCommission = headers.findIndex(h =>
+                h.includes('อัตราคอมมิชชั่น') || h.includes('คอมมิชชั่น') || h.includes('Commission') ||
                 h.includes('อัตราค่าคอมมิชชั่น') || h.includes('อัตราค่าคอมมิชชัน') || h.includes('commission')
             );
-            let colDiscount = headers.findIndex(h => 
+            let colDiscount = headers.findIndex(h =>
                 h.includes('ส่วนลด') || h.includes('Discount') || h.includes('discount')
             );
-            
+
 
             console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal, colCommission, colDiscount });
 
@@ -3998,7 +4380,7 @@
         function toggleSidebarMobile() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            
+
             const isOpen = sidebar.classList.toggle('open');
             if (isOpen) {
                 overlay.classList.add('active');
@@ -4042,7 +4424,7 @@
                 keyInput.style.background = 'rgba(255,255,255,0.03)';
                 keyInput.style.cursor = 'not-allowed';
                 keyInput.style.borderColor = 'transparent';
-                
+
                 btn.textContent = '🔓 Unlock to Edit';
                 btn.style.background = 'rgba(233,69,96,0.1)';
                 btn.style.color = 'var(--accent2)';
@@ -4076,5 +4458,3 @@
 </body>
 
 </html>
-
-
