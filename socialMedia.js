@@ -87,7 +87,7 @@ async function generateAICaption(product) {
                 // Pick a random template for this category
                 const templates = allTemplates[category];
                 const selected = templates[Math.floor(Math.random() * templates.length)];
-                
+
                 // Replace placeholders with real product data
                 let caption = selected.replace(/{title}/g, title).replace(/{price}/g, price);
                 return caption;
@@ -755,10 +755,10 @@ async function generateSEOData(product) {
 ตอบกลับเฉพาะ JSON เท่านั้น และห้ามมีตัวอักษรอื่น:`;
 
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
                 contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { response_mime_type: "application/json" }
+                generationConfig: { responseMimeType: "application/json" }
             }
         );
 
@@ -767,10 +767,10 @@ async function generateSEOData(product) {
             // Clean up possible markdown code blocks
             const cleanText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
             const data = JSON.parse(cleanText);
-            
-            const kws = Array.isArray(data.keywords) ? data.keywords : 
-                        (Array.isArray(data.seo_keywords) ? data.seo_keywords : []);
-                        
+
+            const kws = Array.isArray(data.keywords) ? data.keywords :
+                (Array.isArray(data.seo_keywords) ? data.seo_keywords : []);
+
             const desc = data.description || data.seo_description || "";
             const seoTitle = data.title || data.seo_title || title;
 
@@ -785,8 +785,9 @@ async function generateSEOData(product) {
             };
         }
     } catch (err) {
-        console.error('⚠️ Gemini SEO Error:', err.message);
-        return { success: false, error: err.message };
+        const errorMsg = err.response?.data?.error?.message || err.message;
+        console.error('⚠️ Gemini SEO Error:', errorMsg);
+        return { success: false, error: errorMsg };
     }
     return { success: false, keywords: [], description: "", seo_keywords: [], seo_description: "" };
 }

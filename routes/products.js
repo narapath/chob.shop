@@ -11,22 +11,11 @@ const {
     generateSEOData, categorizeProduct
 } = require('../socialMedia');
 
-// ฟังก์ชันวิเคราะห์หมวดหมู่แบบ Local
+const categoryMapper = require('../js/categories');
+
+// ฟังก์ชันวิเคราะห์หมวดหมู่แบบ Local โดยใช้ Advanced Keywords
 function generateLocalCategory(title) {
-    if (!title) return "ทั่วไป";
-    const lowerTitle = title.toLowerCase();
-    const categoryMap = [
-        { name: "โทรศัพท์และอุปกรณ์เสริม", keywords: ['โทรศัพท์', 'มือถือ', 'iphone', 'samsung', 'oppo', 'vivo', 'xiaomi', 'เคส', 'สายชาร์จ', 'ฟิล์มกระจก', 'power bank'] },
-        { name: "อิเล็กทรอนิกส์และเครื่องใช้ไฟฟ้า", keywords: ['ทีวี', 'แอร์', 'เตารีด', 'หูฟัง', 'ลำโพง', 'พัดลม', 'เครื่องดูดฝุ่น', 'ไมโครเวฟ', 'หม้อหุงข้าว', 'ตู้เย็น'] },
-        { name: "สุขภาพและความงาม", keywords: ['ครีม', 'เซรั่ม', 'สบู่', 'แชมพู', 'ลิป', 'วิตามิน', 'อาหารเสริม', 'กันแดด', 'มาส์ก', 'น้ำหอม'] },
-        { name: "เสื้อผ้าแฟชั่น", keywords: ['เสื้อ', 'กางเกง', 'เดรส', 'รองเท้า', 'กระโปรง', 'หมวก', 'ถุงเท้า', 'ชุดนอน'] },
-        { name: "ของใช้ในบ้าน", keywords: ['ผ้าปูที่นอน', 'กล่องเก็บของ', 'โคมไฟ', 'ม่าน', 'พรม', 'กระบอกน้ำ', 'ชั้นวางของ', 'เครื่องครัว'] },
-        { name: "แม่และเด็ก", keywords: ['ผ้าอ้อม', 'นมผง', 'ขวดนม', 'รถเข็นเด็ก', 'ของเล่น', 'แพมเพิส'] }
-    ];
-    for (const entry of categoryMap) {
-        if (entry.keywords.some(keyword => lowerTitle.includes(keyword))) return entry.name;
-    }
-    return "ทั่วไป";
+    return categoryMapper.categorize(title);
 }
 
 // GET all products
@@ -344,6 +333,10 @@ router.post('/:id/gen-seo', requireAuth, async (req, res) => {
 
         const seoData = await generateSEOData(product);
 
+        if (!seoData.success) {
+            return res.status(500).json({ error: 'Failed to generate SEO', detail: seoData.error });
+        }
+
         const { error: updateError } = await supabaseAdmin.from('products').update({
             seo_keywords: seoData.keywords,
             seo_description: seoData.description
@@ -373,11 +366,15 @@ router.post('/bulk/gen-seo', requireAuth, async (req, res) => {
                 const { data: product } = await supabaseAdmin.from('products').select('*').eq('id', id).single();
                 if (product) {
                     const seoData = await generateSEOData(product);
-                    await supabaseAdmin.from('products').update({
-                        seo_keywords: seoData.keywords,
-                        seo_description: seoData.description
-                    }).eq('id', id);
-                    successCount++;
+                    if (seoData.success) {
+                        await supabaseAdmin.from('products').update({
+                            seo_keywords: seoData.keywords,
+                            seo_description: seoData.description
+                        }).eq('id', id);
+                        successCount++;
+                    } else {
+                        failedCount++;
+                    }
                 }
             } catch (e) {
                 failedCount++;
