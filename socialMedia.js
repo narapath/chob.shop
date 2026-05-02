@@ -732,64 +732,11 @@ ${categories.map(c => `- ${c}`).join('\n')}
 }
 
 /**
- * Generate powerful SEO keywords and meta description using Gemini AI.
+ * Generates an AI-friendly caption for social media posts using local logic
  */
-async function generateSEOData(product) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return { keywords: [], description: "" };
-
-    const title = product.title || '';
-    const category = product.category || 'ทั่วไป';
-
-    try {
-        const prompt = `คุณคือผู้เชี่ยวชาญด้าน SEO ระดับโลก จงวิเคราะห์ข้อมูลสินค้าต่อไปนี้เพื่อสร้างข้อมูล SEO ที่ "ทรงพลัง" ที่สุดเพื่อให้คนค้นหาเจอใน Google
-        
-สินค้า: "${title}"
-หมวดหมู่: "${category}"
-
-จงสร้างข้อมูลในรูปแบบ JSON ดังนี้:
-1. "title": SEO Optimized Title (ไม่เกิน 60 ตัวอักษร) ที่มี Keyword สำคัญและดึงดูดใจ
-2. "keywords": รายการคำค้นหา (Keywords) ที่มีโอกาสถูกค้นหาสูงสุด 10-15 คำ (รวมทั้งภาษาไทยและอังกฤษ) ที่เกี่ยวข้องกับตัวสินค้า แบรนด์ และวิธีแก้ปัญหาของลูกค้า
-3. "description": Meta Description สำหรับผลการค้นหา (ความยาว 150-160 ตัวอักษร) ที่ฟังดูน่าคลิก และมี Keyword สำคัญอยู่ข้างใน
-
-ตอบกลับเฉพาะ JSON เท่านั้น และห้ามมีตัวอักษรอื่น:`;
-
-        const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-            {
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { responseMimeType: "application/json" }
-            }
-        );
-
-        const aiText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (aiText) {
-            // Clean up possible markdown code blocks
-            const cleanText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
-            const data = JSON.parse(cleanText);
-
-            const kws = Array.isArray(data.keywords) ? data.keywords :
-                (Array.isArray(data.seo_keywords) ? data.seo_keywords : []);
-
-            const desc = data.description || data.seo_description || "";
-            const seoTitle = data.title || data.seo_title || title;
-
-            return {
-                success: true,
-                title: seoTitle,
-                keywords: kws,
-                description: desc,
-                seo_title: seoTitle,
-                seo_keywords: kws,
-                seo_description: desc
-            };
-        }
-    } catch (err) {
-        const errorMsg = err.response?.data?.error?.message || err.message;
-        console.error('⚠️ Gemini SEO Error:', errorMsg);
-        return { success: false, error: errorMsg };
-    }
-    return { success: false, keywords: [], description: "", seo_keywords: [], seo_description: "" };
+async function generateAICaption(product) {
+    const siteUrl = process.env.SITE_URL || 'https://chob.shop';
+    return `${product.title}\n🛒 ช้อปเลย: ${siteUrl}/?productId=${product.id}\nราคาเพียง ${product.price} บาท!\n#ChobShop #${product.category?.split('>')[0]?.trim() || 'Sale'}`;
 }
 
 module.exports = {
@@ -800,7 +747,5 @@ module.exports = {
     deleteFromFacebook,
     deleteFromX,
     generateAICaption,
-    buildPostContent,
-    categorizeProduct,
-    generateSEOData
+    buildPostContent
 };

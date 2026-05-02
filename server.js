@@ -10,7 +10,8 @@ const sharp = require('sharp');
 
 const { supabase } = require('./lib/supabase');
 const { notifyGoogleIndexing, notifyBulkIndexing } = require('./indexingService');
-const { deleteFromFacebook, deleteFromX, categorizeProduct, generateSEOData } = require('./socialMedia');
+const { deleteFromFacebook, deleteFromX, generateAICaption } = require('./socialMedia');
+const { generateLocalSEO } = require('./lib/seo');
 const categoryMapper = require('./js/categories');
 
 // Routes
@@ -212,29 +213,34 @@ app.put('/api/settings', requireAuth, (req, res) => {
   }
 });
 
-// --- POST categorize via AI ---
+// --- POST categorize via Local AI ---
 app.post('/api/categorize', requireAuth, async (req, res) => {
   const { title } = req.body;
   if (!title) return res.status(400).json({ error: 'Title is required' });
 
   try {
-    const category = await categorizeProduct(title);
+    const category = categoryMapper.categorize(title);
     res.json({ success: true, category });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// --- POST generate SEO content via AI (Unsaved) ---
+// --- POST generate SEO content via Local AI (Unsaved) ---
 app.post('/api/ai/seo', requireAuth, async (req, res) => {
   const { title, category } = req.body;
   if (!title) return res.status(400).json({ error: 'Title is required' });
 
   try {
-    const seoData = await generateSEOData({ title, category });
-    res.json({ success: true, seo_keywords: seoData.keywords, seo_description: seoData.description, seo_title: seoData.seo_title });
+    const seoData = generateLocalSEO(title, category || 'ทั่วไป', 0);
+    res.json({
+      success: true,
+      seo_keywords: seoData.seo_keywords,
+      seo_description: seoData.seo_description,
+      seo_title: seoData.seo_title
+    });
   } catch (err) {
-    console.error('AI SEO Gen Error:', err);
+    console.error('Local SEO Gen Error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

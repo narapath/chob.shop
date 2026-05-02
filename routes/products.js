@@ -7,8 +7,7 @@ const { generateLocalSEO } = require('../lib/seo');
 const { notifyGoogleIndexing, notifyBulkIndexing } = require('../indexingService');
 const {
     postToFacebook, postToInstagram, postToX, postToThreads,
-    deleteFromFacebook, deleteFromX, generateAICaption,
-    generateSEOData, categorizeProduct
+    deleteFromFacebook, deleteFromX, generateAICaption
 } = require('../socialMedia');
 
 const categoryMapper = require('../js/categories');
@@ -122,7 +121,7 @@ router.post('/', requireAuth, async (req, res) => {
             discount: req.body.discount || null,
             image: req.body.image || '',
             affiliate_url: req.body.affiliateUrl || '',
-            category: req.body.category || 'ทั่วไป',
+            category: (req.body.category && req.body.category !== 'ทั่วไป') ? req.body.category : generateLocalCategory(req.body.title || ''),
             description: req.body.description || '',
             clicks: 0,
             date,
@@ -178,7 +177,7 @@ router.post('/bulk', requireAuth, async (req, res) => {
                 discount: p.discount ? parseInt(p.discount, 10) : null,
                 image: p.image || '',
                 affiliate_url: p.affiliateUrl || '',
-                category: p.category || 'ทั่วไป',
+                category: (p.category && p.category !== 'ทั่วไป') ? p.category : generateLocalCategory(p.title || ''),
                 description: p.description || '',
                 id: p.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
                 clicks: 0,
@@ -323,7 +322,7 @@ router.post('/:id/click', async (req, res) => {
     }
 });
 
-// --- POST generate SEO with AI for a specific product ---
+// --- POST generate SEO with Local AI for a specific product ---
 router.post('/:id/gen-seo', requireAuth, async (req, res) => {
     try {
         if (!supabase) return res.status(500).json({ error: 'Database not configured' });
@@ -331,27 +330,24 @@ router.post('/:id/gen-seo', requireAuth, async (req, res) => {
         const { data: product, error: fetchError } = await supabaseAdmin.from('products').select('*').eq('id', req.params.id).single();
         if (fetchError || !product) return res.status(404).json({ error: 'Product not found' });
 
-        const seoData = await generateSEOData(product);
-
-        if (!seoData.success) {
-            return res.status(500).json({ error: 'Failed to generate SEO', detail: seoData.error });
-        }
+        const seoData = generateLocalSEO(product.title, product.category, product.price);
 
         const { error: updateError } = await supabaseAdmin.from('products').update({
-            seo_keywords: seoData.keywords,
-            seo_description: seoData.description
+            seo_keywords: seoData.seo_keywords,
+            seo_description: seoData.seo_description,
+            seo_title: seoData.seo_title
         }).eq('id', req.params.id);
 
         if (updateError) throw updateError;
 
-        res.json({ success: true, seo_keywords: seoData.keywords, seo_description: seoData.description });
+        res.json({ success: true, seo_keywords: seoData.seo_keywords, seo_description: seoData.seo_description });
     } catch (err) {
-        console.error('AI SEO Endpoint Error:', err);
+        console.error('Local SEO Endpoint Error:', err);
         res.status(500).json({ error: 'Failed to generate SEO', detail: err.message });
     }
 });
 
-// --- POST generate SEO in bulk ---
+// --- POST generate SEO in bulk with Local AI ---
 router.post('/bulk/gen-seo', requireAuth, async (req, res) => {
     try {
         if (!supabase) return res.status(500).json({ error: 'Database not configured' });
@@ -365,16 +361,13 @@ router.post('/bulk/gen-seo', requireAuth, async (req, res) => {
             try {
                 const { data: product } = await supabaseAdmin.from('products').select('*').eq('id', id).single();
                 if (product) {
-                    const seoData = await generateSEOData(product);
-                    if (seoData.success) {
-                        await supabaseAdmin.from('products').update({
-                            seo_keywords: seoData.keywords,
-                            seo_description: seoData.description
-                        }).eq('id', id);
-                        successCount++;
-                    } else {
-                        failedCount++;
-                    }
+                    const seoData = generateLocalSEO(product.title, product.category, product.price);
+                    await supabaseAdmin.from('products').update({
+                        seo_keywords: seoData.seo_keywords,
+                        seo_description: seoData.seo_description,
+                        seo_title: seoData.seo_title
+                    }).eq('id', id);
+                    successCount++;
                 }
             } catch (e) {
                 failedCount++;
