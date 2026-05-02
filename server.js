@@ -280,7 +280,12 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not Found', path: req.url });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🛍️  Chob.Shop server running at http://0.0.0.0:${PORT}`);
-  if (supabase) console.log(`✅  Supabase connected`);
-});
+// Export for Vercel Serverless Function
+module.exports = app;
+
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🛍️  Chob.Shop server running at http://0.0.0.0:${PORT}`);
+    if (supabase) console.log(`✅  Supabase connected`);
+  });
+}
