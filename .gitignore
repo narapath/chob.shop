@@ -39,3 +39,4 @@ Thumbs.db
 # Database files
 products.json
 products_backup.json
+.vercel
