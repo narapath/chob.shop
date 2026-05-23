@@ -11,11 +11,12 @@ async function copyToClipboard(id) {
     if (!p) return;
 
     const tags = generateSmartTags(p);
+    const link = p.affiliateUrl || `https://chob.shop/?productId=${p.id}`;
 
     let caption = settings.captionTemplate
         .replace('{{title}}', p.title)
         .replace('{{price}}', parseFloat(p.price).toLocaleString())
-        .replace('{{link}}', p.affiliateUrl)
+        .replace('{{link}}', link)
         .replace('{{desc}}', p.description || '')
         .replace('{{tags}}', tags);
 
@@ -31,32 +32,17 @@ function generateSmartTags(p) {
     const keywords = [];
     const title = p.title || '';
 
-    // 1. Common Brands/Keywords
-    const patterns = [
-        { name: 'Apple', keywords: ['apple', 'iphone', 'ipad', 'macbook', 'airpod'] },
-        { name: 'Samsung', keywords: ['samsung', 'galaxy'] },
-        { name: 'Osuka', keywords: ['osuka', 'โอซูกะ'] },
-        { name: 'Marshall', keywords: ['marshall'] },
-        { name: 'Nike', keywords: ['nike'] },
-        { name: 'Adidas', keywords: ['adidas'] },
-        { name: 'Uneed', keywords: ['uneed'] },
-    ];
+    // Split title to find product nouns (e.g. ไฟสปอตไลท์, LED)
+    // We filter out very short words and common Thai prepositions if possible
+    const words = title.split(/[\s,/-]+/).filter(w => w.length > 2);
 
-    patterns.forEach(pt => {
-        if (pt.keywords.some(kw => title.toLowerCase().includes(kw))) {
-            keywords.push(`#${pt.name}`);
+    // Take the first 3 meaningful words as product-specific tags
+    words.slice(0, 3).forEach(w => {
+        const cleaned = w.replace(/[^\u0E00-\u0E7Fa-zA-Z0-9]/g, '');
+        if (cleaned && !/^[0-9]+$/.test(cleaned)) {
+            keywords.push(`#${cleaned}`);
         }
     });
-
-    // 2. Category Based
-    if (p.category && p.category !== 'ทั่วไป') {
-        const catTag = `#${p.category.split('>')[0].trim().replace(/\s+/g, '')}`;
-        keywords.push(catTag);
-    }
-
-    // 3. Status/Common
-    keywords.push('#ช้อปดีมีคืน');
-    keywords.push('#รีวิวของดี');
 
     return [...new Set(keywords)].join(' ');
 }

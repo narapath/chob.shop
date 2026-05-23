@@ -14,51 +14,22 @@ const OAuth = require('oauth-1.0a');
 const COOKIES_PATH = path.join(__dirname, 'fb_cookies.json');
 
 /**
- * Generate relevant hashtags based on product title and category.
+ * Generate relevant hashtags based on product title only.
  */
 function generateHashtags(product) {
-    const brandHashtags = ['#ChobShop']; // Removed #ShopeeAffiliate as requested
     const dynamicHashtags = new Set();
-
-    // Add category as hashtag
-    if (product.category && product.category !== 'ทั่วไป') {
-        dynamicHashtags.add(`#${product.category.replace(/\s+/g, '')}`);
-    }
-
     const title = product.title || '';
 
-    // 1. Detect Brands/Models (Common ones for this store)
-    const brands = [
-        'apple', 'iphone', 'ipad', 'macbook', 'samsung', 'oppo', 'vivo', 'xiaomi', 'redmi',
-        'marshall', 'garmin', 'casio', 'nike', 'adidas', 'sony', 'panasonic', 'sharp',
-        'tefal', 'philips', 'dyson', 'uneed', 'f607'
-    ];
+    // Split title by common delimiters to find potential keywords
+    const keywords = title.split(/[\s,/-]+/).filter(k => k.length > 1 && !/^[0-9]+$/.test(k));
 
-    brands.forEach(b => {
-        const regex = new RegExp(`\\b${b}\\b`, 'i');
-        if (title.match(regex)) {
-            // Capitalize first letter for aesthetic
-            const formatted = b.charAt(0).toUpperCase() + b.slice(1);
-            dynamicHashtags.add(`#${formatted}`);
-        }
+    // Get first few meaningful keywords as tags
+    keywords.slice(0, 3).forEach(kw => {
+        const cleaned = kw.replace(/[^\u0E00-\u0E7Fa-zA-Z0-9]/g, '');
+        if (cleaned) dynamicHashtags.add(`#${cleaned}`);
     });
 
-    // 2. Extract keywords from title (specific features/promos)
-    const keywords = ['ลดราคา', 'โปรโมชั่น', 'รีวิว', 'ของมันต้องมี', 'sale', 'promotion', 'fashion', 'gadget', 'home', 'powerbank', 'พรีเมียม', 'ราคาถูก'];
-
-    keywords.forEach(kw => {
-        if (title.toLowerCase().includes(kw)) {
-            dynamicHashtags.add(`#${kw.replace(/\s+/g, '')}`);
-        }
-    });
-
-    // 3. Fallback generic tags if still too few
-    if (dynamicHashtags.size < 2) {
-        dynamicHashtags.add('#ของดีบอกต่อ');
-        dynamicHashtags.add('#รีวิวของดี');
-    }
-
-    return [...brandHashtags, ...dynamicHashtags].join(' ');
+    return [...dynamicHashtags].join(' ');
 }
 
 /**
@@ -71,6 +42,7 @@ async function generateAICaption(product) {
     const price = Number(product.price).toLocaleString();
     const category = product.category || 'ทั่วไป';
     const siteUrl = process.env.SITE_URL || 'https://chob.shop';
+    // Always prioritize direct affiliate URL
     const affiliateUrl = product.affiliateUrl || `${siteUrl}/?productId=${product.id}`;
 
     if (!apiKey) {
@@ -83,7 +55,7 @@ async function generateAICaption(product) {
 จงเขียนแคปชั่นสำหรับสินค้าชิ้นนี้ โดยมีกฎดังนี้:
 1. **ปรับปรุงชื่อสินค้า**: สรุปชื่อสินค้าให้สั้น กระชับ และดูเป็นมืออาชีพ (เช่น "ประกัน 1+1 ปี" ให้เปลี่ยนเป็น "ประกัน 2 ปีเต็ม", ตัดคำขยะชื่อร้านหรือรหัสที่ไม่จำเป็นออก)
 2. **เนื้อหาเชิงรีวิว**: เขียนสั้นๆ 1-2 ประโยคว่าทำไมสินค้านี้ถึงน่าสนใจ (เช่น "ตัวนี้ใช้ดีมากครับ", "สายแคมป์ปิ้งต้องมี")
-3. **แฮชแท็ก**: สร้างแฮชแท็กที่ @Tag ถึงสินค้านั้นๆ โดยเฉพาะ (เช่น #เลื่อยตัดแต่งกิ่ง #Osuka #อุปกรณ์ทำสวน) ห้ามใช้แค่แฮชแท็กทั่วไป
+3. **แฮชแท็ก**: สร้างแฮชแท็กที่ระบุถึงชื่อสินค้านั้นๆ โดยเฉพาะ (เช่น #เลื่อยตัดแต่งกิ่ง #Osuka #ไฟLED) **ห้ามใช้**แฮชแท็กทั่วไปอย่าง #ChobShop #รีวิวสินค้า หรือชื่อหมวดหมู่
 4. **Emoji**: ใช้ Emoji ให้ดูพรีเมียมและน่าสนใจ
 
 ข้อมูลสินค้า:
@@ -99,7 +71,7 @@ async function generateAICaption(product) {
 💰 ราคาเพียง: ${price} บาท
 📍 สนใจสั่งซื้อได้ที่: ${affiliateUrl}
 
-[แฮชแท็กที่ระบุเจาะจงสินค้า]`;
+[แฮชแท็กเจาะจงสินค้าเท่านั้น]`;
 
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
