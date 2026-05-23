@@ -3,6 +3,7 @@ let settings = {
     apiEndpoint: 'https://chob.shop', // Default
     captionTemplate: '✨ {{title}}\n\n💰 ราคาเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่: {{link}}\n\n{{tags}}'
 };
+let currentTabIsFBGroup = false;
 
 async function copyToClipboard(id) {
     const p = products.find(prod => prod.id == id);
@@ -47,10 +48,22 @@ function generateSmartTags(p) {
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
+    await checkCurrentTab();
     await loadSettings();
     await fetchProducts();
     initEventListeners();
 });
+
+async function checkCurrentTab() {
+    return new Promise((resolve) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0] && tabs[0].url) {
+                currentTabIsFBGroup = tabs[0].url.includes('facebook.com/groups/');
+            }
+            resolve();
+        });
+    });
+}
 
 async function loadSettings() {
     return new Promise((resolve) => {
@@ -150,14 +163,16 @@ function renderProducts() {
                 <div class="prod-meta">
                     <div class="prod-price">฿${parseFloat(p.price).toLocaleString()}</div>
                     <div class="prod-actions">
+                        ${currentTabIsFBGroup ? `
+                            <button class="btn-sm btn-group-post" data-id="${p.id}" title="โพสต์ลงกลุ่มนี้">
+                                <span>📍</span> ลงกลุ่มนี้
+                            </button>
+                        ` : ''}
                         <button class="btn-sm btn-copy" data-id="${p.id}" title="คัดลอกแคปชั่น">
                             <span>📋</span> ก๊อปโพสต์
                         </button>
                         <button class="btn-sm btn-ai" data-id="${p.id}" title="ใช้ AI เขียนแคปชั่น">
                             <span>✨</span> AI
-                        </button>
-                        <button class="btn-sm btn-img" data-img="${p.image}" title="เปิดรูปภาพ">
-                            <span>🖼️</span> ดูรูป
                         </button>
                     </div>
                 </div>
@@ -174,11 +189,68 @@ function renderProducts() {
         btn.addEventListener('click', () => generateAICaptionFromBackend(btn.dataset.id, btn));
     });
 
+    list.querySelectorAll('.btn-group-post').forEach(btn => {
+        btn.addEventListener('click', () => postToCurrentGroup(btn.dataset.id));
+    });
+
     list.querySelectorAll('.btn-img').forEach(btn => {
         btn.addEventListener('click', () => {
             window.open(btn.dataset.img, '_blank');
         });
     });
+}
+
+async function postToCurrentGroup(id) {
+    console.log('postToCurrentGroup called with id:', id);
+    const p = products.find(prod => prod.id == id);
+    if (!p) {
+        console.error('Product not found:', id);
+        return;
+    }
+
+    const tags = generateSmartTags(p);
+    const link = p.affiliateUrl || `https://chob.shop/?productId=${p.id}`;
+
+    let caption = settings.captionTemplate
+        .replace('{{title}}', p.title)
+        .replace('{{price}}', parseFloat(p.price).toLocaleString())
+        .replace('{{link}}', link)
+        .replace('{{desc}}', p.description || '')
+        .replace('{{tags}}', tags);
+
+    // Try to get AI caption if needed, or just use basic one
+    try {
+        const aiCaption = await fetchAICaption(p.id);
+        if (aiCaption) caption = aiCaption;
+    } catch (e) { }
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+                action: 'FILL_POST',
+                data: {
+                    caption: caption,
+                    imageUrl: p.image
+                }
+            }, (response) => {
+                if (chrome.runtime.lastError) {
+                    showToast('⚠️ โปรด Refresh หน้า Facebook ก่อนใช้งานครั้งแรก');
+                } else if (response && response.success) {
+                    showToast('✅ กรอกข้อมูลลงหน้าเว็บแล้ว!');
+                }
+            });
+        }
+    });
+}
+
+async function fetchAICaption(id) {
+    try {
+        const response = await fetch(`${settings.apiEndpoint}/api/products/${id}/ai-caption`);
+        const data = await response.json();
+        return data.caption || null;
+    } catch (err) {
+        return null;
+    }
 }
 
 // --- Helpers ---

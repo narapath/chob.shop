@@ -49,6 +49,7 @@ header {
     font-size: 16px;
     background: linear-gradient(135deg, #fff 0%, var(--accent-light) 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -244,6 +245,16 @@ main::-webkit-scrollbar-thumb {
 .btn-img:hover {
     background: rgba(255, 255, 255, 0.1);
     color: #fff;
+}
+
+.btn-group-post {
+    background: #4267B2;
+    color: #fff;
+    border: none;
+}
+
+.btn-group-post:hover {
+    background: #365899;
 }
 
 /* Skeleton */
