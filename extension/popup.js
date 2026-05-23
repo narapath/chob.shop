@@ -4,8 +4,6 @@ let settings = {
     captionTemplate: '✨ {{title}}\n\n💰 ราคาเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่: {{link}}\n\n{{tags}}'
 };
 
-// ... existing code ...
-
 async function copyToClipboard(id) {
     const p = products.find(prod => prod.id == id);
     if (!p) return;
@@ -205,23 +203,6 @@ async function generateAICaptionFromBackend(id, btn) {
     } finally {
         btn.innerHTML = originalContent;
         btn.disabled = false;
-    }
-}
-async function copyToClipboard(id) {
-    const p = products.find(prod => prod.id == id);
-    if (!p) return;
-
-    let caption = settings.captionTemplate
-        .replace('{{title}}', p.title)
-        .replace('{{price}}', parseFloat(p.price).toLocaleString())
-        .replace('{{link}}', p.affiliateUrl)
-        .replace('{{desc}}', p.description || '');
-
-    try {
-        await navigator.clipboard.writeText(caption);
-        showToast('✅ คัดลอกแคปชั่นแล้ว!');
-    } catch (err) {
-        console.error('Clipboard error:', err);
     }
 }
 
