@@ -286,11 +286,13 @@
         <p>หลายคนเจอปัญหา <strong>"ของไม่ตรงปก"</strong> หรือเลือกไม่ถูกว่าร้านไหนดี? ที่ <strong>Chob.shop
             (ชอบช้อป)</strong> เราคือผู้ช่วยคัดกรองสินค้าคุณภาพผ่านระบบ Affiliate ที่เน้นความโปร่งใส เราทำหน้าที่รวบรวม
           <strong>พิกัดของถูกและดี</strong> จากร้านค้า Shopee Mall และร้านแนะนำที่ได้รับความนิยมสูง
-          เพื่อให้คุณไม่ต้องเสียเวลาหาเอง</p>
+          เพื่อให้คุณไม่ต้องเสียเวลาหาเอง
+        </p>
         <p>เราคัดสรรสินค้าจากประสบการณ์การเลือกซื้อจริง โดยเน้นไปที่ความคุ้มค่าและคุณภาพของสินค้าเป็นหลัก ไม่ว่าจะเป็น
           Gadget ไอที, ของแต่งบ้านมินิมอล หรือสินค้าไลฟ์สไตล์ หากคุณกำลังมองหา <strong>รีวิวของแท้</strong> และ
           <strong>พิกัดร้านค้าที่เชื่อถือได้ 100%</strong> การเริ่มต้นค้นหาที่ Chob.shop
-          จะช่วยให้คุณมั่นใจได้ว่าจะได้ของดีในราคาที่เหมาะสมที่สุด</p>
+          จะช่วยให้คุณมั่นใจได้ว่าจะได้ของดีในราคาที่เหมาะสมที่สุด
+        </p>
         <h3 style="color: var(--accent); margin-top: 32px;">จุดเด่นที่ทำให้ Chob.shop แตกต่าง:</h3>
         <ul style="list-style: none; padding: 0;">
           <li style="margin-bottom: 12px;">✅ <strong>คัดเฉพาะร้านน่าเชื่อถือ:</strong>
@@ -535,7 +537,8 @@
 
     .product-popup-content {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1.3fr;
+      /* More space for text */
       gap: 0;
     }
 
@@ -576,11 +579,13 @@
     }
 
     .product-popup-title {
-      font-size: 24px;
-      font-weight: 700;
+      font-size: 22px;
+      /* Slightly smaller for long titles */
+      font-weight: 800;
       color: #fff;
-      line-height: 1.4;
+      line-height: 1.3;
       margin: 0;
+      letter-spacing: -0.5px;
     }
 
     .product-popup-rating {
@@ -597,18 +602,20 @@
     }
 
     .product-popup-rating-text {
-      color: var(--text-secondary);
-      font-size: 14px;
+      color: var(--text-muted);
+      font-size: 13px;
     }
 
     .product-popup-description {
       color: var(--text-secondary);
-      line-height: 1.7;
-      font-size: 15px;
-      background: rgba(255, 255, 255, 0.03);
-      padding: 20px;
+      line-height: 1.6;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 16px;
       border-radius: var(--radius-md);
       border: 1px solid var(--border);
+      max-height: 150px;
+      overflow-y: auto;
     }
 
     .product-popup-highlights {
@@ -637,14 +644,15 @@
       display: flex;
       align-items: baseline;
       gap: 12px;
-      padding: 24px;
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+      padding: 20px 24px;
+      background: rgba(139, 92, 246, 0.05);
+      /* More subtle */
       border-radius: var(--radius-md);
-      border: 1px solid rgba(139, 92, 246, 0.2);
+      border: 1px solid rgba(139, 92, 246, 0.15);
     }
 
     .product-popup-price {
-      font-size: 36px;
+      font-size: 32px;
       font-weight: 800;
       color: var(--accent);
     }
@@ -675,10 +683,11 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 13px;
+      font-size: 12px;
+      /* Smaller for professional look */
       color: var(--text-secondary);
-      background: rgba(255, 255, 255, 0.03);
-      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 8px 10px;
       border-radius: var(--radius-sm);
     }
 
