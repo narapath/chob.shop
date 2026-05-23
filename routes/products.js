@@ -499,7 +499,7 @@ router.post('/:id/post-groups', requireAuth, async (req, res) => {
         const groupUrls = groupsString.split(',').map(u => u.trim()).filter(Boolean);
 
         if (groupUrls.length === 0) {
-            return res.status(400).json({ error: 'No Facebook Groups configured in settings.' });
+            return res.status(400).json({ reason: 'No Facebook Groups configured in settings.' });
         }
 
         const aiCaption = await generateAICaption(product);
@@ -508,7 +508,7 @@ router.post('/:id/post-groups', requireAuth, async (req, res) => {
         res.json({ success: true, ...result });
     } catch (err) {
         console.error('Group Post API Error:', err);
-        res.status(500).json({ error: 'Failed to post to groups', detail: err.message });
+        res.status(500).json({ success: false, reason: err.message });
     }
 });
 
