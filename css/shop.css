@@ -541,7 +541,21 @@ body {
 
 /* ===== CATEGORY ICON GRID ===== */
 .categories-section {
-  padding: 24px 0 16px;
+  padding: 16px 0;
+  position: sticky;
+  top: 64px;
+  /* Adjust based on navbar height */
+  z-index: 900;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+#navbar.sticky~.categories-section {
+  top: 60px;
+  /* Precise offset for sticky navbar */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 /* Header */
@@ -657,13 +671,13 @@ body {
 }
 
 .cat-fade-left {
-  left: 4px;
+  left: 0;
   background: linear-gradient(to right, var(--bg-primary), transparent);
   opacity: 0;
 }
 
 .cat-fade-right {
-  right: 4px;
+  right: 0;
   background: linear-gradient(to left, var(--bg-primary), transparent);
 }
 
@@ -695,44 +709,44 @@ body {
 /* Each card — premium polished */
 .cat-card {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  /* Horizontal layout for a professional feel */
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-width: 100px;
-  width: 100px;
-  height: 100px;
-  padding: 12px 8px;
+  gap: 12px;
+  min-width: max-content;
+  padding: 10px 20px;
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: var(--radius-pill);
   background: var(--bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   scroll-snap-align: start;
   flex-shrink: 0;
   font-family: inherit;
   position: relative;
-  /* Removed overflow: hidden so the badge can break out of the card */
   color: var(--text-secondary);
 }
 
 /* Category item count badge */
 .cat-count {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+  top: -6px;
+  right: -6px;
+  background: var(--accent-gradient);
   color: white;
-  font-size: 0.75rem;
+  font-size: 10px;
   font-weight: 700;
-  padding: 3px 6px;
-  min-width: 20px;
-  width: max-content;
-  text-align: center;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(255, 75, 43, 0.4), 0 0 0 2px var(--bg-primary);
+  padding: 2px 6px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  box-shadow: 0 4px 12px var(--accent-glow), 0 0 0 2px var(--bg-primary);
   z-index: 10;
   pointer-events: none;
   white-space: nowrap;
@@ -781,10 +795,11 @@ body {
 
 /* Emoji icon */
 .cat-emoji {
-  font-size: 32px;
+  font-size: 20px;
+  /* Smaller icon for professional look */
   line-height: 1;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transition: transform 0.3s ease;
 }
 
 .cat-card:hover .cat-emoji {
@@ -854,18 +869,16 @@ body {
   }
 
   .cat-card {
-    min-width: 68px;
-    width: 68px;
-    padding: 10px 4px 6px;
+    padding: 8px 14px;
+    gap: 8px;
   }
 
   .cat-emoji {
-    font-size: 22px;
+    font-size: 16px;
   }
 
   .cat-label {
-    font-size: 9px;
-    max-width: 60px;
+    font-size: 12px;
   }
 
   .cat-header h2 {
@@ -2058,4 +2071,28 @@ body {
 
 .card-img.loaded {
   opacity: 1;
-}@keyframes shimmer {  0% { opacity: 0.5; }  50% { opacity: 0.8; }  100% { opacity: 0.5; }} .skeleton { animation: shimmer 1.5s infinite; } .shimmer-bg { background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-secondary) 50%, var(--bg-card) 75%); background-size: 1000px 100%; animation: shimmer 2s infinite linear; }
+}
+
+@keyframes shimmer {
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton {
+  animation: shimmer 1.5s infinite;
+}
+
+.shimmer-bg {
+  background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-secondary) 50%, var(--bg-card) 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
