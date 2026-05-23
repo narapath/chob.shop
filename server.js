@@ -10,7 +10,7 @@ const sharp = require('sharp');
 
 const { supabase } = require('./lib/supabase');
 const { notifyGoogleIndexing, notifyBulkIndexing } = require('./indexingService');
-const { deleteFromFacebook, deleteFromX, generateAICaption } = require('./socialMedia');
+const { deleteFromFacebook, deleteFromX, generateAICaption, postToFacebookGroups } = require('./socialMedia');
 const { generateLocalSEO } = require('./lib/seo');
 const categoryMapper = require('./js/categories');
 
@@ -185,7 +185,12 @@ app.get('/api/settings', requireAuth, (req, res) => {
 // PUT update settings (writes to .env and hot-reloads)
 app.put('/api/settings', requireAuth, (req, res) => {
   try {
-    const allowedKeys = ['FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN', 'GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_KEY', 'CARD_THEME', 'STATS_THEME'];
+    const allowedKeys = [
+      'FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN',
+      'GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_KEY',
+      'CARD_THEME', 'STATS_THEME', 'FB_TARGET_GROUPS',
+      'FB_EMAIL', 'FB_PASSWORD'
+    ];
     const updates = req.body;
 
     const envPath = path.join(__dirname, '.env');

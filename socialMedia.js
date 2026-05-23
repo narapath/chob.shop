@@ -393,6 +393,129 @@ async function _legacyBrowserFallback() {
     }
 }
 
+/**
+ * Automate posting to Facebook Groups.
+ * @param {Object} product 
+ * @param {string} siteUrl 
+ * @param {string[]} groupUrls
+ * @param {boolean} useAI 
+ * @param {string} aiCaption 
+ */
+async function postToFacebookGroups(product, siteUrl, groupUrls = [], useAI = false, aiCaption = null) {
+    if (!groupUrls || groupUrls.length === 0) {
+        return { success: false, reason: 'No group URLs provided' };
+    }
+
+    const logMsg = (m) => fs.appendFileSync('debug_social.log', `[${new Date().toISOString()}] [Groups] ${m}\n`);
+    const userDataDir = path.join(__dirname, '.chrome_profile');
+    const puppeteer = require('puppeteer');
+
+    let browser;
+    try {
+        browser = await puppeteer.launch({
+            headless: 'new',
+            userDataDir: userDataDir,
+            defaultViewport: { width: 390, height: 844, isMobile: true, hasTouch: true },
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-blink-features=AutomationControlled',
+                '--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+            ],
+        });
+
+        const page = await browser.newPage();
+        await page.setExtraHTTPHeaders({
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+        });
+
+        // 1. Ensure Logged In
+        await page.goto('https://mbasic.facebook.com/', { waitUntil: 'networkidle2', timeout: 30000 });
+        const loginForm = await page.$('input[name="email"]');
+        if (loginForm) {
+            const fbEmail = process.env.FB_EMAIL;
+            const fbPassword = process.env.FB_PASSWORD;
+            if (!fbEmail || !fbPassword) {
+                logMsg('⚠️ Not logged in and missing FB_EMAIL/FB_PASSWORD');
+                await browser.close();
+                return { success: false, reason: 'missing_credentials' };
+            }
+            await page.type('input[name="email"]', fbEmail, { delay: 30 });
+            await page.type('input[name="pass"]', fbPassword, { delay: 30 });
+            await Promise.all([
+                page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
+                page.keyboard.press('Enter'),
+            ]);
+            await new Promise(r => setTimeout(r, 2000));
+        }
+
+        const groupResults = [];
+        const message = buildPostContent(product, siteUrl, useAI, aiCaption);
+
+        for (const rawUrl of groupUrls) {
+            const groupUrl = rawUrl.trim();
+            if (!groupUrl) continue;
+
+            // Convert regular URL to mbasic URL
+            let mbasicUrl = groupUrl.replace('www.facebook.com', 'mbasic.facebook.com');
+            if (!mbasicUrl.includes('mbasic.facebook.com')) {
+                if (mbasicUrl.startsWith('/')) mbasicUrl = `https://mbasic.facebook.com${mbasicUrl}`;
+                else if (!mbasicUrl.startsWith('http')) mbasicUrl = `https://mbasic.facebook.com/groups/${mbasicUrl}`;
+            }
+
+            logMsg(`📡 Posting to group: ${mbasicUrl}`);
+            try {
+                await page.goto(mbasicUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+                await new Promise(r => setTimeout(r, 2000));
+
+                // Find the "Write something..." link/area in mbasic groups
+                // Usually it's a link that goes to /composer/mbasic/
+                const composerLink = await page.$('a[href*="/composer/mbasic/"]');
+                if (!composerLink) {
+                    logMsg(`⚠️ Could not find composer link in group: ${mbasicUrl}`);
+                    groupResults.push({ group: groupUrl, success: false, reason: 'composer_not_found' });
+                    continue;
+                }
+                await composerLink.click();
+                await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
+
+                // Type message
+                const textarea = await page.$('textarea[name="xc_message"]');
+                if (textarea) {
+                    await textarea.type(message, { delay: 15 });
+
+                    // Click Post
+                    const postBtn = await page.$('input[type="submit"][name="view_post"]');
+                    if (postBtn) {
+                        await postBtn.click();
+                        await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
+                        logMsg(`✅ Posted to group: ${groupUrl}`);
+                        groupResults.push({ group: groupUrl, success: true });
+                    } else {
+                        logMsg(`⚠️ Could not find Post button in group: ${mbasicUrl}`);
+                        groupResults.push({ group: groupUrl, success: false, reason: 'post_button_not_found' });
+                    }
+                } else {
+                    logMsg(`⚠️ Could not find Textarea in group composer: ${mbasicUrl}`);
+                    groupResults.push({ group: groupUrl, success: false, reason: 'textarea_not_found' });
+                }
+            } catch (err) {
+                logMsg(`❌ Error posting to group ${groupUrl}: ${err.message}`);
+                groupResults.push({ group: groupUrl, success: false, reason: err.message });
+            }
+            // Small delay between groups
+            await new Promise(r => setTimeout(r, 3000));
+        }
+
+        await browser.close();
+        return { success: true, results: groupResults };
+    } catch (err) {
+        logMsg(`❌ Global Group Post Error: ${err.message}`);
+        if (browser) await browser.close();
+        return { success: false, reason: err.message };
+    }
+}
+
 // ============================================================
 // Instagram Business Posting (Graph API)
 // ============================================================
@@ -729,6 +852,7 @@ async function generateAICaption(product) {
 
 module.exports = {
     postToFacebook,
+    postToFacebookGroups,
     postToInstagram,
     postToX,
     postToThreads,

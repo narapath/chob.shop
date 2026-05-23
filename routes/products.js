@@ -7,7 +7,7 @@ const { generateLocalSEO } = require('../lib/seo');
 const { notifyGoogleIndexing, notifyBulkIndexing } = require('../indexingService');
 const {
     postToFacebook, postToInstagram, postToX, postToThreads,
-    deleteFromFacebook, deleteFromX, generateAICaption
+    deleteFromFacebook, deleteFromX, generateAICaption, postToFacebookGroups
 } = require('../socialMedia');
 
 const categoryMapper = require('../js/categories');
@@ -475,6 +475,40 @@ router.post('/categorize-all', requireAuth, async (req, res) => {
         res.json({ success: true, updatedCount });
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /:id/post-groups
+ * Trigger posting to Facebook Groups for a specific product.
+ */
+router.post('/:id/post-groups', requireAuth, async (req, res) => {
+    try {
+        if (!supabase) return res.status(500).json({ error: 'Supabase is not configured.' });
+
+        const { data: product, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', req.params.id)
+            .single();
+
+        if (error || !product) return res.status(404).json({ error: 'Product not found' });
+
+        const siteUrl = process.env.SITE_URL || 'https://chob.shop';
+        const groupsString = process.env.FB_TARGET_GROUPS || '';
+        const groupUrls = groupsString.split(',').map(u => u.trim()).filter(Boolean);
+
+        if (groupUrls.length === 0) {
+            return res.status(400).json({ error: 'No Facebook Groups configured in settings.' });
+        }
+
+        const aiCaption = await generateAICaption(product);
+        const result = await postToFacebookGroups(product, siteUrl, groupUrls, true, aiCaption);
+
+        res.json({ success: true, ...result });
+    } catch (err) {
+        console.error('Group Post API Error:', err);
+        res.status(500).json({ error: 'Failed to post to groups', detail: err.message });
     }
 });
 

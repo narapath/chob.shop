@@ -2478,12 +2478,31 @@
                         </div>
                     </div>
                     <div class="setting-group">
-                        <h3>📘 Facebook API</h3>
+                        <h3>📘 Facebook & Groups</h3>
                         <div class="form-group">
                             <label>Page Access Token</label>
                             <input type="password" id="fbTokenInput" placeholder="EAABw...">
                             <small class="hint">ใช้สำหรับโพสต์ลง Facebook Page อัตโนมัติ</small>
                         </div>
+                        <div class="form-group">
+                            <label>Target Facebook Groups (URLs)</label>
+                            <textarea id="fbGroupsInput"
+                                placeholder="https://www.facebook.com/groups/123&#10;https://www.facebook.com/groups/456"
+                                style="height: 100px;"></textarea>
+                            <small class="hint">ใส่ URL ของกลุ่มที่ต้องการโพสต์อัตโนมัติ (1 URL ต่อบรรทัด)</small>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Facebook Email</label>
+                                <input type="text" id="fbEmailInput" placeholder="your-email@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Facebook Password</label>
+                                <input type="password" id="fbPasswordInput" placeholder="••••••••">
+                            </div>
+                        </div>
+                        <small class="hint">ใส่อีเมลและรหัสผ่านเพื่อใช้สำหรับระบบ Auto Post ในกลุ่มผ่านบราวเซอร์
+                            (Puppeteer)</small>
                     </div>
                     <div class="setting-group">
                         <h3>🧵 Threads API</h3>
@@ -2958,8 +2977,9 @@
                         </div>
                     </td>
                     <td class="col-actions">
-                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <div style="display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap;">
                             <button class="btn-table btn-table-edit" onclick="editProduct('${p.id}')">✏️ แก้ไข</button>
+                            <button class="btn-table" style="color: #4267B2; border-color: rgba(66,103,178,0.3);" onclick="postToGroups('${p.id}')">👥 กลุ่ม</button>
                             <button class="btn-table btn-table-delete" onclick="deleteProduct('${p.id}')">🗑 ลบ</button>
                         </div>
                     </td>
@@ -4359,6 +4379,9 @@
                 const data = await res.json();
                 const MARKER = '●●●●●●●●';
                 document.getElementById('fbTokenInput').value = data.FB_PAGE_ACCESS_TOKEN ? MARKER : '';
+                document.getElementById('fbGroupsInput').value = data.FB_TARGET_GROUPS ? data.FB_TARGET_GROUPS.split(',').join('\n') : '';
+                document.getElementById('fbEmailInput').value = data.FB_EMAIL ? data.FB_EMAIL : '';
+                document.getElementById('fbPasswordInput').value = data.FB_PASSWORD ? MARKER : '';
                 document.getElementById('threadsUserIdInput').value = data.THREADS_USER_ID ? data.THREADS_USER_ID : ''; // User ID is usually not sensitive
                 document.getElementById('threadsTokenInput').value = data.THREADS_ACCESS_TOKEN ? MARKER : '';
                 document.getElementById('geminiKeyInput').value = data.GEMINI_API_KEY ? MARKER : '';
@@ -4378,6 +4401,9 @@
 
             const payload = {
                 FB_PAGE_ACCESS_TOKEN: document.getElementById('fbTokenInput').value,
+                FB_TARGET_GROUPS: document.getElementById('fbGroupsInput').value.split('\n').map(u => u.trim()).filter(Boolean).join(','),
+                FB_EMAIL: document.getElementById('fbEmailInput').value,
+                FB_PASSWORD: document.getElementById('fbPasswordInput').value,
                 THREADS_USER_ID: document.getElementById('threadsUserIdInput').value,
                 THREADS_ACCESS_TOKEN: document.getElementById('threadsTokenInput').value,
                 GEMINI_API_KEY: document.getElementById('geminiKeyInput').value,
@@ -4423,6 +4449,32 @@
 
             btn.disabled = false;
             btn.textContent = '💾 บันทึกการตั้งค่า';
+        }
+
+        async function postToGroups(productId) {
+            if (!confirm('คุณต้องการโพสต์สินค้านี้ลงกลุ่ม Facebook ที่ตั้งค่าไว้หรือไม่?')) return;
+
+            showToast('⏳ กำลังเริ่มโพสต์ลงกลุ่ม Facebook...');
+            try {
+                const res = await fetchWithAuth(`/api/products/${productId}/post-groups`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (data.results && data.results.length > 0) {
+                        const successCount = data.results.filter(r => r.success).length;
+                        const total = data.results.length;
+                        showToast(`✅ โพสต์สำเร็จ ${successCount}/${total} กลุ่ม`);
+                    } else {
+                        showToast('✅ ระบบส่งคำสั่งโพสต์แล้ว');
+                    }
+                } else {
+                    showToast('❌ โพสต์ไม่สำเร็จ: ' + (data.reason || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error('Group post error:', e);
+                showToast('❌ เกิดข้อผิดพลาดในการโพสต์');
+            }
         }
 
         let isSidebarMini = false;
