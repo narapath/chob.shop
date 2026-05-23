@@ -430,23 +430,43 @@ async function postToFacebookGroups(product, siteUrl, groupUrls = [], useAI = fa
         });
 
         // 1. Ensure Logged In
+        logMsg('Checking login status...');
         await page.goto('https://mbasic.facebook.com/', { waitUntil: 'networkidle2', timeout: 30000 });
-        const loginForm = await page.$('input[name="email"]');
+
+        let loginForm = await page.$('input[name="email"]');
         if (loginForm) {
+            logMsg('Attempting to log in...');
             const fbEmail = process.env.FB_EMAIL;
             const fbPassword = process.env.FB_PASSWORD;
             if (!fbEmail || !fbPassword) {
                 logMsg('⚠️ Not logged in and missing FB_EMAIL/FB_PASSWORD');
+                await page.screenshot({ path: 'debug_login_error.png' });
                 await browser.close();
                 return { success: false, reason: 'missing_credentials' };
             }
-            await page.type('input[name="email"]', fbEmail, { delay: 30 });
-            await page.type('input[name="pass"]', fbPassword, { delay: 30 });
+            await page.type('input[name="email"]', fbEmail, { delay: 50 });
+            await page.type('input[name="pass"]', fbPassword, { delay: 50 });
             await Promise.all([
                 page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
-                page.keyboard.press('Enter'),
+                page.click('input[type="submit"], button[type="submit"], input[name="login"]'),
             ]);
-            await new Promise(r => setTimeout(r, 2000));
+
+            // Check for login success or "Save Device" page
+            if (page.url().includes('login.php') || page.url().includes('checkpoint')) {
+                logMsg('⚠️ Login failed or 2FA required. URL: ' + page.url());
+                await page.screenshot({ path: 'debug_login_checkpoint.png' });
+                await browser.close();
+                return { success: false, reason: 'login_failed_or_2fa' };
+            }
+
+            // Handle "Save Device" page if it appears
+            if (page.url().includes('save-device')) {
+                const okBtn = await page.$('input[type="submit"], button');
+                if (okBtn) await Promise.all([page.waitForNavigation(), okBtn.click()]);
+            }
+            logMsg('Successfully logged in.');
+        } else {
+            logMsg('Already logged in.');
         }
 
         const groupResults = [];
@@ -469,42 +489,61 @@ async function postToFacebookGroups(product, siteUrl, groupUrls = [], useAI = fa
                 await new Promise(r => setTimeout(r, 2000));
 
                 // Find the "Write something..." link/area in mbasic groups
-                // Usually it's a link that goes to /composer/mbasic/
-                const composerLink = await page.$('a[href*="/composer/mbasic/"]');
+                // Try multiple patterns for mbasic composer links
+                let composerLink = await page.$('a[href*="/composer/mbasic/"]');
+                if (!composerLink) {
+                    composerLink = await page.$('a[href*="m.facebook.com/composer"]');
+                }
+
                 if (!composerLink) {
                     logMsg(`⚠️ Could not find composer link in group: ${mbasicUrl}`);
+                    const id = groupUrl.split('/').pop() || 'unknown';
+                    await page.screenshot({ path: `debug_no_composer_${id}.png` });
                     groupResults.push({ group: groupUrl, success: false, reason: 'composer_not_found' });
                     continue;
                 }
-                await composerLink.click();
-                await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
+                await Promise.all([
+                    page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
+                    composerLink.click()
+                ]);
 
                 // Type message
-                const textarea = await page.$('textarea[name="xc_message"]');
+                let textarea = await page.$('textarea[name="xc_message"]');
+                if (!textarea) textarea = await page.$('textarea');
+
                 if (textarea) {
                     await textarea.type(message, { delay: 15 });
 
                     // Click Post
-                    const postBtn = await page.$('input[type="submit"][name="view_post"]');
+                    let postBtn = await page.$('input[type="submit"][name="view_post"]');
+                    if (!postBtn) postBtn = await page.$('input[value="โพสต์"], input[value="Post"]');
+
                     if (postBtn) {
-                        await postBtn.click();
-                        await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
+                        await Promise.all([
+                            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
+                            postBtn.click()
+                        ]);
                         logMsg(`✅ Posted to group: ${groupUrl}`);
                         groupResults.push({ group: groupUrl, success: true });
                     } else {
                         logMsg(`⚠️ Could not find Post button in group: ${mbasicUrl}`);
+                        await page.screenshot({ path: `debug_no_post_btn_${groupUrl.split('/').pop()}.png` });
                         groupResults.push({ group: groupUrl, success: false, reason: 'post_button_not_found' });
                     }
                 } else {
                     logMsg(`⚠️ Could not find Textarea in group composer: ${mbasicUrl}`);
+                    await page.screenshot({ path: `debug_no_textarea_${groupUrl.split('/').pop()}.png` });
                     groupResults.push({ group: groupUrl, success: false, reason: 'textarea_not_found' });
                 }
             } catch (err) {
                 logMsg(`❌ Error posting to group ${groupUrl}: ${err.message}`);
                 groupResults.push({ group: groupUrl, success: false, reason: err.message });
+                try {
+                    await page.screenshot({ path: `debug_error_${groupUrl.split('/').pop()}.png` });
+                } catch (_) { }
             }
             // Small delay between groups
-            await new Promise(r => setTimeout(r, 3000));
+            await new Promise(r => setTimeout(r, 4000));
         }
 
         await browser.close();
