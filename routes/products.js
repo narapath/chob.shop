@@ -111,6 +111,27 @@ router.get('/', async (req, res) => {
 // Note: Categories count was moved to a separate mount point if needed.
 // For now, let's keep it here but realize it might be hit as /api/products/categories/count
 
+// GET AI caption for a product
+router.get('/:id/ai-caption', async (req, res) => {
+    try {
+        if (!supabase) return res.status(500).json({ error: 'Supabase is not configured.' });
+
+        const { data: product, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', req.params.id)
+            .single();
+
+        if (error || !product) return res.status(404).json({ error: 'Product not found' });
+
+        const caption = await generateAICaption(product);
+        res.json({ success: true, caption });
+    } catch (err) {
+        console.error('AI Caption API Error:', err);
+        res.status(500).json({ error: 'Failed to generate AI caption' });
+    }
+});
+
 // POST a new product
 router.post('/', requireAuth, async (req, res) => {
     try {

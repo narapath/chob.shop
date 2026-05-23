@@ -1,8 +1,65 @@
 let products = [];
 let settings = {
     apiEndpoint: 'https://chob.shop', // Default
-    captionTemplate: '✨ {{title}}\n\n💰 ราคาเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่: {{link}}\n\n#ช้อปดีมีคืน #รีวิวสินค้า {{desc}}'
+    captionTemplate: '✨ {{title}}\n\n💰 ราคาเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่: {{link}}\n\n{{tags}}'
 };
+
+// ... existing code ...
+
+async function copyToClipboard(id) {
+    const p = products.find(prod => prod.id == id);
+    if (!p) return;
+
+    const tags = generateSmartTags(p);
+
+    let caption = settings.captionTemplate
+        .replace('{{title}}', p.title)
+        .replace('{{price}}', parseFloat(p.price).toLocaleString())
+        .replace('{{link}}', p.affiliateUrl)
+        .replace('{{desc}}', p.description || '')
+        .replace('{{tags}}', tags);
+
+    try {
+        await navigator.clipboard.writeText(caption);
+        showToast('✅ คัดลอกแคปชั่นแล้ว!');
+    } catch (err) {
+        console.error('Clipboard error:', err);
+    }
+}
+
+function generateSmartTags(p) {
+    const keywords = [];
+    const title = p.title || '';
+
+    // 1. Common Brands/Keywords
+    const patterns = [
+        { name: 'Apple', keywords: ['apple', 'iphone', 'ipad', 'macbook', 'airpod'] },
+        { name: 'Samsung', keywords: ['samsung', 'galaxy'] },
+        { name: 'Osuka', keywords: ['osuka', 'โอซูกะ'] },
+        { name: 'Marshall', keywords: ['marshall'] },
+        { name: 'Nike', keywords: ['nike'] },
+        { name: 'Adidas', keywords: ['adidas'] },
+        { name: 'Uneed', keywords: ['uneed'] },
+    ];
+
+    patterns.forEach(pt => {
+        if (pt.keywords.some(kw => title.toLowerCase().includes(kw))) {
+            keywords.push(`#${pt.name}`);
+        }
+    });
+
+    // 2. Category Based
+    if (p.category && p.category !== 'ทั่วไป') {
+        const catTag = `#${p.category.split('>')[0].trim().replace(/\s+/g, '')}`;
+        keywords.push(catTag);
+    }
+
+    // 3. Status/Common
+    keywords.push('#ช้อปดีมีคืน');
+    keywords.push('#รีวิวของดี');
+
+    return [...new Set(keywords)].join(' ');
+}
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -112,6 +169,9 @@ function renderProducts() {
                         <button class="btn-sm btn-copy" data-id="${p.id}" title="คัดลอกแคปชั่น">
                             <span>📋</span> ก๊อปโพสต์
                         </button>
+                        <button class="btn-sm btn-ai" data-id="${p.id}" title="ใช้ AI เขียนแคปชั่น">
+                            <span>✨</span> AI
+                        </button>
                         <button class="btn-sm btn-img" data-img="${p.image}" title="เปิดรูปภาพ">
                             <span>🖼️</span> ดูรูป
                         </button>
@@ -126,6 +186,10 @@ function renderProducts() {
         btn.addEventListener('click', () => copyToClipboard(btn.dataset.id));
     });
 
+    list.querySelectorAll('.btn-ai').forEach(btn => {
+        btn.addEventListener('click', () => generateAICaptionFromBackend(btn.dataset.id, btn));
+    });
+
     list.querySelectorAll('.btn-img').forEach(btn => {
         btn.addEventListener('click', () => {
             window.open(btn.dataset.img, '_blank');
@@ -134,6 +198,29 @@ function renderProducts() {
 }
 
 // --- Helpers ---
+async function generateAICaptionFromBackend(id, btn) {
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<span>⏳</span>...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${settings.apiEndpoint}/api/products/${id}/ai-caption`);
+        const data = await response.json();
+
+        if (data.caption) {
+            await navigator.clipboard.writeText(data.caption);
+            showToast('✨ คัดลอกแคปชั่น AI แล้ว!');
+        } else {
+            throw new Error(data.error || 'Failed');
+        }
+    } catch (err) {
+        console.error('AI Caption error:', err);
+        showToast('⚠️ AI ไม่พร้อมใช้งาน');
+    } finally {
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+    }
+}
 async function copyToClipboard(id) {
     const p = products.find(prod => prod.id == id);
     if (!p) return;

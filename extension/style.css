@@ -223,6 +223,18 @@ main::-webkit-scrollbar-thumb {
     background: var(--accent-light);
 }
 
+.btn-ai {
+    background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+}
+
+.btn-ai:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+}
+
 .btn-img {
     background: var(--glass);
     color: var(--text-dim);

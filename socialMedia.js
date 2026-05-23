@@ -63,42 +63,58 @@ function generateHashtags(product) {
 
 /**
  * Generate an AI-powered reviewer-style caption using Google Gemini API.
- * Falls back to a high-quality template if the API key is missing or fails.
+ * Cleans the title (e.g. 1+1 -> 2ปี) and generates niche hashtags.
  */
 async function generateAICaption(product) {
+    const apiKey = process.env.GEMINI_API_KEY;
     const title = product.title || '';
     const price = Number(product.price).toLocaleString();
     const category = product.category || 'ทั่วไป';
+    const siteUrl = process.env.SITE_URL || 'https://chob.shop';
+    const affiliateUrl = product.affiliateUrl || `${siteUrl}/?productId=${product.id}`;
 
-    // Fallback template (Reviewer Style)
-    const fallbackTemplates = [
-        `🌟 บอกพิกัดของดี! ${title} ตัวนี้คือที่สุดดคุ้มมากกก\n💰 ราคาแค่ ฿${price} เท่านั้น (ราคาดีมากก)\n🛒 ใครหาอยู่รีบเลยย กดที่ลิ้งค์ได้เลยน้าา`,
-        `🔥 ป้ายยาแรงๆ! ${title} ของมันต้องมีจริงๆ ทุกคนน\n💸 ค่าตัวน้องอยู่ที่ ฿${price} (คุ้มค่าตัวสุดๆ)\n📍 พิกัดความปังจิ้มเล้ยย`,
-        `✨ รีวิวสั้นๆ: ${title} ใช้แล้วชอบมากกก ดีไซน์สวย ใช้งานดี\n💵 ราคา ฿${price} (ราคานี้คือต้องจัดแล้วว)\n🔗 สนใจจิ้มตรงนี้ได้เลยย`,
-    ];
-
-    try {
-        const templatesPath = path.join(__dirname, 'category_templates.json');
-        if (fs.existsSync(templatesPath)) {
-            const fileData = fs.readFileSync(templatesPath, 'utf8');
-            const allTemplates = JSON.parse(fileData);
-
-            if (allTemplates[category] && allTemplates[category].length > 0) {
-                // Pick a random template for this category
-                const templates = allTemplates[category];
-                const selected = templates[Math.floor(Math.random() * templates.length)];
-
-                // Replace placeholders with real product data
-                let caption = selected.replace(/{title}/g, title).replace(/{price}/g, price);
-                return caption;
-            }
-        }
-    } catch (err) {
-        console.error('⚠️ Error reading category templates:', err.message);
+    if (!apiKey) {
+        // High quality fallback
+        return `✨ ${title}\n\n💰 ราคาเพียง: ${price} บาท\n📍 สนใจสั่งซื้อได้ที่: ${affiliateUrl}\n\n${generateHashtags(product)}`;
     }
 
-    // Use fallback if json is missing or category not found
-    return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
+    try {
+        const prompt = `คุณคือ Content Creator มือโปรที่เก่งเรื่องการเขียนแคปชั่นขายสินค้าให้น่าดึงดูดและดูเป็นธรรมชาติ
+จงเขียนแคปชั่นสำหรับสินค้าชิ้นนี้ โดยมีกฎดังนี้:
+1. **ปรับปรุงชื่อสินค้า**: สรุปชื่อสินค้าให้สั้น กระชับ และดูเป็นมืออาชีพ (เช่น "ประกัน 1+1 ปี" ให้เปลี่ยนเป็น "ประกัน 2 ปีเต็ม", ตัดคำขยะชื่อร้านหรือรหัสที่ไม่จำเป็นออก)
+2. **เนื้อหาเชิงรีวิว**: เขียนสั้นๆ 1-2 ประโยคว่าทำไมสินค้านี้ถึงน่าสนใจ (เช่น "ตัวนี้ใช้ดีมากครับ", "สายแคมป์ปิ้งต้องมี")
+3. **แฮชแท็ก**: สร้างแฮชแท็กที่ @Tag ถึงสินค้านั้นๆ โดยเฉพาะ (เช่น #เลื่อยตัดแต่งกิ่ง #Osuka #อุปกรณ์ทำสวน) ห้ามใช้แค่แฮชแท็กทั่วไป
+4. **Emoji**: ใช้ Emoji ให้ดูพรีเมียมและน่าสนใจ
+
+ข้อมูลสินค้า:
+- ชื่อเดิม: "${title}"
+- ราคา: ${price} บาท
+- หมวดหมู่: ${category}
+
+รูปแบบคำตอบ (ตอบเฉพาะแคปชั่นเท่านั้น):
+✨ [ชื่อสินค้าที่ปรับปรุงแล้ว]
+
+[ประโยคป้ายยา/รีวิว]
+
+💰 ราคาเพียง: ${price} บาท
+📍 สนใจสั่งซื้อได้ที่: ${affiliateUrl}
+
+[แฮชแท็กที่ระบุเจาะจงสินค้า]`;
+
+        const response = await axios.post(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 500 }
+            }
+        );
+
+        const aiText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        return aiText || `✨ ${title}\n\n💰 ราคาเพียง: ${price} บาท\n📍 สนใจสั่งซื้อได้ที่: ${affiliateUrl}\n\n${generateHashtags(product)}`;
+    } catch (err) {
+        console.error('⚠️ Gemini Caption Gen Error:', err.message);
+        return `✨ ${title}\n\n💰 ราคาเพียง: ${price} บาท\n📍 สนใจสั่งซื้อได้ที่: ${affiliateUrl}\n\n${generateHashtags(product)}`;
+    }
 }
 
 /**
