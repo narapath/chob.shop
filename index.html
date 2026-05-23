@@ -884,9 +884,8 @@
     }
 
     function createProductPopupHTML(product) {
-      const rating = product.rating_value || (4.5 + Math.random() * 0.5).toFixed(1);
-      const displayRating = product.rating_value ? product.rating_value : rating;
-      const reviewCount = product.review_count || Math.floor(Math.random() * 200 + 50);
+      const displayRating = product.ratingValue || 0;
+      const reviewCount = product.reviewCount || 0;
       const fullStars = Math.floor(parseFloat(displayRating));
       const starsHtml = '★'.repeat(fullStars) + (parseFloat(displayRating) % 1 >= 0.5 ? '★' : '');
 
@@ -1272,14 +1271,11 @@
     }
 
     function createProductHTML(product) {
-      // Use real rating data if available, otherwise fallback to a subtle placeholder or empty
-      const rating = product.rating_value || (4.5 + Math.random() * 0.5).toFixed(1);
-      const displayRating = product.rating_value ? product.rating_value : rating;
-      const reviewCount = product.review_count || Math.floor(Math.random() * 200 + 50);
-
+      const displayRating = product.ratingValue || 0;
+      const reviewCount = product.reviewCount || 0;
       const fullStars = Math.floor(parseFloat(displayRating));
       const starsHtml = '★'.repeat(fullStars) + (parseFloat(displayRating) % 1 >= 0.5 ? '★' : '');
-      const salesCount = product.clicks ? (product.clicks > 999 ? (product.clicks / 1000).toFixed(1) + 'k' : product.clicks) : Math.floor(Math.random() * 500 + 10);
+      const salesCount = product.salesCount || 0;
 
       const displayWishClass = isInWishlist(product.id) ? 'active' : '';
 

@@ -1,0 +1,35 @@
+{
+    "manifest_version": 3,
+    "name": "ChobShop FB Group Poster",
+    "version": "1.0",
+    "description": "ช่วยโพสต์สินค้าจาก ChobShop ลง Facebook Group ได้อย่างรวดเร็ว พร้อมรูปภาพและคำบรรยาย",
+    "permissions": [
+        "storage",
+        "clipboardWrite"
+    ],
+    "host_permissions": [
+        "https://*.vercel.app/*",
+        "http://localhost:*/*",
+        "https://*.shopee.co.th/*",
+        "https://www.facebook.com/*",
+        "https://chob.shop/*"
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/icon16.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.facebook.com/groups/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ]
+}

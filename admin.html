@@ -2328,6 +2328,20 @@
                                 </optgroup>
                             </select>
                         </div>
+                        <div class="form-row" style="margin-top: 15px;">
+                            <div class="form-group">
+                                <label>⭐ Rating (0-5)</label>
+                                <input type="number" id="ratingValue" step="0.1" min="0" max="5" placeholder="4.8">
+                            </div>
+                            <div class="form-group">
+                                <label>💬 Reviews</label>
+                                <input type="number" id="reviewCount" placeholder="120">
+                            </div>
+                            <div class="form-group">
+                                <label>📦 Sales Count</label>
+                                <input type="number" id="salesCount" placeholder="500">
+                            </div>
+                        </div>
                         <div style="border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px; text-align: center; cursor: pointer; transition: 0.2s;"
                             id="csvDropzone" onclick="document.getElementById('csvFileInput').click()">
                             <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
@@ -2532,19 +2546,18 @@
                             <input type="number" id="modalPrice" placeholder="299" />
                         </div>
                     </div>
-                    <div class="form-grid-3" style="margin-top: -6px; display: none;">
-                        <div class="form-group"
-                            style="background: rgba(99,102, 241, 0.03); border-left: 2px solid var(--accent); padding-left: 10px;">
-                            <label style="color: var(--accent-light);">💰 Commission (%)</label>
-                            <input type="number" id="modalCommission" placeholder="0" step="0.1" />
+                    <div class="form-grid-3" style="margin-top: -6px;">
+                        <div class="form-group">
+                            <label>⭐ Rating (0-5)</label>
+                            <input type="number" id="modalRatingValue" placeholder="4.8" step="0.1" min="0" max="5" />
                         </div>
                         <div class="form-group">
-                            <label>Rating (1-5)</label>
-                            <input type="number" id="modalRating" placeholder="4.8" step="0.1" min="1" max="5" />
-                        </div>
-                        <div class="form-group">
-                            <label>Reviews</label>
+                            <label>💬 Reviews</label>
                             <input type="number" id="modalReviewCount" placeholder="120" />
+                        </div>
+                        <div class="form-group">
+                            <label>📦 Sales Count</label>
+                            <input type="number" id="modalSalesCount" placeholder="500" />
                         </div>
                     </div>
                     <div class="form-group">
@@ -3363,6 +3376,9 @@
             document.getElementById('seoTitle').value = '';
             document.getElementById('seoDescription').value = '';
             document.getElementById('productCommission').value = '';
+            document.getElementById('ratingValue').value = '';
+            document.getElementById('reviewCount').value = '';
+            document.getElementById('salesCount').value = '';
         }
 
         // === Add product (Main Form) ===
@@ -3392,10 +3408,17 @@
                 return;
             }
 
+            const ratingValue = document.getElementById('ratingValue').value || 0;
+            const reviewCount = document.getElementById('reviewCount').value || 0;
+            const salesCount = document.getElementById('salesCount').value || 0;
+
             const body = {
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
                 seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
-                commission: parseFloat(commission)
+                commission: parseFloat(commission),
+                ratingValue: parseFloat(ratingValue),
+                reviewCount: parseInt(reviewCount),
+                salesCount: parseInt(salesCount)
             };
 
             const url = '/api/products';
@@ -3446,6 +3469,9 @@
             document.getElementById('modalSeoTitle').value = product.seo_title || '';
             document.getElementById('modalSeoDescription').value = product.seo_description || '';
             document.getElementById('modalCommission').value = product.commission || '';
+            document.getElementById('modalRatingValue').value = product.ratingValue || '';
+            document.getElementById('modalReviewCount').value = product.reviewCount || '';
+            document.getElementById('modalSalesCount').value = product.salesCount || '';
 
             document.getElementById('modalEditId').value = product.id;
 
@@ -3546,6 +3572,9 @@
             const seoTitle = document.getElementById('modalSeoTitle').value.trim();
             const seoDescription = document.getElementById('modalSeoDescription').value.trim();
             const commission = document.getElementById('modalCommission').value || 0;
+            const ratingValue = document.getElementById('modalRatingValue').value || 0;
+            const reviewCount = document.getElementById('modalReviewCount').value || 0;
+            const salesCount = document.getElementById('modalSalesCount').value || 0;
 
             if (!affiliateUrl || !title || !price) {
                 alert('กรุณากรอกข้อมูลที่จำเป็น (*) ให้ครบถ้วน');
@@ -3558,7 +3587,10 @@
             const body = {
                 title, price, originalPrice, discount, category, image, affiliateUrl, description,
                 seo_keywords: seoKeywords, seo_description: seoDescription, seo_title: seoTitle,
-                commission: parseFloat(commission)
+                commission: parseFloat(commission),
+                ratingValue: parseFloat(ratingValue),
+                reviewCount: parseInt(reviewCount),
+                salesCount: parseInt(salesCount)
             };
 
             try {
@@ -4110,7 +4142,20 @@
             );
 
 
-            console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal, colCommission, colDiscount });
+            let colRating = headers.findIndex(h =>
+                h === 'คะแนน' || h === 'Rating' || h === 'คะแนนเฉลี่ย' ||
+                h.includes('Rating') || h.includes('คะแนน')
+            );
+            let colReviews = headers.findIndex(h =>
+                h === 'รีวิว' || h === 'Reviews' || h === 'จำนวนรีวิว' ||
+                h.includes('Reviews') || h.includes('รีวิว')
+            );
+            let colSales = headers.findIndex(h =>
+                h === 'ขายแล้ว' || h === 'Sales' || h === 'จำนวนที่ขาย' ||
+                h.includes('Sales') || h.includes('ขายแล้ว')
+            );
+
+            console.log('🔍 Column Indices:', { colTitle, colUrl, colPrice, colImage, colOriginal, colCommission, colDiscount, colRating, colReviews, colSales });
 
             if (colTitle === -1 || colUrl === -1) {
                 console.error('❌ Missing core columns (Title or Link)');
@@ -4135,6 +4180,10 @@
                 const commission = colCommission !== -1 ? parseFloat((cols[colCommission] || '0').replace(/[^0-9.]/g, '')) || 0 : 0;
                 const discount = colDiscount !== -1 ? parseInt((cols[colDiscount] || '0').replace(/[^0-9]/g, ''), 10) || 0 : 0;
 
+                const ratingValue = colRating !== -1 ? parseFloat((cols[colRating] || '0').replace(/[^0-9.]/g, '')) || 0 : 0;
+                const reviewCount = colReviews !== -1 ? parseInt((cols[colReviews] || '0').replace(/[^0-9]/g, ''), 10) || 0 : 0;
+                const salesCount = colSales !== -1 ? parseInt((cols[colSales] || '0').replace(/[^0-9]/g, ''), 10) || 0 : 0;
+
                 parsedProducts.push({
                     title: title,
                     affiliateUrl: url,
@@ -4144,7 +4193,10 @@
                     discount: discount || '',
                     image: image,
                     description: '',
-                    commission: commission
+                    commission: commission,
+                    ratingValue: ratingValue,
+                    reviewCount: reviewCount,
+                    salesCount: salesCount
                 });
             }
             console.log('✅ Parsed products:', parsedProducts.length);

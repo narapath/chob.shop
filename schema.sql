@@ -16,7 +16,10 @@ CREATE TABLE IF NOT EXISTS products (
   seo_keywords JSONB DEFAULT '[]',
   seo_description TEXT,
   seo_title TEXT,
-  commission NUMERIC DEFAULT 0
+  commission NUMERIC DEFAULT 0,
+  rating_value NUMERIC DEFAULT 0,
+  review_count INTEGER DEFAULT 0,
+  sales_count INTEGER DEFAULT 0
 );
 
 -- Enable RLS

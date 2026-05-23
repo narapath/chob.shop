@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChobShop Poster</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Prompt:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app">
+        <header>
+            <div class="logo">
+                <span class="emoji">✨</span>
+                <span class="text">Chob.Shop Poster</span>
+            </div>
+            <div class="status-dot"></div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="ค้นหาสินค้าในคลัง..." autofocus>
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        </div>
+
+        <div class="filters">
+            <div class="cat-chip active" data-cat="all">ทั้งหมด</div>
+            <div class="cat-chip" data-cat="เครื่องใช้ไฟฟ้าในบ้าน">🏠 บ้าน</div>
+            <div class="cat-chip" data-cat="อิเล็กทรอนิกส์">🔌 ไอที</div>
+            <div class="cat-chip" data-cat="ความงามและสุขภาพ">💄 บิวตี้</div>
+        </div>
+
+        <main id="productList">
+            <!-- Loading Skeleton -->
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+        </main>
+
+        <footer>
+            <button id="settingsBtn" class="icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                </svg>
+            </button>
+            <span class="powered-by">Powered by ChobShop</span>
+        </footer>
+    </div>
+
+    <!-- Settings View (Hidden) -->
+    <div id="settingsView" class="view-overlay hidden">
+        <div class="overlay-content">
+            <h3>⚙️ ตั้งค่า</h3>
+            <div class="form-group">
+                <label>API Endpoint</label>
+                <input type="text" id="apiEndpoint" placeholder="https://chobshop.vercel.app">
+            </div>
+            <div class="form-group">
+                <label>รูปแบบคำบรรยาย</label>
+                <textarea id="captionTemplate" rows="4"></textarea>
+                <small>Tag: {{title}}, {{price}}, {{link}}, {{desc}}</small>
+            </div>
+            <div class="button-group">
+                <button id="saveSettings" class="btn-primary">บันทึก</button>
+                <button id="closeSettings" class="btn-secondary">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

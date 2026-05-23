@@ -49,6 +49,9 @@ router.get('/', async (req, res) => {
                 affiliateUrl: p.affiliate_url,
                 facebookPostId: p.facebook_post_id,
                 twitterPostId: p.twitter_post_id,
+                ratingValue: p.rating_value,
+                reviewCount: p.review_count,
+                salesCount: p.sales_count
             }));
 
             return res.json({
@@ -93,6 +96,9 @@ router.get('/', async (req, res) => {
             affiliateUrl: p.affiliate_url,
             facebookPostId: p.facebook_post_id,
             twitterPostId: p.twitter_post_id,
+            ratingValue: p.rating_value,
+            reviewCount: p.review_count,
+            salesCount: p.sales_count
         }));
 
         res.json({ products: mappedData, total: totalCount || mappedData.length });
@@ -130,7 +136,10 @@ router.post('/', requireAuth, async (req, res) => {
             seo_keywords: [],
             seo_description: '',
             seo_title: req.body.seo_title || '',
-            commission: req.body.commission || 0
+            commission: req.body.commission || 0,
+            rating_value: req.body.ratingValue || 0,
+            review_count: req.body.reviewCount || 0,
+            sales_count: req.body.salesCount || 0
         };
 
         if (req.body.toggleAI) {
@@ -184,7 +193,10 @@ router.post('/bulk', requireAuth, async (req, res) => {
                 date: new Date().toISOString(),
                 facebook_post_id: null,
                 twitter_post_id: null,
-                commission: p.commission || 0
+                commission: p.commission || 0,
+                rating_value: p.ratingValue || 0,
+                review_count: p.reviewCount || 0,
+                sales_count: p.salesCount || 0
             };
         });
 
@@ -250,6 +262,22 @@ router.put('/:id', requireAuth, async (req, res) => {
         if (updatePayload.twitterPostId) {
             updatePayload.twitter_post_id = updatePayload.twitterPostId;
             delete updatePayload.twitterPostId;
+        }
+        if (updatePayload.ratingValue !== undefined) {
+            updatePayload.rating_value = updatePayload.ratingValue;
+            delete updatePayload.ratingValue;
+        }
+        if (updatePayload.reviewCount !== undefined) {
+            updatePayload.review_count = updatePayload.reviewCount;
+            delete updatePayload.reviewCount;
+        }
+        if (updatePayload.salesCount !== undefined) {
+            updatePayload.sales_count = updatePayload.salesCount;
+            delete updatePayload.salesCount;
+        }
+        if (updatePayload.salesCount) {
+            updatePayload.sales_count = updatePayload.salesCount;
+            delete updatePayload.salesCount;
         }
         delete updatePayload.id;
 
