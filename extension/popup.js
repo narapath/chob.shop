@@ -133,6 +133,8 @@ function initEventListeners() {
             } else {
                 document.getElementById('productsView').classList.add('hidden');
                 document.getElementById('groupsView').classList.remove('hidden');
+                // Auto-sync from server when entering groups tab
+                syncGroupsFromServer();
             }
         });
     });

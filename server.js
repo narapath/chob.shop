@@ -187,9 +187,9 @@ app.get('/api/settings', requireAuth, (req, res) => {
 app.get('/api/fb-groups', (req, res) => {
   try {
     const groups = JSON.parse(process.env.FB_TARGET_GROUPS || '[]');
-    res.json(groups);
+    res.json({ success: true, groups });
   } catch (err) {
-    res.json([]);
+    res.json({ success: false, groups: [] });
   }
 });
 
