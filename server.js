@@ -80,14 +80,14 @@ async function setSetting(key, value) {
   try {
     if (supabase) {
       const { error } = await supabase.from('settings').upsert({ key, value, updated_at: new Date().toISOString() });
-      if (error) throw error;
+      if (error) return { success: false, error: error.message };
     }
     // Also update in-memory for immediate use
     process.env[key] = value;
-    return true;
+    return { success: true };
   } catch (err) {
     console.error(`Error saving setting ${key}:`, err);
-    return false;
+    return { success: false, error: err.message };
   }
 }
 
@@ -234,13 +234,13 @@ app.put('/api/settings', requireAuth, async (req, res) => {
     ];
     const updates = req.body;
     let updatedCount = 0;
-    let dbError = false;
+    let dbErrorMsg = null;
 
     for (const key of allowedKeys) {
       if (updates[key] !== undefined) {
         const value = updates[key];
-        const success = await setSetting(key, value);
-        if (!success) dbError = true;
+        const resSet = await setSetting(key, value);
+        if (!resSet.success) dbErrorMsg = resSet.error;
         updatedCount++;
       }
     }
@@ -268,7 +268,7 @@ app.put('/api/settings', requireAuth, async (req, res) => {
       }
     }
 
-    res.json({ success: true, updatedCount, isVercel, dbPersistence: !dbError });
+    res.json({ success: true, updatedCount, isVercel, dbPersistence: !dbErrorMsg, dbErrorMsg });
   } catch (err) {
     console.error('Settings update error:', err);
     res.status(500).json({ error: 'Failed to update settings', detail: err.message });

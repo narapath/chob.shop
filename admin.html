@@ -4547,7 +4547,7 @@
                     if (result.dbPersistence) {
                         showToast('✅ บันทึกการตั้งค่าลง Database สำเร็จ (Vercel Persistence Active)');
                     } else if (result.isVercel) {
-                        showToast('⚠️ บันทึกชั่วคราวสำเร็จ (Vercel ไม่รองรับไฟล์ .env และ DB บันทึกไม่สำเร็จ)');
+                        showToast(`⚠️ บันทึกชั่วคราวสำเร็จ แต่ DB บันทึกไม่สำเร็จ: ${result.dbErrorMsg || 'Unknown Error'}`);
                     } else {
                         showToast('✅ บันทึกการตั้งค่าสำเร็จ');
                     }
