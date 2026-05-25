@@ -61,9 +61,35 @@ app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use('/images', express.static(path.join(__dirname, 'assets')));
 
-// Mount API Routes
-app.use('/api', authRouter);
 app.use('/api/products', productsRouter);
+
+// --- Supabase Settings Helpers ---
+async function getSetting(key, defaultValue = '') {
+  try {
+    if (supabase) {
+      const { data, error } = await supabase.from('settings').select('value').eq('key', key).single();
+      if (!error && data) return data.value;
+    }
+  } catch (err) {
+    console.error(`Error fetching setting ${key}:`, err);
+  }
+  return process.env[key] || defaultValue;
+}
+
+async function setSetting(key, value) {
+  try {
+    if (supabase) {
+      const { error } = await supabase.from('settings').upsert({ key, value, updated_at: new Date().toISOString() });
+      if (error) throw error;
+    }
+    // Also update in-memory for immediate use
+    process.env[key] = value;
+    return true;
+  } catch (err) {
+    console.error(`Error saving setting ${key}:`, err);
+    return false;
+  }
+}
 
 // GET category counts
 app.get('/api/categories/count', async (req, res) => {
@@ -164,12 +190,15 @@ app.get('/api/theme', (req, res) => {
 });
 
 // GET current settings (masked)
-app.get('/api/settings', requireAuth, (req, res) => {
+app.get('/api/settings', requireAuth, async (req, res) => {
   const mask = (val) => {
     if (!val) return '';
     if (val.length <= 10) return '***';
     return val.substring(0, 6) + '...' + val.substring(val.length - 6);
   };
+
+  const FB_TARGET_GROUPS = await getSetting('FB_TARGET_GROUPS', '[]');
+
   res.json({
     FB_PAGE_ACCESS_TOKEN: mask(process.env.FB_PAGE_ACCESS_TOKEN),
     THREADS_USER_ID: process.env.THREADS_USER_ID || '',
@@ -179,22 +208,23 @@ app.get('/api/settings', requireAuth, (req, res) => {
     SUPABASE_KEY: mask(process.env.SUPABASE_KEY),
     CARD_THEME: process.env.CARD_THEME || 'theme-white',
     STATS_THEME: process.env.STATS_THEME || 'stats-premium',
-    FB_TARGET_GROUPS: process.env.FB_TARGET_GROUPS || '[]'
+    FB_TARGET_GROUPS: FB_TARGET_GROUPS
   });
 });
 
 // GET Facebook Groups (Public/Semi-public for extension)
-app.get('/api/fb-groups', (req, res) => {
+app.get('/api/fb-groups', async (req, res) => {
   try {
-    const groups = JSON.parse(process.env.FB_TARGET_GROUPS || '[]');
+    const groupsJson = await getSetting('FB_TARGET_GROUPS', '[]');
+    const groups = JSON.parse(groupsJson);
     res.json({ success: true, groups });
   } catch (err) {
     res.json({ success: false, groups: [] });
   }
 });
 
-// PUT update settings (writes to .env and hot-reloads)
-app.put('/api/settings', requireAuth, (req, res) => {
+// PUT update settings (writes to DB and falls back to .env)
+app.put('/api/settings', requireAuth, async (req, res) => {
   try {
     const allowedKeys = [
       'FB_PAGE_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_ACCESS_TOKEN',
@@ -203,43 +233,42 @@ app.put('/api/settings', requireAuth, (req, res) => {
       'FB_EMAIL', 'FB_PASSWORD'
     ];
     const updates = req.body;
-
-    const envPath = path.join(__dirname, '.env');
-    let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
-
     let updatedCount = 0;
+    let dbError = false;
+
     for (const key of allowedKeys) {
       if (updates[key] !== undefined) {
         const value = updates[key];
-        const line = `${key}='${value}'`;
-
-        const regex = new RegExp(`^${key}=.*$`, 'm');
-        if (envContent.match(regex)) {
-          // Use a function here to avoid interpretation of special characters like $ in 'line'
-          envContent = envContent.replace(regex, () => line);
-        } else {
-          envContent = envContent.trim() + `\n${line}\n`;
-        }
-        process.env[key] = value;
+        const success = await setSetting(key, value);
+        if (!success) dbError = true;
         updatedCount++;
       }
     }
 
+    // Attempt to persist to .env as well if not on Vercel
     const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL_URL;
-
-    if (isVercel) {
-      console.log('☁️ Running on Vercel: Persisting settings in-memory only.');
-    } else {
+    if (!isVercel) {
       try {
+        const envPath = path.join(__dirname, '.env');
+        let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
+        for (const key of allowedKeys) {
+          if (updates[key] !== undefined) {
+            const line = `${key}='${updates[key]}'`;
+            const regex = new RegExp(`^${key}=.*$`, 'm');
+            if (envContent.match(regex)) {
+              envContent = envContent.replace(regex, () => line);
+            } else {
+              envContent = envContent.trim() + `\n${line}\n`;
+            }
+          }
+        }
         fs.writeFileSync(envPath, envContent, 'utf-8');
-        console.log('🏠 Saved settings to .env');
-      } catch (fsErr) {
-        console.error('Failed to write .env, continuing in-memory:', fsErr);
-        // If we can't write, we continue anyway to let process.env work for this session
+      } catch (e) {
+        console.error('Failed to sync .env:', e);
       }
     }
 
-    res.json({ success: true, updatedCount, isVercel });
+    res.json({ success: true, updatedCount, isVercel, dbPersistence: !dbError });
   } catch (err) {
     console.error('Settings update error:', err);
     res.status(500).json({ error: 'Failed to update settings', detail: err.message });
