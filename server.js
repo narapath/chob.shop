@@ -209,20 +209,37 @@ app.put('/api/settings', requireAuth, (req, res) => {
 
     let updatedCount = 0;
     for (const key of allowedKeys) {
-      if (updates[key] !== undefined && updates[key] !== '') {
+      if (updates[key] !== undefined) {
+        const value = updates[key];
+        const line = `${key}='${value}'`;
+
         const regex = new RegExp(`^${key}=.*$`, 'm');
         if (envContent.match(regex)) {
-          envContent = envContent.replace(regex, `${key}=${updates[key]}`);
+          // Use a function here to avoid interpretation of special characters like $ in 'line'
+          envContent = envContent.replace(regex, () => line);
         } else {
-          envContent += `\n${key}=${updates[key]}`;
+          envContent = envContent.trim() + `\n${line}\n`;
         }
-        process.env[key] = updates[key];
+        process.env[key] = value;
         updatedCount++;
       }
     }
 
-    fs.writeFileSync(envPath, envContent, 'utf-8');
-    res.json({ success: true, updatedCount });
+    const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL_URL;
+
+    if (isVercel) {
+      console.log('☁️ Running on Vercel: Persisting settings in-memory only.');
+    } else {
+      try {
+        fs.writeFileSync(envPath, envContent, 'utf-8');
+        console.log('🏠 Saved settings to .env');
+      } catch (fsErr) {
+        console.error('Failed to write .env, continuing in-memory:', fsErr);
+        // If we can't write, we continue anyway to let process.env work for this session
+      }
+    }
+
+    res.json({ success: true, updatedCount, isVercel });
   } catch (err) {
     console.error('Settings update error:', err);
     res.status(500).json({ error: 'Failed to update settings', detail: err.message });
