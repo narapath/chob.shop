@@ -1,9 +1,12 @@
 let products = [];
+let groups = [];
 let settings = {
     apiEndpoint: 'https://chob.shop', // Default
     captionTemplate: '✨ {{title}}\n\n💰 ราคาเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่: {{link}}\n\n{{tags}}'
 };
 let currentTabIsFBGroup = false;
+let displayLimit = 10;
+const ITEMS_PER_PAGE = 10;
 
 async function copyToClipboard(id) {
     const p = products.find(prod => prod.id == id);
@@ -50,6 +53,7 @@ function generateSmartTags(p) {
 document.addEventListener('DOMContentLoaded', async () => {
     await checkCurrentTab();
     await loadSettings();
+    await loadGroups();
     await fetchProducts();
     initEventListeners();
 });
@@ -79,16 +83,72 @@ async function loadSettings() {
     });
 }
 
+async function loadGroups() {
+    return new Promise((resolve) => {
+        chrome.storage.sync.get(['fbGroups'], (result) => {
+            groups = result.fbGroups || [];
+            renderGroups();
+            resolve();
+        });
+    });
+}
+
+function saveGroups() {
+    chrome.storage.sync.set({ fbGroups: groups }, () => {
+        renderGroups();
+    });
+}
+
 function initEventListeners() {
-    document.getElementById('searchInput').addEventListener('input', renderProducts);
+    document.getElementById('searchInput').addEventListener('input', () => {
+        displayLimit = ITEMS_PER_PAGE;
+        renderProducts();
+    });
 
     document.querySelectorAll('.cat-chip').forEach(chip => {
         chip.addEventListener('click', (e) => {
             document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
+            displayLimit = ITEMS_PER_PAGE;
             renderProducts();
         });
     });
+
+    // Load More
+    document.getElementById('loadMoreBtn').addEventListener('click', () => {
+        displayLimit += ITEMS_PER_PAGE;
+        renderProducts();
+    });
+
+    // Tab Switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const tab = btn.dataset.tab;
+            if (tab === 'products') {
+                document.getElementById('productsView').classList.remove('hidden');
+                document.getElementById('groupsView').classList.add('hidden');
+            } else {
+                document.getElementById('productsView').classList.add('hidden');
+                document.getElementById('groupsView').classList.remove('hidden');
+            }
+        });
+    });
+
+    // Group Management
+    document.getElementById('addGroupBtn').addEventListener('click', () => {
+        const name = prompt('ชื่อกลุ่ม:');
+        if (!name) return;
+        const url = prompt('URL กลุ่ม (เช่น https://facebook.com/groups/xxx):');
+        if (!url) return;
+
+        groups.push({ id: Date.now(), name, url });
+        saveGroups();
+    });
+
+    document.getElementById('syncGroupsBtn').addEventListener('click', syncGroupsFromServer);
 
     // Settings Toggle
     document.getElementById('settingsBtn').addEventListener('click', () => {
@@ -120,7 +180,11 @@ async function fetchProducts() {
     try {
         const response = await fetch(`${settings.apiEndpoint}/api/products`);
         const data = await response.json();
-        products = Array.isArray(data) ? data : (data.products || []);
+        const rawProducts = Array.isArray(data) ? data : (data.products || []);
+
+        // Randomize products
+        products = rawProducts.sort(() => Math.random() - 0.5);
+
         renderProducts();
         document.querySelector('.status-dot').style.backgroundColor = '#10b981'; // Green
     } catch (err) {
@@ -138,11 +202,77 @@ async function fetchProducts() {
     }
 }
 
+function renderGroups() {
+    const list = document.getElementById('groupList');
+    if (groups.length === 0) {
+        list.innerHTML = '<div class="empty-groups">ยังไม่มีกลุ่มที่บันทึกไว้</div>';
+        return;
+    }
+
+    list.innerHTML = groups.map(g => `
+        <div class="group-item">
+            <a href="${g.url}" target="_blank" class="group-name">👥 ${g.name}</a>
+            <div class="group-actions">
+                <span class="btn-del" data-id="${g.id}">🗑️</span>
+            </div>
+        </div>
+    `).join('');
+
+    list.querySelectorAll('.btn-del').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const id = isNaN(parseInt(btn.dataset.id)) ? btn.dataset.id : parseInt(btn.dataset.id);
+            groups = groups.filter(g => g.id !== id);
+            saveGroups();
+        });
+    });
+}
+
+async function syncGroupsFromServer() {
+    const btn = document.getElementById('syncGroupsBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '🔄 กำลังซิงค์...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${settings.apiEndpoint}/api/fb-groups`);
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const data = await response.json();
+
+        if (data.success && Array.isArray(data.groups)) {
+            // merge groups by ID
+            const newGroups = data.groups.map(g => ({
+                id: g.id,
+                name: g.name,
+                url: g.url
+            }));
+
+            // Replace existing groups or Merge? 
+            // The prompt said "ดึงข้อมูลไปยัง extension" (pull data to extension).
+            // Let's replace for now to stay in sync with server, or just add missing?
+            // Replaced is usually safer for "sync".
+            groups = newGroups;
+            saveGroups();
+            showToast(`✅ ซิงค์สำเร็จ ${groups.length} กลุ่ม!`);
+        } else {
+            showToast('❌ รูปแบบข้อมูลไม่ถูกต้อง');
+        }
+    } catch (err) {
+        console.error('Sync error:', err);
+        showToast('❌ ซิงค์ไม่สำเร็จ: ' + err.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
 // --- Rendering ---
 function renderProducts() {
     const list = document.getElementById('productList');
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const activeCat = document.querySelector('.cat-chip.active').dataset.cat;
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
 
     const filtered = products.filter(p => {
         const matchesSearch = p.title.toLowerCase().includes(searchTerm);
@@ -152,10 +282,14 @@ function renderProducts() {
 
     if (filtered.length === 0) {
         list.innerHTML = '<div class="empty-msg">🚫 ไม่พบสินค้าที่ค้นหา</div>';
+        loadMoreContainer.classList.add('hidden');
         return;
     }
 
-    list.innerHTML = filtered.map(p => `
+    // Apply pagination
+    const paginated = filtered.slice(0, displayLimit);
+
+    list.innerHTML = paginated.map(p => `
         <div class="product-card">
             <img src="${p.image || 'https://via.placeholder.com/60'}" class="prod-img" alt="img">
             <div class="prod-info">
@@ -171,22 +305,22 @@ function renderProducts() {
                         <button class="btn-sm btn-copy" data-id="${p.id}" title="คัดลอกแคปชั่น">
                             <span>📋</span> ก๊อปโพสต์
                         </button>
-                        <button class="btn-sm btn-ai" data-id="${p.id}" title="ใช้ AI เขียนแคปชั่น">
-                            <span>✨</span> AI
-                        </button>
                     </div>
                 </div>
             </div>
         </div>
     `).join('');
 
+    // Show/Hide Load More
+    if (filtered.length > displayLimit) {
+        loadMoreContainer.classList.remove('hidden');
+    } else {
+        loadMoreContainer.classList.add('hidden');
+    }
+
     // Attach button events
     list.querySelectorAll('.btn-copy').forEach(btn => {
         btn.addEventListener('click', () => copyToClipboard(btn.dataset.id));
-    });
-
-    list.querySelectorAll('.btn-ai').forEach(btn => {
-        btn.addEventListener('click', () => generateAICaptionFromBackend(btn.dataset.id, btn));
     });
 
     list.querySelectorAll('.btn-group-post').forEach(btn => {
@@ -218,12 +352,6 @@ async function postToCurrentGroup(id) {
         .replace('{{desc}}', p.description || '')
         .replace('{{tags}}', tags);
 
-    // Try to get AI caption if needed, or just use basic one
-    try {
-        const aiCaption = await fetchAICaption(p.id);
-        if (aiCaption) caption = aiCaption;
-    } catch (e) { }
-
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]) {
             chrome.tabs.sendMessage(tabs[0].id, {
@@ -243,41 +371,7 @@ async function postToCurrentGroup(id) {
     });
 }
 
-async function fetchAICaption(id) {
-    try {
-        const response = await fetch(`${settings.apiEndpoint}/api/products/${id}/ai-caption`);
-        const data = await response.json();
-        return data.caption || null;
-    } catch (err) {
-        return null;
-    }
-}
-
 // --- Helpers ---
-async function generateAICaptionFromBackend(id, btn) {
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = '<span>⏳</span>...';
-    btn.disabled = true;
-
-    try {
-        const response = await fetch(`${settings.apiEndpoint}/api/products/${id}/ai-caption`);
-        const data = await response.json();
-
-        if (data.caption) {
-            await navigator.clipboard.writeText(data.caption);
-            showToast('✨ คัดลอกแคปชั่น AI แล้ว!');
-        } else {
-            throw new Error(data.error || 'Failed');
-        }
-    } catch (err) {
-        console.error('AI Caption error:', err);
-        showToast('⚠️ AI ไม่พร้อมใช้งาน');
-    } finally {
-        btn.innerHTML = originalContent;
-        btn.disabled = false;
-    }
-}
-
 function showToast(msg) {
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();

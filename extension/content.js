@@ -15,23 +15,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function fillFacebookPost(caption, imageUrl) {
     // 1. Find the "What's on your mind?" button
     const recognizedTexts = [
+        "เขียนอะไรสักหน่อย", // User specified
         "คุณคิดอะไรอยู่",
         "What's on your mind",
         "เขียนอะไรบางอย่าง",
-        "เขียนอะไรสักหน่อย",
         "Create a public post"
     ];
 
     let opener = null;
-    // Search in all div/span elements for recognized text
-    const elements = document.querySelectorAll('div[role="button"], span, div');
-    for (const el of elements) {
-        const text = (el.innerText || "").trim();
-        // Check if element contains any of the recognized phrases
-        if (recognizedTexts.some(t => text.includes(t)) && el.offsetWidth > 0) {
-            // Find the closest clickable button-like element if this isn't it
+
+    // Priority 1: User provided classes for the opener
+    const userOpenerClasses = '.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6';
+    const possibleOpeners = document.querySelectorAll(userOpenerClasses);
+    for (const el of possibleOpeners) {
+        if (el.innerText.includes('เขียนอะไร') && el.offsetWidth > 0) {
             opener = el.closest('div[role="button"]') || el;
             break;
+        }
+    }
+
+    // Priority 2: Generic text search
+    if (!opener) {
+        const elements = document.querySelectorAll('div[role="button"], span, div');
+        for (const el of elements) {
+            const text = (el.innerText || "").trim();
+            if (recognizedTexts.some(t => text.includes(t)) && el.offsetWidth > 0) {
+                opener = el.closest('div[role="button"]') || el;
+                break;
+            }
         }
     }
 
@@ -41,16 +52,34 @@ async function fillFacebookPost(caption, imageUrl) {
 
     opener.click();
 
-    // 2. Wait for the composer modal to appear (increase timeout for safety)
-    await new Promise(r => setTimeout(r, 2500));
+    // 2. Wait for the composer modal to appear (more robustly)
+    let textbox = null;
 
-    // 3. Find the textbox - Facebook uses contenteditable divs
-    let textbox = document.querySelector('div[role="textbox"][contenteditable="true"]');
+    // Retry finding the dialog for up to 6 seconds
+    for (let i = 0; i < 15; i++) {
+        await new Promise(r => setTimeout(r, 400));
+        const dialog = document.querySelector('div[role="dialog"]');
+        if (dialog) {
+            // Priority 1: Specific class mentioned by user for the paragraph inside textbox
+            const p = dialog.querySelector('p.xdj266r.x14z9mp.xat24cr.x1lziwak.x16tdsg8');
+            if (p) {
+                textbox = p.closest('div[contenteditable="true"]');
+            }
 
-    // If not found, try a broader search
+            // Priority 2: Standard textbox roles inside dialog
+            if (!textbox) {
+                textbox = dialog.querySelector('div[role="textbox"][contenteditable="true"]') ||
+                    dialog.querySelector('div[contenteditable="true"]');
+            }
+
+            if (textbox) break;
+        }
+    }
+
     if (!textbox) {
-        const textboxes = document.querySelectorAll('div[contenteditable="true"]');
-        if (textboxes.length > 0) textbox = textboxes[0];
+        // Fallback: look anywhere if dialog search failed, but prioritize role="dialog"
+        textbox = document.querySelector('div[role="dialog"] div[contenteditable="true"]') ||
+            document.querySelector('div[role="textbox"][contenteditable="true"]');
     }
 
     if (!textbox) {
@@ -59,17 +88,28 @@ async function fillFacebookPost(caption, imageUrl) {
 
     // 4. Fill text
     textbox.focus();
-    // Use clear formatting and insert
+
+    // Ensure the cursor is inside (some FB versions need this)
+    try {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(textbox);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    } catch (e) { console.error('Selection error:', e); }
+
+    // Clear and Insert
     document.execCommand('selectAll', false, null);
     document.execCommand('delete', false, null);
     document.execCommand('insertText', false, caption);
 
-    // Trigger input event to let FB know the text changed
+    // Trigger input event
     textbox.dispatchEvent(new Event('input', { bubbles: true }));
 
     console.log('Post filled successfully');
 
-    // Optional: Visual cue
+    // Visual cue
     textbox.style.outline = '4px solid #10b981';
     setTimeout(() => textbox.style.outline = '', 3000);
 }

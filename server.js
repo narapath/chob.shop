@@ -178,8 +178,19 @@ app.get('/api/settings', requireAuth, (req, res) => {
     SUPABASE_URL: mask(process.env.SUPABASE_URL),
     SUPABASE_KEY: mask(process.env.SUPABASE_KEY),
     CARD_THEME: process.env.CARD_THEME || 'theme-white',
-    STATS_THEME: process.env.STATS_THEME || 'stats-premium'
+    STATS_THEME: process.env.STATS_THEME || 'stats-premium',
+    FB_TARGET_GROUPS: process.env.FB_TARGET_GROUPS || '[]'
   });
+});
+
+// GET Facebook Groups (Public/Semi-public for extension)
+app.get('/api/fb-groups', (req, res) => {
+  try {
+    const groups = JSON.parse(process.env.FB_TARGET_GROUPS || '[]');
+    res.json(groups);
+  } catch (err) {
+    res.json([]);
+  }
 });
 
 // PUT update settings (writes to .env and hot-reloads)

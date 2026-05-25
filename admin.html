@@ -1400,7 +1400,97 @@
             opacity: 0.2;
         }
 
-        /* === FORM ACTIONS === */
+        /* === FB GROUPS MANAGEMENT === */
+        .groups-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .group-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-glass);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: var(--transition-fast);
+        }
+
+        .group-item:hover {
+            border-color: var(--accent-light);
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .group-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .group-item-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .group-item-id {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .add-group-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .add-group-form input {
+            padding: 8px 12px;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+        }
+
+        .empty-groups {
+            text-align: center;
+            padding: 12px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .btn-remove-group {
+            background: none;
+            border: none;
+            color: var(--error);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 14px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .btn-remove-group:hover {
+            opacity: 1;
+        }
+
         .form-actions-sticky {
             display: flex;
             gap: 12px;
@@ -2485,11 +2575,19 @@
                             <small class="hint">ใช้สำหรับโพสต์ลง Facebook Page อัตโนมัติ</small>
                         </div>
                         <div class="form-group">
-                            <label>Target Facebook Groups (URLs)</label>
-                            <textarea id="fbGroupsInput"
-                                placeholder="https://www.facebook.com/groups/123&#10;https://www.facebook.com/groups/456"
-                                style="height: 100px;"></textarea>
-                            <small class="hint">ใส่ URL ของกลุ่มที่ต้องการโพสต์อัตโนมัติ (1 URL ต่อบรรทัด)</small>
+                            <label>Target Facebook Groups</label>
+                            <div id="fbGroupsList" class="groups-list">
+                                <!-- Groups rendered via JS -->
+                                <div class="empty-groups">ยังไม่มีกลุ่มที่เพิ่มไว้</div>
+                            </div>
+                            <div class="add-group-form">
+                                <input type="text" id="newGroupName" placeholder="Group Name">
+                                <input type="text" id="newGroupId" placeholder="Group ID">
+                                <input type="text" id="newGroupUrl" placeholder="URL">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="addFBGroup()">➕
+                                    Add</button>
+                            </div>
+                            <small class="hint">จัดการกลุ่มที่ต้องการโพสต์หรือซิงค์ไปยัง Extension</small>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -2646,6 +2744,7 @@
         let products = [];
         let totalProducts = 0;
         let categoryCounts = {};
+        let facebookGroups = [];
         let authToken = localStorage.getItem('vibe_admin_token');
 
         // === UI Logic ===
@@ -4379,7 +4478,17 @@
                 const data = await res.json();
                 const MARKER = '●●●●●●●●';
                 document.getElementById('fbTokenInput').value = data.FB_PAGE_ACCESS_TOKEN ? MARKER : '';
-                document.getElementById('fbGroupsInput').value = data.FB_TARGET_GROUPS ? data.FB_TARGET_GROUPS.split(',').join('\n') : '';
+
+                // Handle Facebook Groups JSON
+                try {
+                    facebookGroups = data.FB_TARGET_GROUPS ? JSON.parse(data.FB_TARGET_GROUPS) : [];
+                    if (!Array.isArray(facebookGroups)) facebookGroups = [];
+                } catch (e) {
+                    console.error('Failed to parse FB_TARGET_GROUPS', e);
+                    facebookGroups = [];
+                }
+                renderFBGroups();
+
                 document.getElementById('fbEmailInput').value = data.FB_EMAIL ? data.FB_EMAIL : '';
                 document.getElementById('fbPasswordInput').value = data.FB_PASSWORD ? MARKER : '';
                 document.getElementById('threadsUserIdInput').value = data.THREADS_USER_ID ? data.THREADS_USER_ID : ''; // User ID is usually not sensitive
@@ -4401,7 +4510,7 @@
 
             const payload = {
                 FB_PAGE_ACCESS_TOKEN: document.getElementById('fbTokenInput').value,
-                FB_TARGET_GROUPS: document.getElementById('fbGroupsInput').value.split('\n').map(u => u.trim()).filter(Boolean).join(','),
+                FB_TARGET_GROUPS: JSON.stringify(facebookGroups),
                 FB_EMAIL: document.getElementById('fbEmailInput').value,
                 FB_PASSWORD: document.getElementById('fbPasswordInput').value,
                 THREADS_USER_ID: document.getElementById('threadsUserIdInput').value,
@@ -4449,6 +4558,56 @@
 
             btn.disabled = false;
             btn.textContent = '💾 บันทึกการตั้งค่า';
+        }
+
+        // === FB Groups Management Functions ===
+        function renderFBGroups() {
+            const list = document.getElementById('fbGroupsList');
+            if (facebookGroups.length === 0) {
+                list.innerHTML = '<div class="empty-groups">ยังไม่มีกลุมที่เพิ่มไว้</div>';
+                return;
+            }
+
+            list.innerHTML = facebookGroups.map((g, index) => `
+                <div class="group-item">
+                    <div class="group-item-info">
+                        <div class="group-item-name">${g.name || 'Unnamed Group'}</div>
+                        <div class="group-item-id">ID: ${g.id} | <a href="${g.url}" target="_blank" style="color: var(--accent-light); text-decoration: none;">Link 🔗</a></div>
+                    </div>
+                    <button class="btn-remove-group" onclick="removeFBGroup(${index})" title="ลบกลุ่ม">🗑</button>
+                </div>
+            `).join('');
+        }
+
+        function addFBGroup() {
+            const nameInput = document.getElementById('newGroupName');
+            const idInput = document.getElementById('newGroupId');
+            const urlInput = document.getElementById('newGroupUrl');
+
+            const name = nameInput.value.trim();
+            const id = idInput.value.trim();
+            const url = urlInput.value.trim();
+
+            if (!name || !id || !url) {
+                alert('กรุณากรอกข้อมูลกลุ่มให้ครบทุกช่อง (Name, ID, URL)');
+                return;
+            }
+
+            facebookGroups.push({ name, id, url });
+            renderFBGroups();
+
+            // Clear inputs
+            nameInput.value = '';
+            idInput.value = '';
+            urlInput.value = '';
+
+            showToast('➕ เพิ่มกลุ่มชั่วคราวแล้ว (อย่าลืมกดบันทึกการตั้งค่า)');
+        }
+
+        function removeFBGroup(index) {
+            facebookGroups.splice(index, 1);
+            renderFBGroups();
+            showToast('🗑 ลบกลุ่มออกแล้ว (อย่าลืมกดบันทึกการตั้งค่า)');
         }
 
         async function postToGroups(productId) {

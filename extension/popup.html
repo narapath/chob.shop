@@ -18,7 +18,17 @@
                 <span class="emoji">✨</span>
                 <span class="text">Chob.Shop Poster</span>
             </div>
-            <div class="status-dot"></div>
+            <div class="header-actions">
+                <div class="status-dot"></div>
+                <button id="settingsBtn" class="icon-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
         </header>
 
         <div class="search-container">
@@ -29,29 +39,60 @@
             </svg>
         </div>
 
-        <div class="filters">
-            <div class="cat-chip active" data-cat="all">ทั้งหมด</div>
-            <div class="cat-chip" data-cat="เครื่องใช้ไฟฟ้าในบ้าน">🏠 บ้าน</div>
-            <div class="cat-chip" data-cat="อิเล็กทรอนิกส์">🔌 ไอที</div>
-            <div class="cat-chip" data-cat="ความงามและสุขภาพ">💄 บิวตี้</div>
+        <div class="tabs">
+            <div class="tab-btn active" data-tab="products">สินค้า</div>
+            <div class="tab-btn" data-tab="groups">กลุ่มของฉัน</div>
         </div>
 
-        <main id="productList">
-            <!-- Loading Skeleton -->
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
-        </main>
+        <div id="productsView">
+            <div class="filters">
+                <div class="cat-chip active" data-cat="all">ทั้งหมด</div>
+                <div class="cat-chip" data-cat="เครื่องใช้ในบ้าน">🏠 บ้าน</div>
+                <div class="cat-chip" data-cat="คอมพิวเตอร์และแล็ปท็อป">💻 ไอที</div>
+                <div class="cat-chip" data-cat="โทรศัพท์มือถือและอุปกรณ์เสริม">📱 มือถือ</div>
+                <div class="cat-chip" data-cat="ความงาม">💄 บิวตี้</div>
+                <div class="cat-chip" data-cat="ผลิตภัณฑ์ดูแลผิว">🧴 สกินแคร์</div>
+                <div class="cat-chip" data-cat="เสื้อผ้าผู้หญิง">👗 เสื้อผ้าหญิง</div>
+                <div class="cat-chip" data-cat="เสื้อผ้าผู้ชาย">👕 เสื้อผ้าชาย</div>
+                <div class="cat-chip" data-cat="รองเท้าผู้หญิง">👠 รองเท้าหญิง</div>
+                <div class="cat-chip" data-cat="รองเท้าผู้ชาย">👟 รองเท้าชาย</div>
+                <div class="cat-chip" data-cat="กระเป๋า">👜 กระเป๋า</div>
+                <div class="cat-chip" data-cat="เครื่องประดับ">💍 เครื่องประดับ</div>
+                <div class="cat-chip" data-cat="นาฬิกาและแว่นตา">🕶️ แว่นตา</div>
+                <div class="cat-chip" data-cat="กล้องและอุปกรณ์ถ่ายภาพ">📸 กล้อง</div>
+                <div class="cat-chip" data-cat="เครื่องเสียง">🎧 เครื่องเสียง</div>
+                <div class="cat-chip" data-cat="Gaming และอุปกรณ์เกม">🎮 เกม</div>
+                <div class="cat-chip" data-cat="สุขภาพ">🏥 สุขภาพ</div>
+                <div class="cat-chip" data-cat="บ้านและสวน">🌳 สวน</div>
+                <div class="cat-chip" data-cat="อาหารและเครื่องดื่ม">🍔 อาหาร</div>
+                <div class="cat-chip" data-cat="ของเล่น สินค้างานอดิเรก">🧸 ของเล่น</div>
+                <div class="cat-chip" data-cat="แม่และเด็ก">👶 แม่และเด็ก</div>
+            </div>
+
+            <main id="productList">
+                <!-- Loading Skeleton -->
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </main>
+            <div id="loadMoreContainer" class="load-more-container hidden">
+                <button id="loadMoreBtn" class="btn-secondary btn-sm">แสดงเพิ่มเติม</button>
+            </div>
+        </div>
+
+        <div id="groupsView" class="hidden">
+            <div class="group-header">
+                <h3>รายชื่อกลุ่ม Facebook</h3>
+                <button id="addGroupBtn" class="btn-primary btn-sm">+ เพิ่มกลุ่ม</button>
+                <button id="syncGroupsBtn" class="btn-secondary btn-sm">🔄 Sync เว็บ</button>
+            </div>
+            <div id="groupList" class="group-list">
+                <!-- Groups will be rendered here -->
+                <div class="empty-groups">ยังไม่มีกลุ่มที่บันทึกไว้</div>
+            </div>
+        </div>
 
         <footer>
-            <button id="settingsBtn" class="icon-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path
-                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                    </path>
-                </svg>
-            </button>
             <span class="powered-by">Powered by ChobShop</span>
         </footer>
     </div>
