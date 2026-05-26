@@ -48,7 +48,7 @@ function renderOffice() {
         card.className = `bot-card ${cardClass}`;
 
         const nextRunTime = bot.stats.next_run;
-        const nextRunDisplay = formatNextRun(nextRunTime);
+        const nextRunDisplay = bot.stats.isPosting ? 'POSTING...' : formatNextRun(nextRunTime);
 
         card.innerHTML = `
             <div class="bot-avatar">${avatar}</div>
