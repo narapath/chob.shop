@@ -178,6 +178,26 @@ function initEventListeners() {
         document.getElementById('settingsView').classList.add('hidden');
     });
 
+    // Auto-Connect API Button
+    document.getElementById('btnAutoConnect').addEventListener('click', () => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const activeTab = tabs[0];
+            if (activeTab && activeTab.url && activeTab.url.startsWith('http')) {
+                try {
+                    const url = new URL(activeTab.url);
+                    const discovered = `${url.protocol}//${url.host}`;
+                    document.getElementById('apiEndpoint').value = discovered;
+                    console.log('[ChobShop] API discovered:', discovered);
+                } catch (e) {
+                    console.error('Invalid URL for auto-connect');
+                }
+            } else {
+                // Fallback to default if no active tab URL
+                document.getElementById('apiEndpoint').value = 'https://chob.shop';
+            }
+        });
+    });
+
     document.getElementById('saveSettings').addEventListener('click', () => {
         const api = document.getElementById('apiEndpoint').value.trim();
         const template = document.getElementById('captionTemplate').value;
