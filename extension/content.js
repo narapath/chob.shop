@@ -99,15 +99,26 @@ async function fillFacebookPost(caption, imageUrl) {
         selection.addRange(range);
     } catch (e) { console.error('Selection error:', e); }
 
-    // Clear and Insert using Hybrid approach
+    // --- Clear and Insert using Hybrid approach ---
+
+    // 1. Aggressive Clear
+    textbox.focus();
     document.execCommand('selectAll', false, null);
     document.execCommand('delete', false, null);
+
+    // Fallback clear if editor state is stubborn
+    if (textbox.innerText.trim().length > 0) {
+        textbox.innerHTML = '';
+        // Need to re-initialize Lexical's internal paragraph if we nuked it
+        document.execCommand('insertHTML', false, '<p class="xdj266r x14z9mp xat24cr x1lziwak x16tdsg8"><br></p>');
+        textbox.focus();
+    }
 
     const lines = caption.split('\n');
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
 
-        // 1. Dispatch beforeinput for the text
+        // Dispatch beforeinput for the text
         textbox.dispatchEvent(new InputEvent('beforeinput', {
             bubbles: true,
             cancelable: true,
@@ -115,10 +126,10 @@ async function fillFacebookPost(caption, imageUrl) {
             data: line
         }));
 
-        // 2. Actually insert the text
+        // Actually insert the text
         document.execCommand('insertText', false, line);
 
-        // 3. Handle line break
+        // Handle line break
         if (i < lines.length - 1) {
             textbox.dispatchEvent(new InputEvent('beforeinput', {
                 bubbles: true,
@@ -129,7 +140,7 @@ async function fillFacebookPost(caption, imageUrl) {
         }
     }
 
-    // Trigger input event
+    // Trigger final input event
     textbox.dispatchEvent(new Event('input', { bubbles: true }));
 
     console.log('Post filled successfully');
@@ -138,25 +149,31 @@ async function fillFacebookPost(caption, imageUrl) {
     textbox.style.outline = '4px solid #10b981';
     setTimeout(() => textbox.style.outline = '', 3000);
 
-    // 5. Auto-click Post button
-    await new Promise(r => setTimeout(r, 1000)); // 1s delay for button to enable
+    // --- 5. Robust Auto-click Post button ---
+
+    // Increased delay to 2s to allow Facebook state to sync and button to enable
+    await new Promise(r => setTimeout(r, 2000));
 
     const postBtnSelectors = [
         'div[aria-label="Post"]',
         'div[aria-label="โพสต์"]',
-        'div[role="button"][tabindex="0"]'
+        'div[role="button"][tabindex="0"]',
+        'div[aria-label="Submit"]',
+        'div[aria-label="ส่ง"]'
     ];
 
     let postButton = null;
     const dialog = document.querySelector('div[role="dialog"]');
 
     if (dialog) {
+        // First try prioritized selectors
         for (const selector of postBtnSelectors) {
             const buttons = dialog.querySelectorAll(selector);
             for (const btn of buttons) {
                 const text = (btn.innerText || "").toLowerCase();
-                if (text === 'โพสต์' || text === 'post' || btn.getAttribute('aria-label') === 'Post' || btn.getAttribute('aria-label') === 'โพสต์') {
-                    if (btn.offsetWidth > 0) {
+                const label = (btn.getAttribute('aria-label') || "").toLowerCase();
+                if (text === 'โพสต์' || text === 'post' || label === 'post' || label === 'โพสต์') {
+                    if (btn.offsetWidth > 0 && !btn.disabled) {
                         postButton = btn;
                         break;
                     }
@@ -164,10 +181,23 @@ async function fillFacebookPost(caption, imageUrl) {
             }
             if (postButton) break;
         }
+
+        // Final fallback: Look for ANY blue-ish button with role=button if still not found
+        if (!postButton) {
+            const allBtns = dialog.querySelectorAll('div[role="button"]');
+            for (const btn of allBtns) {
+                const text = (btn.innerText || "").toLowerCase();
+                if ((text === 'โพสต์' || text === 'post') && btn.offsetWidth > 0) {
+                    postButton = btn;
+                    break;
+                }
+            }
+        }
     }
 
     if (postButton) {
         console.log('Clicking post button automatically');
+        // Ensure it's not actually a "Close" button or something
         postButton.click();
     } else {
         console.warn('Could not find Post button for auto-submission');
