@@ -2,7 +2,7 @@ let products = [];
 let groups = [];
 let settings = {
     apiEndpoint: 'https://chob.shop', // Default
-    captionTemplate: '✨ {{title}}\n\n💰 ราคาเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่: {{link}}\n\n{{tags}}'
+    captionTemplate: '✨ {{title}}\n\n💰 ราคาเพียง: {{price}} บาท\n\n📍 สนใจสั่งซื้อได้ที่: {{link}}\n\n{{tags}}'
 };
 let currentTabIsFBGroup = false;
 let displayLimit = 10;
