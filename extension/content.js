@@ -118,32 +118,45 @@ async function fillFacebookPost(caption, imageUrl) {
 
     if (!textbox) throw new Error('ไม่พบช่องใส่ข้อความ');
 
-    // 3. Ultra-Stable Clear & Insert
+    // 3. Clear & Insert via Clipboard Paste (most reliable for line breaks)
     textbox.focus();
 
-    // Force nuke 
-    textbox.innerHTML = '';
-    document.execCommand('insertHTML', false, '<p class="xdj266r x14z9mp xat24cr x1lziwak x16tdsg8"><br></p>');
-    textbox.focus();
+    // Clear existing content
+    document.execCommand('selectAll', false, null);
+    document.execCommand('delete', false, null);
     await new Promise(r => setTimeout(r, 200));
 
-    const lines = caption.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+    // Use clipboard paste to insert text — this preserves line breaks perfectly
+    try {
+        // Save current clipboard content
+        const originalClipboard = await navigator.clipboard.readText().catch(() => '');
 
-        // CRITICAL: DO NOT dispatch beforeinput with data here. 
-        // Lexical catches beforeinput and inserts the data, then execCommand inserts it again (DOUBLING).
-        // We only dispatch the event for internal Lexical state if needed, but for text, let execCommand handle it.
+        // Write our caption to clipboard
+        await navigator.clipboard.writeText(caption);
 
-        document.execCommand('insertText', false, line);
+        // Focus and paste
+        textbox.focus();
+        document.execCommand('paste');
 
-        if (i < lines.length - 1) {
-            // ONLY use execCommand — do NOT dispatch beforeinput for insertParagraph.
-            // Lexical catches beforeinput and duplicates the paragraph content.
-            document.execCommand('insertParagraph', false, null);
-        }
+        // Restore original clipboard after a delay
+        setTimeout(async () => {
+            try { await navigator.clipboard.writeText(originalClipboard); } catch (e) { }
+        }, 1000);
+    } catch (clipErr) {
+        console.warn('Clipboard paste failed, using DataTransfer fallback:', clipErr);
+        // Fallback: Use DataTransfer paste event
+        textbox.focus();
+        const dt = new DataTransfer();
+        dt.setData('text/plain', caption);
+        const pasteEvent = new ClipboardEvent('paste', {
+            bubbles: true,
+            cancelable: true,
+            clipboardData: dt
+        });
+        textbox.dispatchEvent(pasteEvent);
     }
 
+    await new Promise(r => setTimeout(r, 300));
     textbox.dispatchEvent(new Event('input', { bubbles: true }));
     textbox.style.outline = '4px solid #10b981';
 
