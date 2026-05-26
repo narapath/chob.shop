@@ -119,38 +119,31 @@ async function fillFacebookPost(caption, imageUrl) {
     if (!textbox) throw new Error('ไม่พบช่องใส่ข้อความ');
 
     // 3. Insert Text
-    let tries = 0;
-    while (tries < 3) {
-        textbox.focus();
-        // Clear first
+    textbox.focus();
+
+    // Improved clearing: Select all and delete multiple times to ensure React state syncs
+    for (let i = 0; i < 2; i++) {
         document.execCommand('selectAll', false, null);
         document.execCommand('delete', false, null);
-
-        // Insert the entire caption at once. 
-        // Modern contenteditable/React editors often handle \n better when part of a single insertText command.
-        document.execCommand('insertText', false, caption);
-
-        await new Promise(r => setTimeout(r, 800));
-
-        // Verify text exists and has newlines
-        const currentText = textbox.innerText || "";
-        if (currentText.length > 5) {
-            console.log('[ChobShop] Text injection verified!');
-            // Log if newlines were preserved
-            if (currentText.includes('\n')) {
-                console.log('[ChobShop] Newlines confirmed in textbox.');
-                break;
-            } else {
-                console.warn('[ChobShop] Newlines missing, retrying with alternative method...');
-            }
-        }
-
-        tries++;
+        await new Promise(r => setTimeout(r, 100));
     }
 
-    if (tries >= 3) {
-        // Fallback: Try a simulated paste event if execCommand failed to keep newlines
-        console.log('[ChobShop] Falling back to paste simulation...');
+    // Double check if cleared, if not, try setting innerText directly (Risky but good as fallback)
+    if ((textbox.innerText || "").length > 5) {
+        console.warn('[ChobShop] execCommand failed to clear, forcing empty innerText');
+        textbox.innerText = '';
+        await new Promise(r => setTimeout(r, 100));
+    }
+
+    // Insert the entire caption
+    document.execCommand('insertText', false, caption);
+    await new Promise(r => setTimeout(r, 500));
+
+    // verification
+    const currentText = textbox.innerText || "";
+    if (currentText.length < caption.length * 0.8) {
+        console.log('[ChobShop] Injection might be incomplete, trying fallback injection');
+        // Fallback: paste simulation
         const dataTransfer = new DataTransfer();
         dataTransfer.setData('text/plain', caption);
         const pasteEvent = new ClipboardEvent('paste', {
