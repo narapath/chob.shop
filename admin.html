@@ -14,81 +14,10 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/css/theme_vars.css" />
+    <link rel="stylesheet" href="/css/menu.css" />
+
     <style>
-        :root {
-            color-scheme: dark;
-            /* 🎨 Luxury Premium Dark Theme */
-            --bg-deep: #030305;
-            --bg-main: #0a0a0e;
-            --bg-card: linear-gradient(145deg, rgba(20, 20, 30, 0.9) 0%, rgba(15, 15, 22, 0.95) 100%);
-            --bg-card-hover: linear-gradient(145deg, rgba(25, 25, 38, 0.95) 0%, rgba(18, 18, 28, 0.98) 100%);
-            --bg-sidebar: linear-gradient(180deg, rgba(8, 8, 12, 0.98) 0%, rgba(5, 5, 8, 0.99) 100%);
-            --bg-section: rgba(18, 18, 28, 0.5);
-            --bg-glass: rgba(255, 255, 255, 0.03);
-
-            /* Premium Gold & Purple Accent */
-            --accent: #8b5cf6;
-            --accent-primary: #7c3aed;
-            --accent-gold: #fbbf24;
-            --accent-gold-light: #fcd34d;
-            --accent-glow: rgba(139, 92, 246, 0.35);
-            --accent-light: #a78bfa;
-            --accent-soft: rgba(139, 92, 246, 0.1);
-            --accent-gradient: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #d946ef 100%);
-            --gold-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            --accent2: #ec4899;
-
-            /* Text Colors */
-            --text-primary: #ffffff;
-            --text-secondary: #c7d2fe;
-            --text-muted: #6b7280;
-            --text-gradient: linear-gradient(135deg, #ffffff 0%, #c7d2fe 100%);
-
-            /* Borders & Dividers */
-            --border: rgba(255, 255, 255, 0.06);
-            --border-bright: rgba(255, 255, 255, 0.12);
-            --border-glow: rgba(139, 92, 246, 0.3);
-            --border-gold: rgba(251, 191, 36, 0.3);
-
-            /* Semantic Colors - Premium */
-            --success: #10b981;
-            --success-gradient: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-            --success-bg: rgba(16, 185, 129, 0.12);
-            --success-glow: rgba(16, 185, 129, 0.4);
-            --warning: #f59e0b;
-            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-            --warning-bg: rgba(245, 158, 11, 0.12);
-            --warning-glow: rgba(245, 158, 11, 0.4);
-            --error: #ef4444;
-            --error-gradient: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-            --error-bg: rgba(239, 68, 68, 0.12);
-            --error-glow: rgba(239, 68, 68, 0.4);
-            --info: #3b82f6;
-            --info-gradient: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-            --info-bg: rgba(59, 130, 246, 0.12);
-
-            /* Sizing & Transitions */
-            --sidebar-w: 280px;
-            --sidebar-collapsed-w: 80px;
-            --header-h: 72px;
-            --radius-xl: 24px;
-            --radius-lg: 18px;
-            --radius-md: 14px;
-            --radius-sm: 10px;
-            --radius-pill: 9999px;
-            --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-fast: 0.25s ease;
-            --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-
-            /* Premium Shadows */
-            --shadow-premium: 0 25px 80px -16px rgba(0, 0, 0, 0.8);
-            --shadow-glow: 0 0 40px rgba(139, 92, 246, 0.3);
-            --shadow-gold: 0 0 40px rgba(251, 191, 36, 0.25);
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.5);
-            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.6);
-            --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.7);
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -168,294 +97,6 @@
         }
 
         /* === SIDEBAR (Luxury Premium) === */
-        .admin-sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: var(--sidebar-w);
-            background: var(--bg-sidebar);
-            backdrop-filter: blur(40px) saturate(180%);
-            -webkit-backdrop-filter: blur(40px) saturate(180%);
-            border-right: 1px solid var(--border);
-            box-shadow: 10px 0 40px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            padding: 24px 16px;
-            display: flex;
-            flex-direction: column;
-            transition: var(--transition);
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        body.sidebar-collapsed .admin-sidebar {
-            width: var(--sidebar-collapsed-w);
-        }
-
-        /* ✨ Premium Brand */
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 18px 20px;
-            margin-bottom: 32px;
-            overflow: hidden;
-            white-space: nowrap;
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%);
-            border: 1px solid var(--border-glow);
-            border-radius: var(--radius-xl);
-            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .sidebar-brand::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-            animation: brandShine 6s ease-in-out infinite;
-        }
-
-        @keyframes brandShine {
-
-            0%,
-            100% {
-                transform: translateX(-100%) rotate(45deg);
-            }
-
-            50% {
-                transform: translateX(100%) rotate(45deg);
-            }
-        }
-
-        .brand-icon {
-            font-size: 32px;
-            flex-shrink: 0;
-            filter: drop-shadow(0 0 12px var(--accent-glow));
-            animation: pulse-glow 3s infinite ease-in-out;
-            position: relative;
-            z-index: 1;
-        }
-
-        @keyframes pulse-glow {
-
-            0%,
-            100% {
-                filter: drop-shadow(0 0 8px var(--accent-glow));
-                transform: scale(1);
-            }
-
-            50% {
-                filter: drop-shadow(0 0 16px var(--accent-glow), 0 0 24px var(--accent-gold));
-                transform: scale(1.05);
-            }
-        }
-
-        .brand-text {
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: var(--text-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            transition: var(--transition);
-            position: relative;
-            z-index: 1;
-        }
-
-        body.sidebar-collapsed .brand-text {
-            opacity: 0;
-            transform: translateX(-20px);
-            pointer-events: none;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        /* ✨ Premium Navigation Items */
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 16px;
-            border-radius: var(--radius-lg);
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 14px;
-            transition: var(--transition);
-            cursor: pointer;
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
-            border: 1px solid transparent;
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .nav-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 0;
-            background: var(--accent-gradient);
-            transition: var(--transition);
-            opacity: 0;
-        }
-
-        .nav-item:hover {
-            background: rgba(139, 92, 246, 0.1);
-            color: var(--text-primary);
-            border-color: var(--border-glow);
-            transform: translateX(4px);
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.15);
-        }
-
-        .nav-item:hover::before {
-            width: 4px;
-            opacity: 1;
-        }
-
-        .nav-item.active {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.15) 100%);
-            color: var(--text-primary);
-            border-color: var(--border-glow);
-            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3), inset 0 0 20px rgba(139, 92, 246, 0.1);
-            font-weight: 600;
-        }
-
-        .nav-item.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 15%;
-            bottom: 15%;
-            width: 4px;
-            background: var(--gold-gradient);
-            border-radius: 0 4px 4px 0;
-            box-shadow: 0 0 10px var(--accent-gold);
-            opacity: 1;
-        }
-
-        .nav-icon {
-            font-size: 20px;
-            flex-shrink: 0;
-            width: 24px;
-            text-align: center;
-            transition: var(--transition-fast);
-            filter: grayscale(0.3);
-        }
-
-        .nav-item:hover .nav-icon {
-            transform: scale(1.15);
-            filter: grayscale(0);
-        }
-
-        .nav-item.active .nav-icon {
-            transform: scale(1.2);
-            filter: drop-shadow(0 0 8px var(--accent-glow));
-        }
-
-        .nav-label {
-            font-size: 14px;
-            transition: var(--transition);
-        }
-
-        body.sidebar-collapsed .nav-label {
-            opacity: 0;
-            transform: translateX(-10px);
-            pointer-events: none;
-        }
-
-        .nav-divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
-            margin: 20px 10px;
-        }
-
-        /* Premium Toggle Button */
-        .sidebar-toggle-btn {
-            margin-top: auto;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-            border: 1px solid var(--border-glow);
-            color: var(--text-secondary);
-            padding: 12px;
-            border-radius: var(--radius-lg);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-            font-size: 14px;
-        }
-
-        .sidebar-toggle-btn:hover {
-            background: var(--accent-soft);
-            color: var(--accent-light);
-            border-color: var(--border-glow);
-            box-shadow: 0 4px 15px var(--accent-glow);
-            transform: translateY(-2px);
-        }
-
-        /* === HEADER === */
-        .admin-header {
-            position: fixed;
-            top: 0;
-            right: 0;
-            left: var(--sidebar-w);
-            height: var(--header-h);
-            background: rgba(5, 5, 13, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border);
-            z-index: 900;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 0 28px;
-            transition: var(--transition);
-        }
-
-        body.sidebar-collapsed .admin-header {
-            left: var(--sidebar-collapsed-w);
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .header-actions .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            border-radius: var(--radius-md);
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-            transition: var(--transition-fast);
-            border: 1px solid var(--border);
-        }
-
-        .header-actions .back-link:hover {
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text-primary);
-            border-color: var(--border-bright);
-        }
-
         /* === MAIN CONTENT === */
         .admin-main {
             flex: 1;
@@ -2065,31 +1706,57 @@
             <nav class="sidebar-nav">
                 <div class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard', this)">
                     <span class="nav-icon">📊</span>
-                    <span class="nav-label">เเดชบอร์ด</span>
+                    <span class="nav-label">แดชบอร์ด</span>
                 </div>
                 <div class="nav-item" data-tab="products" onclick="switchTab('products', this)">
                     <span class="nav-icon">📦</span>
                     <span class="nav-label">จัดการสินค้า</span>
                 </div>
-
-                <div class="nav-divider"></div>
                 <div class="nav-item" data-tab="csv-import" onclick="switchTab('csv-import', this)">
                     <span class="nav-icon">📁</span>
                     <span class="nav-label">นำเข้า CSV</span>
+                </div>
+
+                <div class="nav-divider"></div>
+                <div class="nav-label-group"
+                    style="padding: 10px 20px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">
+                    Automation</div>
+
+                <div class="nav-item" data-tab="bot-control" onclick="switchTab('bot-control', this)">
+                    <span class="nav-icon">🤖</span>
+                    <span class="nav-label">ระบบควบคุมบอท</span>
+                </div>
+                <div class="nav-item" data-tab="fb-groups" onclick="switchTab('fb-groups', this)">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-label">จัดการกลุ่ม Facebook</span>
+                </div>
+                <div class="nav-item" data-tab="activity-logs" onclick="switchTab('activity-logs', this)">
+                    <span class="nav-icon">📜</span>
+                    <span class="nav-label">บันทึกกิจกรรม</span>
+                </div>
+
+                <div class="nav-divider"></div>
+                <div class="nav-label-group"
+                    style="padding: 10px 20px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">
+                    Tools & System</div>
+
+                <div class="nav-item" data-tab="seo-tools" onclick="switchTab('seo-tools', this)">
+                    <span class="nav-icon">✨</span>
+                    <span class="nav-label">เครื่องมือ AI SEO</span>
                 </div>
                 <div class="nav-item" data-tab="backup" onclick="switchTab('backup', this)">
                     <span class="nav-icon">💾</span>
                     <span class="nav-label">สำรองข้อมูล</span>
                 </div>
-                <div class="nav-divider"></div>
                 <div class="nav-item" data-tab="settings" onclick="switchTab('settings', this)">
                     <span class="nav-icon">⚙️</span>
                     <span class="nav-label">ตั้งค่าระบบ</span>
                 </div>
+
                 <div class="nav-divider"></div>
-                <div class="nav-item" onclick="window.location.href='/dashboard'">
-                    <span class="nav-icon">🤖</span>
-                    <span class="nav-label">Bot Dashboard (Live)</span>
+                <div class="nav-item" onclick="window.open('/dashboard', '_blank')">
+                    <span class="nav-icon">🚀</span>
+                    <span class="nav-label">Bot Live Monitor ↗</span>
                 </div>
             </nav>
 
@@ -2628,10 +2295,100 @@
                     </div>
                 </div>
                 <div style="margin-top: 20px; max-width: 300px;">
-                    <button class="btn btn-primary" onclick="saveSettings()" id="saveSettingsBtn">💾
-                        บันทึกการตั้งค่า</button>
+                    <div style="margin-top: 20px; max-width: 300px;">
+                        <button class="btn btn-primary" onclick="saveSettings()" id="saveSettingsBtn">💾
+                            บันทึกการตั้งค่า</button>
+                    </div>
                 </div>
-            </div>
+
+                <!-- ========== TAB: BOT CONTROL CENTER ========== -->
+                <div class="tab-panel" id="tab-bot-control">
+                    <div class="tab-header">
+                        <h2>🤖 ระบบควบคุมบอท</h2>
+                        <p>ตรวจสอบสถานะและสั่งการบอทที่กำลังทำงานอยู่แบบ Real-time</p>
+                    </div>
+                    <div class="panel" style="padding: 0; overflow: hidden; height: 70vh;">
+                        <iframe src="/dashboard"
+                            style="width: 100%; height: 100%; border: none; background: #030305;"></iframe>
+                    </div>
+                    <div style="margin-top: 16px;">
+                        <button class="btn btn-secondary" onclick="window.open('/dashboard', '_blank')">↗️
+                            เปิดในหน้าต่างใหม่</button>
+                    </div>
+                </div>
+
+                <!-- ========== TAB: FB GROUPS ========== -->
+                <div class="tab-panel" id="tab-fb-groups">
+                    <div class="tab-header">
+                        <h2>👥 จัดการกลุ่ม Facebook</h2>
+                        <p>จัดการรายชื่อกลุ่มสำหรับการโพสต์อัตโนมัติ</p>
+                    </div>
+                    <div class="panel">
+                        <div class="settings-grid">
+                            <div class="setting-group" style="grid-column: 1 / -1;">
+                                <h3>📋 รายการกลุ่มที่บันทึกไว้</h3>
+                                <div id="tabFbGroupsList" class="groups-list" style="max-height: 400px;">
+                                    <!-- Rendered via JS -->
+                                </div>
+                                <div class="add-group-form"
+                                    style="margin-top: 20px; grid-template-columns: 1fr 1fr 1fr auto;">
+                                    <input type="text" id="tabGroupName" placeholder="ชื่อกลุ่ม (เช่น กลุ่มของมือสอง)">
+                                    <input type="text" id="tabGroupId" placeholder="Group ID (ตัวเลข)">
+                                    <input type="text" id="tabGroupUrl" placeholder="URL กลุ่ม">
+                                    <button type="button" class="btn btn-primary" onclick="addFBGroupTab()">➕
+                                        เพิ่มกลุ่ม</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========== TAB: ACTIVITY LOGS ========== -->
+                <div class="tab-panel" id="tab-activity-logs">
+                    <div class="tab-header">
+                        <h2>📜 บันทึกกิจกรรม (Activity Logs)</h2>
+                        <p>ประวัติการทำงานของระบบและสถานะการโพสต์</p>
+                    </div>
+                    <div class="panel" style="background: #000; font-family: monospace; padding: 20px;">
+                        <div id="systemLogs"
+                            style="color: #0f0; max-height: 60vh; overflow-y: auto; font-size: 13px; line-height: 1.6;">
+                            [2026-05-27 00:30:12] ระบบเริ่มต้นการทำงาน...<br>
+                            [2026-05-27 00:30:15] เชื่อมต่อ Supabase สำเร็จ...<br>
+                            [2026-05-27 00:31:00] บอทตัวที่ 1 เตรียมพร้อมทำงาน...<br>
+                            <span style="color: #fff;">[รอข้อมูลจาก Server...]</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px;">
+                        <button class="btn btn-secondary" onclick="clearLogs()">🧹 เคลียร์หน้าจอ</button>
+                        <button class="btn btn-primary" onclick="refreshLogs()">🔄 อัปเดตล่าสุด</button>
+                    </div>
+                </div>
+
+                <!-- ========== TAB: SEO TOOLS ========== -->
+                <div class="tab-panel" id="tab-seo-tools">
+                    <div class="tab-header">
+                        <h2>✨ เครื่องมือ AI SEO</h2>
+                        <p>ระบบช่วยสร้างเนื้อหาสำหรับการค้นหา (Coming Soon with Gemini Pro)</p>
+                    </div>
+                    <div class="dash-grid">
+                        <div class="bento-card">
+                            <div style="font-size: 32px; margin-bottom: 12px;">🪄</div>
+                            <div class="card-stat-label">Bulk SEO Generator</div>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">สร้าง Keywords และ
+                                Description สำหรับสินค้าทุกรายการที่ยังไม่มี</p>
+                            <button class="btn btn-primary" style="margin-top: 16px; width: 100%;"
+                                onclick="genMissingSEO()">เริ่มทำงาน</button>
+                        </div>
+                        <div class="bento-card">
+                            <div style="font-size: 32px; margin-bottom: 12px;">🏷️</div>
+                            <div class="card-stat-label">AI Categorizer</div>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+                                จัดหมวดหมู่สินค้าอัตโนมัติด้วย AI จากรายชื่อที่มีอยู่</p>
+                            <button class="btn btn-secondary" style="margin-top: 16px; width: 100%;"
+                                onclick="reCategorizeAll()">จัดหมวดหมู่ใหม่</button>
+                        </div>
+                    </div>
+                </div>
 
         </main><!-- END admin-main -->
     </div> <!-- END APP WRAPPER -->
@@ -4728,9 +4485,105 @@
             }
         }
 
+
+        // === New Menu Features Logic ===
+        function addLog(msg, type = 'info') {
+            const logs = document.getElementById('systemLogs');
+            if (!logs) return;
+            const time = new Date().toLocaleTimeString();
+            let color = '#0f0';
+            if (type === 'error') color = '#f00';
+            if (type === 'warning') color = '#ff0';
+
+            const line = document.createElement('div');
+            line.style.color = color;
+            line.innerHTML = `[${time}] ${msg}`;
+            logs.appendChild(line);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function clearLogs() {
+            const logs = document.getElementById('systemLogs');
+            if (logs) logs.innerHTML = `<span style="color: #666;">[CLEARED - ${new Date().toLocaleTimeString()}]</span><br>`;
+            addLog("Logs cleared.");
+        }
+
+        function refreshLogs() {
+            addLog("Checking for new system activities...");
+            setTimeout(() => addLog("No new activities found.", "warning"), 800);
+        }
+
+        function renderFBGroupsTab() {
+            const list = document.getElementById('tabFbGroupsList');
+            if (!list) return;
+
+            if (facebookGroups.length === 0) {
+                list.innerHTML = '<div class="empty-groups">ยังไม่มีกลุ่มที่เพิ่มไว้</div>';
+                return;
+            }
+
+            list.innerHTML = facebookGroups.map((group, index) => `
+                <div class="group-item">
+                    <div class="group-item-info">
+                        <div class="group-item-name">👥 ${group.name}</div>
+                        <div class="group-item-id">ID: ${group.id}</div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="${group.url}" target="_blank" style="color: var(--accent-light); font-size: 11px; text-decoration: none;">🔗 Link</a>
+                        <button class="btn-remove-group" onclick="removeFBGroup(${index}); renderFBGroupsTab();">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addFBGroupTab() {
+            const nameInput = document.getElementById('tabGroupName');
+            const idInput = document.getElementById('tabGroupId');
+            const urlInput = document.getElementById('tabGroupUrl');
+
+            const name = nameInput.value.trim();
+            const id = idInput.value.trim();
+            const url = urlInput.value.trim();
+
+            if (!name || !id) {
+                showToast('❌ กรุณากรอบข้อมูลกลุ่มให้ครบ');
+                return;
+            }
+
+            facebookGroups.push({ name, id, url });
+            nameInput.value = '';
+            idInput.value = '';
+            urlInput.value = '';
+
+            // Sync with old settings list if any
+            renderFBGroups();
+            renderFBGroupsTab();
+            showToast('✅ เพิ่มกลุ่มเรียบร้อย');
+            saveSettings(); // Auto-save when adding
+        }
+
+        // Hook into switchTab to refresh specific views
+        const originalSwitchTab = switchTab;
+        switchTab = function (tabId, el) {
+            originalSwitchTab(tabId, el);
+            if (tabId === 'fb-groups') renderFBGroupsTab();
+            if (tabId === 'activity-logs') addLog("Viewing activity logs...");
+            if (tabId === 'bot-control') addLog("Accessing Bot Control Center...");
+        };
+
         checkAuth();
+
         // Load settings after auth check
         setTimeout(() => { if (authToken) loadSettings(); }, 500);
+
+        // Handle initial tab from URL
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            if (tabParam) {
+                switchTab(tabParam);
+            }
+        });
     </script>
 </body>
 

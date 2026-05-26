@@ -5,54 +5,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChobShop Bot Dashboard 🤖</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Prompt:wght@400;600&display=swap"
-        rel="stylesheet">
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/css/theme_vars.css">
+    <link rel="stylesheet" href="/css/menu.css">
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 
 <body>
     <div class="pixel-bg"></div>
 
-    <div class="dashboard-container">
-        <header>
-            <div class="logo-pixel">
-                <span class="pixel-icon">🤖</span>
-                <h1>CHOB.SHOP BOT OFFICE</h1>
+    <!-- Sidebar Overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebarMobile()"></div>
+
+    <!-- === SIDEBAR === -->
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="brand-icon">💎</div>
+                <div class="brand-text">Chob.Shop <span
+                        style="color:var(--text-muted);font-size:12px;font-weight:400;">BOT</span></div>
             </div>
-            <div class="header-stats">
-                <div class="stat-box">
-                    <span class="label">ACTIVE BOTS</span>
-                    <span id="activeCount" class="value">0</span>
-                </div>
-                <div class="stat-box">
-                    <span class="label">TOTAL POSTS</span>
-                    <span id="totalPosts" class="value">0</span>
-                </div>
+            <button class="mobile-close-btn" onclick="toggleSidebarMobile()">×</button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-item active" data-tab="dashboard">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Bot Office</span>
+            </div>
+            <div class="nav-divider"></div>
+            <div class="nav-item" onclick="window.location.href='/admin.html'">
+                <span class="nav-icon">📦</span>
+                <span class="nav-label">จัดการสินค้า</span>
+            </div>
+            <div class="nav-item" onclick="window.location.href='/admin.html?tab=fb-groups'">
+                <span class="nav-icon">👥</span>
+                <span class="nav-label">จัดการกลุ่ม Facebook</span>
+            </div>
+            <div class="nav-divider"></div>
+            <div class="nav-item" onclick="window.location.href='/admin.html?tab=settings'">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">ตั้งค่าระบบ</span>
+            </div>
+        </nav>
+
+        <button class="sidebar-toggle-btn" onclick="toggleSidebarMini()" title="Toggle Sidebar">
+            <span class="nav-icon">↔️</span>
+        </button>
+    </aside>
+
+    <div class="dashboard-wrapper" style="margin-left: var(--sidebar-w); transition: var(--transition);">
+        <header class="admin-header"
+            style="justify-content: space-between; left: var(--sidebar-w); position: fixed; top: 0; right: 0;">
+            <div class="header-left">
+                <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebarMobile()"
+                    style="display:none; background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">
+                    <span>☰</span>
+                </button>
+            </div>
+            <div class="header-actions" style="padding-right: 20px;">
+                <a href="/admin.html" class="back-link">
+                    <span>⚙️</span>
+                    <span class="nav-label">Admin Panel</span>
+                </a>
             </div>
         </header>
 
-        <main id="botOffice" class="bot-office">
-            <!-- Bot characters will be rendered here -->
-            <div class="loading-pixel">SCANNING FOR BOTS...</div>
-        </main>
+        <div class="dashboard-container" style="margin-top: var(--header-h); padding-top: 40px;">
+            <header>
+                <div class="logo-pixel">
+                    <span class="pixel-icon">🤖</span>
+                    <h1>CHOB.SHOP BOT OFFICE</h1>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-box">
+                        <span class="label">ACTIVE BOTS</span>
+                        <span id="activeCount" class="value">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="label">TOTAL POSTS</span>
+                        <span id="totalPosts" class="value">0</span>
+                    </div>
+                </div>
+            </header>
 
-        <section class="console-section">
-            <div class="console-window">
-                <div class="console-header">
-                    <span class="dot red"></span>
-                    <span class="dot yellow"></span>
-                    <span class="dot green"></span>
-                    <span class="title">SYSTEM_CONSOLE.LOG</span>
+            <main id="botOffice" class="bot-office">
+                <!-- Bot characters will be rendered here -->
+                <div class="loading-pixel">SCANNING FOR BOTS...</div>
+            </main>
+
+            <section class="console-section">
+                <div class="console-window">
+                    <div class="console-header">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                        <span class="title">SYSTEM_CONSOLE.LOG</span>
+                    </div>
+                    <div id="consoleLog" class="console-content">
+                        [10:15:22] System initialized...
+                        [10:15:23] Waiting for heartbeats...
+                    </div>
                 </div>
-                <div id="consoleLog" class="console-content">
-                    [10:15:22] System initialized...
-                    [10:15:23] Waiting for heartbeats...
-                </div>
-            </div>
-        </section>
+            </section>
+        </div>
     </div>
 
+
     <script src="/js/dashboard.js"></script>
+    <script>
+        function toggleSidebarMini() {
+            document.body.classList.toggle('sidebar-collapsed');
+            const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+            localStorage.setItem('sidebarMini', isCollapsed);
+
+            // Adjust wrapper margin
+            const wrapper = document.querySelector('.dashboard-wrapper');
+            const header = document.querySelector('.admin-header');
+            if (isCollapsed) {
+                wrapper.style.marginLeft = 'var(--sidebar-collapsed-w)';
+                header.style.left = 'var(--sidebar-collapsed-w)';
+            } else {
+                wrapper.style.marginLeft = 'var(--sidebar-w)';
+                header.style.left = 'var(--sidebar-w)';
+            }
+        }
+
+        function toggleSidebarMobile() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        // Init sidebar state
+        if (localStorage.getItem('sidebarMini') === 'true') {
+            toggleSidebarMini();
+        }
+    </script>
+
 </body>
 
 </html>
