@@ -1,12 +1,24 @@
 console.log('ChobShop Extension loaded on Facebook');
 
+let isProcessing = false;
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'FILL_POST') {
+        if (isProcessing) {
+            console.warn('Already processing a fill request, ignoring duplicate.');
+            sendResponse({ success: true, alreadyProcessing: true });
+            return;
+        }
+
+        isProcessing = true;
         fillFacebookPost(request.data.caption, request.data.imageUrl)
             .then(() => sendResponse({ success: true }))
             .catch(err => {
                 console.error('Fill post error:', err);
                 sendResponse({ success: false, error: err.message });
+            })
+            .finally(() => {
+                isProcessing = false;
             });
         return true; // Keep channel open for async response
     }
@@ -196,9 +208,16 @@ async function fillFacebookPost(caption, imageUrl) {
     }
 
     if (postButton) {
-        console.log('Clicking post button automatically');
-        // Ensure it's not actually a "Close" button or something
+        console.log('Clicking post button automatically (Ultra-Stable)');
         postButton.click();
+
+        // Final sanity click if color is blue but not clicked yet (some Lexical overlays)
+        setTimeout(() => {
+            if (document.querySelector('div[role="dialog"]')) {
+                console.log('Sanity check: Dialog still open, trying secondary click...');
+                postButton.click();
+            }
+        }, 1500);
     } else {
         console.warn('Could not find Post button for auto-submission');
     }
