@@ -268,6 +268,9 @@ const HEARTBEAT_ALARM = 'CHOBSHOP_HEARTBEAT';
 // Register Heartbeat Alarm
 chrome.alarms.create(HEARTBEAT_ALARM, { periodInMinutes: 1 });
 
+// Also send one immediately on startup
+sendHeartbeat();
+
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === HEARTBEAT_ALARM) {
         await sendHeartbeat();
