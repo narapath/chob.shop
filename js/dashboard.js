@@ -47,6 +47,9 @@ function renderOffice() {
         const card = document.createElement('div');
         card.className = `bot-card ${cardClass}`;
 
+        const nextRunTime = bot.stats.next_run;
+        const nextRunDisplay = formatNextRun(nextRunTime);
+
         card.innerHTML = `
             <div class="bot-avatar">${avatar}</div>
             <div class="bot-name">${bot.bot_name}</div>
@@ -57,12 +60,34 @@ function renderOffice() {
                     <span class="val">${bot.stats.postCount || 0}</span>
                 </div>
                 <div class="stat-row">
+                    <span class="label">NEXT RUN:</span>
+                    <span class="val countdown" data-time="${nextRunTime || ''}">${nextRunDisplay}</span>
+                </div>
+                <div class="stat-row">
                     <span class="label">LAST:</span>
                     <span class="val">${formatTime(bot.last_heartbeat)}</span>
                 </div>
                 <div class="stat-row">
                     <span class="label">VER:</span>
                     <span class="val">${bot.version || '1.0'}</span>
+                </div>
+            </div>
+            <div class="bot-controls">
+                <div class="control-group">
+                    <select class="interval-select" id="interval-${bot.bot_name}">
+                        <option value="5" ${bot.stats.interval == 5 ? 'selected' : ''}>5 min</option>
+                        <option value="10" ${bot.stats.interval == 10 ? 'selected' : ''}>10 min</option>
+                        <option value="15" ${bot.stats.interval == 15 ? 'selected' : ''}>15 min</option>
+                        <option value="30" ${bot.stats.interval == 30 ? 'selected' : ''}>30 min</option>
+                        <option value="60" ${bot.stats.interval == 60 ? 'selected' : ''}>60 min</option>
+                    </select>
+                    <button class="ctrl-btn apply" onclick="handleCommand('${bot.bot_name}', 'SET_INTERVAL')">⚙️</button>
+                </div>
+                <div class="control-actions">
+                    ${bot.status === 'active'
+                ? `<button class="ctrl-btn stop" onclick="handleCommand('${bot.bot_name}', 'STOP')">STOP</button>`
+                : `<button class="ctrl-btn start" onclick="handleCommand('${bot.bot_name}', 'START')">START</button>`
+            }
                 </div>
             </div>
         `;
@@ -97,7 +122,53 @@ function getBotAvatar(name) {
 function formatTime(isoString) {
     if (!isoString) return '--:--';
     const date = new Date(isoString);
-    return date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function formatNextRun(timestamp) {
+    if (!timestamp) return 'IDLE';
+    const diff = timestamp - Date.now();
+    if (diff <= 0) return 'DUE NOW';
+
+    const mins = Math.floor(diff / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    return `${mins}m ${secs}s`;
+}
+
+// Update countdowns every second
+setInterval(() => {
+    document.querySelectorAll('.countdown').forEach(el => {
+        const time = el.getAttribute('data-time');
+        if (time) {
+            el.textContent = formatNextRun(parseInt(time));
+        }
+    });
+}, 1000);
+
+async function handleCommand(botName, action) {
+    const intervalSelect = document.getElementById(`interval-${botName}`);
+    const interval = intervalSelect ? parseInt(intervalSelect.value) : 15;
+
+    addConsoleLog(`🕹️ Sending ${action} to ${botName}...`);
+
+    try {
+        const res = await fetch('/api/bots/command', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bot_name: botName, action, interval })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            addConsoleLog(`✅ Command ${action} queued for ${botName}`);
+            // Refresh quickly
+            setTimeout(fetchBots, 1000);
+        } else {
+            addConsoleLog(`❌ Command failed: ${data.error}`);
+        }
+    } catch (err) {
+        addConsoleLog(`❌ Network error: ${err.message}`);
+    }
 }
 
 function addConsoleLog(msg) {

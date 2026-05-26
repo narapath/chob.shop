@@ -319,6 +319,7 @@ async function sendHeartbeat() {
 
         const endpoint = apiEndpoint || 'https://chob.shop';
         const { autoPostState } = await chrome.storage.local.get('autoPostState');
+        const alarm = await chrome.alarms.get(ALARM_NAME);
         const manifest = chrome.runtime.getManifest();
 
         const status = (autoPostState && autoPostState.isRunning) ? 'active' : 'idle';
@@ -326,7 +327,8 @@ async function sendHeartbeat() {
             postCount: autoPostState ? autoPostState.postCount : 0,
             lastPostTime: autoPostState ? autoPostState.lastPostTime : null,
             interval: autoPostState ? autoPostState.intervalMinutes : null,
-            isPosting: autoPostState ? !!autoPostState.isPosting : false
+            isPosting: autoPostState ? !!autoPostState.isPosting : false,
+            next_run: alarm ? alarm.scheduledTime : null
         };
 
         const body = {
@@ -353,6 +355,20 @@ async function sendHeartbeat() {
         const data = await res.json();
         if (data.success) {
             console.log(`[Heartbeat] Success: Reported as "${botName}"`);
+
+            // Handle Remote Commands
+            if (data.command && data.command.action) {
+                const cmd = data.command;
+                console.log(`🎮 [Remote Command] Received:`, cmd);
+
+                if (cmd.action === 'START') {
+                    await startAutoPost(cmd.interval || 15);
+                } else if (cmd.action === 'STOP') {
+                    await stopAutoPost();
+                } else if (cmd.action === 'SET_INTERVAL') {
+                    await updateInterval(cmd.interval);
+                }
+            }
         } else {
             console.warn(`[Heartbeat] Server reported failure:`, data.error);
         }

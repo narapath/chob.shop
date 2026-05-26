@@ -321,9 +321,50 @@ app.post('/api/bots/heartbeat', async (req, res) => {
       throw error;
     }
 
-    res.json({ success: true, bot: data[0] });
+    const currentBot = data[0];
+    const pendingCommand = currentBot?.command || {};
+
+    // If there was a command, clear it from the DB so it's only executed once
+    if (Object.keys(pendingCommand).length > 0) {
+      console.log(`📡 [Heartbeat] Found pending command for "${bot_name}":`, pendingCommand);
+      await db.from('extension_bots').update({ command: {} }).eq('bot_name', bot_name);
+    }
+
+    res.json({ success: true, bot: currentBot, command: pendingCommand });
   } catch (err) {
     console.error(`❌ [Heartbeat Server Error]`, err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST Send Command to Bot (Protected)
+app.post('/api/bots/command', requireAuth, async (req, res) => {
+  const { bot_name, action, interval } = req.body;
+
+  console.log(`🎮 [Command] Setting "${action}" for bot "${bot_name}" (Interval: ${interval})`);
+
+  if (!bot_name || !action) {
+    return res.status(400).json({ success: false, error: 'bot_name and action are required' });
+  }
+
+  try {
+    const db = supabaseAdmin || supabase;
+    const { data, error } = await db
+      .from('extension_bots')
+      .update({
+        command: { action, interval, timestamp: new Date().toISOString() }
+      })
+      .eq('bot_name', bot_name)
+      .select();
+
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      return res.status(404).json({ success: false, error: 'Bot not found' });
+    }
+
+    res.json({ success: true, bot: data[0] });
+  } catch (err) {
+    console.error(`❌ [Command Error]`, err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

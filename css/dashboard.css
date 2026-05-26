@@ -262,6 +262,86 @@ header {
     }
 }
 
+.bot-controls {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #333;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.control-group {
+    display: flex;
+    gap: 5px;
+}
+
+.interval-select {
+    flex: 1;
+    background: #000;
+    color: var(--pixel-blue);
+    border: 1px solid #444;
+    padding: 5px;
+    font-size: 0.7rem;
+    outline: none;
+}
+
+.ctrl-btn {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.6rem;
+    padding: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.ctrl-btn.apply {
+    background: #333;
+    color: #fff;
+}
+
+.ctrl-btn.apply:hover {
+    background: #444;
+}
+
+.ctrl-btn.start {
+    background: var(--pixel-green);
+    color: #000;
+    width: 100%;
+}
+
+.ctrl-btn.start:hover {
+    background: #00cc33;
+    transform: scale(1.02);
+}
+
+.ctrl-btn.stop {
+    background: var(--pixel-pink);
+    color: #fff;
+    width: 100%;
+}
+
+.ctrl-btn.stop:hover {
+    background: #cc0066;
+    transform: scale(1.02);
+}
+
+.bot-card.offline {
+    border-color: #666;
+    opacity: 0.8;
+}
+
+.bot-card.offline .bot-status-tag {
+    color: #888;
+}
+
+.countdown {
+    font-weight: bold;
+    min-width: 60px;
+    text-align: right;
+}
+
 @media (max-width: 768px) {
     header {
         flex-direction: column;
