@@ -303,6 +303,12 @@ app.post('/api/bots/heartbeat', async (req, res) => {
 
     if (error) {
       console.error(`❌ [Heartbeat DB Error]`, error);
+      if (error.code === 'PGRST205' || error.code === '42P01') {
+        return res.status(500).json({
+          success: false,
+          error: "DATABASE_TABLE_MISSING: ลืมคัดลอก SQL ใน schema.sql ไปรันใน Supabase หรือเปล่า? (ไม่พบตาราง extension_bots)"
+        });
+      }
       throw error;
     }
 
