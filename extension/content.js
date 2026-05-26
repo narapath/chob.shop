@@ -99,25 +99,34 @@ async function fillFacebookPost(caption, imageUrl) {
         selection.addRange(range);
     } catch (e) { console.error('Selection error:', e); }
 
-    // Clear and Insert using simulated paste
+    // Clear and Insert using Hybrid approach
     document.execCommand('selectAll', false, null);
     document.execCommand('delete', false, null);
 
-    // Simulated Paste approach (Native-like)
-    try {
-        const dataTransfer = new DataTransfer();
-        dataTransfer.setData('text/plain', caption);
-        const event = new ClipboardEvent('paste', {
-            clipboardData: dataTransfer,
+    const lines = caption.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        // 1. Dispatch beforeinput for the text
+        textbox.dispatchEvent(new InputEvent('beforeinput', {
             bubbles: true,
-            cancelable: true
-        });
-        textbox.dispatchEvent(event);
-        console.log('Simulated paste executed');
-    } catch (e) {
-        console.error('Simulated paste failed, falling back:', e);
-        // Fallback to basic text insertion if paste event is blocked
-        document.execCommand('insertText', false, caption);
+            cancelable: true,
+            inputType: 'insertText',
+            data: line
+        }));
+
+        // 2. Actually insert the text
+        document.execCommand('insertText', false, line);
+
+        // 3. Handle line break
+        if (i < lines.length - 1) {
+            textbox.dispatchEvent(new InputEvent('beforeinput', {
+                bubbles: true,
+                cancelable: true,
+                inputType: 'insertParagraph'
+            }));
+            document.execCommand('insertParagraph', false, null);
+        }
     }
 
     // Trigger input event
