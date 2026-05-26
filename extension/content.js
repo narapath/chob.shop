@@ -69,11 +69,20 @@ async function fillFacebookPost(caption, imageUrl) {
     updateStatus('📝 กำลังกรอกข้อมูล...');
 
     // 1. Find the "What's on your mind?" button
-    const recognizedTexts = ["เขียนอะไรสักหน่อย", "คุณคิดอะไรอยู่", "What's on your mind", "เขียนอะไรบางอย่าง", "Create a public post"];
+    const recognizedTexts = [
+        "เขียนอะไรสักหน่อย",
+        "คุณคิดอะไรอยู่",
+        "What's on your mind",
+        "เขียนอะไรบางอย่าง",
+        "Create a public post",
+        "Write something",
+        "Write a post"
+    ];
     let opener = null;
-    const possibleOpeners = document.querySelectorAll('.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6');
+    const possibleOpeners = document.querySelectorAll('.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6, .x1i10hfl.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee');
     for (const el of possibleOpeners) {
-        if (el.innerText.includes('เขียนอะไร') && el.offsetWidth > 0) {
+        const text = el.innerText || "";
+        if ((text.includes('เขียนอะไร') || text.includes('Write something') || text.includes('mind')) && el.offsetWidth > 0) {
             opener = el.closest('div[role="button"]') || el;
             break;
         }
