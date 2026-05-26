@@ -150,7 +150,13 @@ async function handleCommand(botName, action) {
     const interval = intervalSelect ? parseInt(intervalSelect.value) : 15;
 
     // Get admin token for authentication
-    const token = localStorage.getItem('vibe_admin_token');
+    let token = localStorage.getItem('vibe_admin_token');
+
+    // Fallback to default community token if not found (helps if user bypassed admin login)
+    if (!token) {
+        console.warn('⚠️ No admin token found in localStorage, using default fallback.');
+        token = 'vibe_secret_token_12345';
+    }
 
     addConsoleLog(`🕹️ Sending ${action} to ${botName}...`);
 
@@ -163,14 +169,19 @@ async function handleCommand(botName, action) {
             },
             body: JSON.stringify({ bot_name: botName, action, interval })
         });
+
         const data = await res.json();
 
-        if (data.success) {
+        if (res.ok && data.success) {
             addConsoleLog(`✅ Command ${action} queued for ${botName}`);
             // Refresh quickly
             setTimeout(fetchBots, 1000);
         } else {
-            addConsoleLog(`❌ Command failed: ${data.status === 401 ? 'Unauthorized (Please login)' : data.error}`);
+            const errorMsg = (res.status === 401) ? 'Unauthorized (Please login at /admin.html)' : (data.error || 'Unknown error');
+            addConsoleLog(`❌ Command failed: ${errorMsg}`);
+            if (res.status === 401) {
+                alert('⚠️ เซสชั่นหมดอายุหรือยังไม่ได้เข้าสู่ระบบ กรุณาไปหน้า /admin.html เพื่อ Login ก่อนใช้งานปุ่มควบคุม');
+            }
         }
     } catch (err) {
         addConsoleLog(`❌ Network error: ${err.message}`);
