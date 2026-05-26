@@ -52,26 +52,25 @@ async function generateAICaption(product) {
 
     try {
         const prompt = `คุณคือ Content Creator มือโปรที่เก่งเรื่องการเขียนแคปชั่นขายสินค้าให้น่าดึงดูดและดูเป็นธรรมชาติ
-จงเขียนแคปชั่นสำหรับสินค้าชิ้นนี้ โดยมีกฎดังนี้:
-1. **ปรับปรุงชื่อสินค้า**: สรุปชื่อสินค้าให้สั้น กระชับ และดูเป็นมืออาชีพ (เช่น "ประกัน 1+1 ปี" ให้เปลี่ยนเป็น "ประกัน 2 ปีเต็ม", ตัดคำขยะชื่อร้านหรือรหัสที่ไม่จำเป็นออก)
+จงเขียนแคปชั่นสำหรับสินค้าชิ้นนี้ โดยมีกฎเหล็กดังนี้:
+1. **จัดรูปแบบบรรทัด**: ต้องเว้นบรรทัดให้ชัดเจนตามรูปแบบที่กำหนด (ห้ามเขียนติดกันเป็นพืด)
 2. **เนื้อหาเชิงรีวิว**: เขียนสั้นๆ 1-2 ประโยคว่าทำไมสินค้านี้ถึงน่าสนใจ (เช่น "ตัวนี้ใช้ดีมากครับ", "สายแคมป์ปิ้งต้องมี")
-3. **แฮชแท็ก**: สร้างแฮชแท็กที่ระบุถึงชื่อสินค้านั้นๆ โดยเฉพาะ (เช่น #เลื่อยตัดแต่งกิ่ง #Osuka #ไฟLED) **ห้ามใช้**แฮชแท็กทั่วไปอย่าง #ChobShop #รีวิวสินค้า หรือชื่อหมวดหมู่
-4. **Emoji**: ใช้ Emoji ให้ดูพรีเมียมและน่าสนใจ
+3. **แฮชแท็ก**: สร้างแฮชแท็กที่ระบุถึงชื่อสินค้านั้นๆ โดยเฉพาะ (เช่น #เลื่อยตัดแต่งกิ่ง #Osuka #ไฟLED) **ห้ามใช้**แฮชแท็กทั่วไปอย่าง #ChobShop #รีวิวสินค้า
+4. **Emoji**: ใช้ Emoji ให้ดูพรีเมียม
 
 ข้อมูลสินค้า:
-- ชื่อเดิม: "${title}"
+- ชื่อสินค้า: "${title}"
 - ราคา: ${price} บาท
-- หมวดหมู่: ${category}
 
-รูปแบบคำตอบ (ตอบเฉพาะแคปชั่นเท่านั้น):
-✨ [ชื่อสินค้าที่ปรับปรุงแล้ว]
+รูปแบบคำตอบที่คุณต้องส่งกลับมาเท่านั้น (ห้ามมีข้อความอื่นปน):
+✨ [ชื่อสินค้าสั้นๆ]
 
 [ประโยคป้ายยา/รีวิว]
 
 💰 ราคาเพียง: ${price} บาท
 📍 สนใจสั่งซื้อได้ที่: ${affiliateUrl}
 
-[แฮชแท็กเจาะจงสินค้าเท่านั้น]`;
+[แฮชแท็กเจาะจงสินค้า]`;
 
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
@@ -101,6 +100,7 @@ function buildPostContent(product, siteUrl, useAI = false, aiCaption = null) {
     } else {
         const lines = [
             `🛍️ ${product.title}`,
+            '',
             `💰 ราคา ฿${price}`,
         ];
         if (product.discount) {
@@ -113,6 +113,7 @@ function buildPostContent(product, siteUrl, useAI = false, aiCaption = null) {
     }
 
     const footer = [
+        '',
         '',
         product.affiliateUrl ? `🔗 ${product.affiliateUrl}` : `🔗 ${siteUrl}`,
         '',
@@ -512,7 +513,14 @@ async function postToFacebookGroups(product, siteUrl, groupUrls = [], useAI = fa
                 if (!textarea) textarea = await page.$('textarea');
 
                 if (textarea) {
-                    await textarea.type(message, { delay: 15 });
+                    // Splitting by newline and typing helps some mobile versions of FB ensure line breaks
+                    const lines = message.split('\n');
+                    for (let i = 0; i < lines.length; i++) {
+                        await textarea.type(lines[i], { delay: 10 });
+                        if (i < lines.length - 1) {
+                            await page.keyboard.press('Enter');
+                        }
+                    }
 
                     // Click Post
                     let postBtn = await page.$('input[type="submit"][name="view_post"]');
