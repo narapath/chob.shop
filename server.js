@@ -288,8 +288,17 @@ app.post('/api/bots/heartbeat', async (req, res) => {
     return res.status(400).json({ success: false, error: 'bot_name is required' });
   }
 
+  // Use supabaseAdmin if available, otherwise fall back to supabase
+  const db = supabaseAdmin || supabase;
+  if (!db) {
+    console.error('❌ [Heartbeat] No Supabase client available!');
+    return res.status(500).json({ success: false, error: 'Database not configured' });
+  }
+
+  console.log(`🤖 [Heartbeat] Using ${supabaseAdmin ? 'supabaseAdmin' : 'supabase (fallback)'} client`);
+
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await db
       .from('extension_bots')
       .upsert({
         bot_name,
@@ -322,16 +331,22 @@ app.post('/api/bots/heartbeat', async (req, res) => {
 // GET All Bots (Public for the dashboard)
 app.get('/api/bots', async (req, res) => {
   try {
-    const { data, error } = await supabaseAdmin
+    // Use supabaseAdmin if available, otherwise fall back to supabase
+    const db = supabaseAdmin || supabase;
+    if (!db) {
+      return res.status(500).json({ success: false, error: 'Database not configured' });
+    }
+
+    const { data, error } = await db
       .from('extension_bots')
       .select('*')
       .order('last_heartbeat', { ascending: false });
 
     if (error) throw error;
-    res.json({ success: true, bots: data });
+    res.json({ success: true, bots: data || [] });
   } catch (err) {
     console.error('Fetch bots error:', err);
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: err.message, bots: [] });
   }
 });
 
