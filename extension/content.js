@@ -121,37 +121,35 @@ async function fillFacebookPost(caption, imageUrl) {
     // 3. Insert Text
     textbox.focus();
 
-    // Improved clearing: Select all and delete multiple times to ensure React state syncs
-    for (let i = 0; i < 2; i++) {
-        document.execCommand('selectAll', false, null);
-        document.execCommand('delete', false, null);
-        await new Promise(r => setTimeout(r, 100));
-    }
+    // Improved clearing: Select all and delete
+    document.execCommand('selectAll', false, null);
+    document.execCommand('delete', false, null);
+    await new Promise(r => setTimeout(r, 200));
 
-    // Double check if cleared, if not, try setting innerText directly (Risky but good as fallback)
+    // Double check if cleared, if not, try setting innerText directly
     if ((textbox.innerText || "").length > 5) {
         console.warn('[ChobShop] execCommand failed to clear, forcing empty innerText');
         textbox.innerText = '';
         await new Promise(r => setTimeout(r, 100));
     }
 
-    // Insert the entire caption
-    document.execCommand('insertText', false, caption);
+    // Use Paste Simulation as primary method (most reliable for multiline on Lexical)
+    console.log('[ChobShop] Using paste simulation for formatting preservation');
+    const dataTransfer = new DataTransfer();
+    dataTransfer.setData('text/plain', caption);
+    const pasteEvent = new ClipboardEvent('paste', {
+        clipboardData: dataTransfer,
+        bubbles: true,
+        cancelable: true
+    });
+    textbox.dispatchEvent(pasteEvent);
+
     await new Promise(r => setTimeout(r, 500));
 
-    // verification
-    const currentText = textbox.innerText || "";
-    if (currentText.length < caption.length * 0.8) {
-        console.log('[ChobShop] Injection might be incomplete, trying fallback injection');
-        // Fallback: paste simulation
-        const dataTransfer = new DataTransfer();
-        dataTransfer.setData('text/plain', caption);
-        const pasteEvent = new ClipboardEvent('paste', {
-            clipboardData: dataTransfer,
-            bubbles: true,
-            cancelable: true
-        });
-        textbox.dispatchEvent(pasteEvent);
+    // Final verification & fallback
+    if ((textbox.innerText || "").length < 5) {
+        console.warn('[ChobShop] Paste failed, falling back to insertText');
+        document.execCommand('insertText', false, caption);
     }
 
     await new Promise(r => setTimeout(r, 500));
