@@ -137,4 +137,39 @@ async function fillFacebookPost(caption, imageUrl) {
     // Visual cue
     textbox.style.outline = '4px solid #10b981';
     setTimeout(() => textbox.style.outline = '', 3000);
+
+    // 5. Auto-click Post button
+    await new Promise(r => setTimeout(r, 1000)); // 1s delay for button to enable
+
+    const postBtnSelectors = [
+        'div[aria-label="Post"]',
+        'div[aria-label="โพสต์"]',
+        'div[role="button"][tabindex="0"]'
+    ];
+
+    let postButton = null;
+    const dialog = document.querySelector('div[role="dialog"]');
+
+    if (dialog) {
+        for (const selector of postBtnSelectors) {
+            const buttons = dialog.querySelectorAll(selector);
+            for (const btn of buttons) {
+                const text = (btn.innerText || "").toLowerCase();
+                if (text === 'โพสต์' || text === 'post' || btn.getAttribute('aria-label') === 'Post' || btn.getAttribute('aria-label') === 'โพสต์') {
+                    if (btn.offsetWidth > 0) {
+                        postButton = btn;
+                        break;
+                    }
+                }
+            }
+            if (postButton) break;
+        }
+    }
+
+    if (postButton) {
+        console.log('Clicking post button automatically');
+        postButton.click();
+    } else {
+        console.warn('Could not find Post button for auto-submission');
+    }
 }
