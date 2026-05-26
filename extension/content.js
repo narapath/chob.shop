@@ -138,8 +138,8 @@ async function fillFacebookPost(caption, imageUrl) {
         document.execCommand('insertText', false, line);
 
         if (i < lines.length - 1) {
-            // Newline needs an event to tell Lexical to move down
-            textbox.dispatchEvent(new InputEvent('beforeinput', { bubbles: true, cancelable: true, inputType: 'insertParagraph' }));
+            // ONLY use execCommand — do NOT dispatch beforeinput for insertParagraph.
+            // Lexical catches beforeinput and duplicates the paragraph content.
             document.execCommand('insertParagraph', false, null);
         }
     }
