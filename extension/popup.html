@@ -40,11 +40,12 @@
         </div>
 
         <div class="tabs">
-            <div class="tab-btn active" data-tab="products">สินค้า</div>
+            <div class="tab-btn" data-tab="products">สินค้า</div>
             <div class="tab-btn" data-tab="groups">กลุ่มของฉัน</div>
+            <div class="tab-btn active" data-tab="auto">🤖 ออโต้</div>
         </div>
 
-        <div id="productsView">
+        <div id="productsView" class="hidden">
             <div class="filters">
                 <div class="cat-chip active" data-cat="all">ทั้งหมด</div>
                 <div class="cat-chip" data-cat="เครื่องใช้ในบ้าน">🏠 บ้าน</div>
@@ -92,6 +93,61 @@
             </div>
         </div>
 
+        <div id="autoView">
+            <div class="auto-panel">
+                <!-- Status Badge -->
+                <div class="auto-status-badge" id="autoStatusBadge">
+                    <div class="status-indicator" id="autoIndicator"></div>
+                    <span id="autoStatusText">หยุดอยู่</span>
+                </div>
+
+                <!-- Controls -->
+                <div class="auto-controls">
+                    <div class="auto-interval">
+                        <label>⏱️ ความถี่โพสต์</label>
+                        <select id="autoInterval">
+                            <option value="10">ทุก 10 นาที</option>
+                            <option value="15">ทุก 15 นาที</option>
+                            <option value="20" selected>ทุก 20 นาที</option>
+                            <option value="30">ทุก 30 นาที</option>
+                            <option value="60">ทุก 60 นาที</option>
+                        </select>
+                    </div>
+                    <button id="autoToggleBtn" class="auto-start-btn">
+                        <span class="auto-btn-icon">▶️</span>
+                        <span class="auto-btn-text">เริ่มออโต้</span>
+                    </button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="auto-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statPostCount">0</div>
+                        <div class="stat-label">โพสต์แล้ว</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statCurrentGroup">-</div>
+                        <div class="stat-label">กลุ่มถัดไป</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statCountdown">--:--</div>
+                        <div class="stat-label">โพสต์ถัดไป</div>
+                    </div>
+                </div>
+
+                <!-- Activity Log -->
+                <div class="auto-log-section">
+                    <div class="auto-log-header">
+                        <span>📋 ประวัติการโพสต์</span>
+                        <span class="auto-log-count" id="logCount">0 รายการ</span>
+                    </div>
+                    <div class="auto-log-list" id="autoLogList">
+                        <div class="auto-log-empty">ยังไม่มีประวัติการโพสต์</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <footer>
             <span class="powered-by">Powered by ChobShop</span>
         </footer>
@@ -102,13 +158,17 @@
         <div class="overlay-content">
             <h3>⚙️ ตั้งค่า</h3>
             <div class="form-group">
+                <label>ชื่อบอท (Bot Name)</label>
+                <input type="text" id="botName" placeholder="เช่น Bot 1, Bot 2">
+            </div>
+            <div class="form-group">
                 <label>API Endpoint</label>
                 <input type="text" id="apiEndpoint" placeholder="https://chobshop.vercel.app">
             </div>
             <div class="form-group">
                 <label>รูปแบบคำบรรยาย</label>
                 <textarea id="captionTemplate" rows="4"></textarea>
-                <small>Tag: {{title}}, {{price}}, {{link}}, {{desc}}, {{tags}}</small>
+                <small>Tag: {{title}}, {{price}}, {{link}}, {{desc}}</small>
             </div>
             <div class="button-group">
                 <button id="saveSettings" class="btn-primary">บันทึก</button>

@@ -56,6 +56,7 @@ app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html'))
 app.get('/admin.html', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 app.get('/about.html', (req, res) => res.sendFile(path.join(__dirname, 'about.html')));
 app.get('/privacy.html', (req, res) => res.sendFile(path.join(__dirname, 'privacy.html')));
+app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'dashboard.html')));
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
@@ -272,6 +273,53 @@ app.put('/api/settings', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Settings update error:', err);
     res.status(500).json({ error: 'Failed to update settings', detail: err.message });
+  }
+});
+
+// --- Bot Dashboard API ---
+
+// POST Bot Heartbeat (Public, for the extension)
+app.post('/api/bots/heartbeat', async (req, res) => {
+  const { bot_name, browser_type, status, stats, version } = req.body;
+
+  if (!bot_name) {
+    return res.status(400).json({ success: false, error: 'bot_name is required' });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('extension_bots')
+      .upsert({
+        bot_name,
+        browser_type,
+        status,
+        stats,
+        version,
+        last_heartbeat: new Date().toISOString()
+      }, { onConflict: 'bot_name' })
+      .select();
+
+    if (error) throw error;
+    res.json({ success: true, bot: data[0] });
+  } catch (err) {
+    console.error('Heartbeat error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET All Bots (Public for the dashboard)
+app.get('/api/bots', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('extension_bots')
+      .select('*')
+      .order('last_heartbeat', { ascending: false });
+
+    if (error) throw error;
+    res.json({ success: true, bots: data });
+  } catch (err) {
+    console.error('Fetch bots error:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

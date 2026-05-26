@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChobShop Bot Dashboard 🤖</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Prompt:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+
+<body>
+    <div class="pixel-bg"></div>
+
+    <div class="dashboard-container">
+        <header>
+            <div class="logo-pixel">
+                <span class="pixel-icon">🤖</span>
+                <h1>CHOB.SHOP BOT OFFICE</h1>
+            </div>
+            <div class="header-stats">
+                <div class="stat-box">
+                    <span class="label">ACTIVE BOTS</span>
+                    <span id="activeCount" class="value">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="label">TOTAL POSTS</span>
+                    <span id="totalPosts" class="value">0</span>
+                </div>
+            </div>
+        </header>
+
+        <main id="botOffice" class="bot-office">
+            <!-- Bot characters will be rendered here -->
+            <div class="loading-pixel">SCANNING FOR BOTS...</div>
+        </main>
+
+        <section class="console-section">
+            <div class="console-window">
+                <div class="console-header">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                    <span class="title">SYSTEM_CONSOLE.LOG</span>
+                </div>
+                <div id="consoleLog" class="console-content">
+                    [10:15:22] System initialized...
+                    [10:15:23] Waiting for heartbeats...
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+
+</html>

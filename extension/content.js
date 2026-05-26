@@ -16,9 +16,9 @@ if (!window.ChobShopInitialized) {
             updateStatus('🚀 กำลังเตรียมการ...', true);
 
             fillFacebookPost(request.data.caption, request.data.imageUrl)
-                .then(() => {
+                .then((postLink) => {
                     updateStatus('✅ โพสต์สำเร็จ!', false, 3000);
-                    sendResponse({ success: true });
+                    sendResponse({ success: true, postLink: postLink });
                 })
                 .catch(err => {
                     console.error('Fill post error:', err);
@@ -118,51 +118,56 @@ async function fillFacebookPost(caption, imageUrl) {
 
     if (!textbox) throw new Error('ไม่พบช่องใส่ข้อความ');
 
-    // 3. Clear & Insert via Clipboard Paste (most reliable for line breaks)
-    textbox.focus();
-
-    // Clear existing content
-    document.execCommand('selectAll', false, null);
-    document.execCommand('delete', false, null);
-    await new Promise(r => setTimeout(r, 200));
-
-    // Use clipboard paste to insert text — this preserves line breaks perfectly
-    try {
-        // Save current clipboard content
-        const originalClipboard = await navigator.clipboard.readText().catch(() => '');
-
-        // Write our caption to clipboard
-        await navigator.clipboard.writeText(caption);
-
-        // Focus and paste
+    // 3. Insert Text
+    let tries = 0;
+    while (tries < 3) {
         textbox.focus();
-        document.execCommand('paste');
+        // Clear first
+        document.execCommand('selectAll', false, null);
+        document.execCommand('delete', false, null);
 
-        // Restore original clipboard after a delay
-        setTimeout(async () => {
-            try { await navigator.clipboard.writeText(originalClipboard); } catch (e) { }
-        }, 1000);
-    } catch (clipErr) {
-        console.warn('Clipboard paste failed, using DataTransfer fallback:', clipErr);
-        // Fallback: Use DataTransfer paste event
-        textbox.focus();
-        const dt = new DataTransfer();
-        dt.setData('text/plain', caption);
+        // Insert the entire caption at once. 
+        // Modern contenteditable/React editors often handle \n better when part of a single insertText command.
+        document.execCommand('insertText', false, caption);
+
+        await new Promise(r => setTimeout(r, 800));
+
+        // Verify text exists and has newlines
+        const currentText = textbox.innerText || "";
+        if (currentText.length > 5) {
+            console.log('[ChobShop] Text injection verified!');
+            // Log if newlines were preserved
+            if (currentText.includes('\n')) {
+                console.log('[ChobShop] Newlines confirmed in textbox.');
+                break;
+            } else {
+                console.warn('[ChobShop] Newlines missing, retrying with alternative method...');
+            }
+        }
+
+        tries++;
+    }
+
+    if (tries >= 3) {
+        // Fallback: Try a simulated paste event if execCommand failed to keep newlines
+        console.log('[ChobShop] Falling back to paste simulation...');
+        const dataTransfer = new DataTransfer();
+        dataTransfer.setData('text/plain', caption);
         const pasteEvent = new ClipboardEvent('paste', {
+            clipboardData: dataTransfer,
             bubbles: true,
-            cancelable: true,
-            clipboardData: dt
+            cancelable: true
         });
         textbox.dispatchEvent(pasteEvent);
     }
 
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 500));
     textbox.dispatchEvent(new Event('input', { bubbles: true }));
     textbox.style.outline = '4px solid #10b981';
 
     // 4. Auto-Submit with Sanity Check
-    updateStatus('🔘 กำลังกดโพสต์...');
-    await new Promise(r => setTimeout(r, 2000));
+    updateStatus('🔘 รอโหลดรูปภาพ (5 วินาที)...');
+    await new Promise(r => setTimeout(r, 5000)); // Increased from 2s to 5s to allow media load
 
     let postButton = null;
     if (dialog) {
@@ -191,7 +196,62 @@ async function fillFacebookPost(caption, imageUrl) {
                 postButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
             }
         }, 1500);
+
+        // --- NEW: Wait for post to finish and capture link ---
+        updateStatus('⏳ กำลังบันทึกโพสต์...', true);
+
+        // 1. Wait for dialog to disappear (up to 20s)
+        let dialogGone = false;
+        for (let i = 0; i < 40; i++) {
+            await new Promise(r => setTimeout(r, 500));
+            if (!document.querySelector('div[role="dialog"]')) {
+                dialogGone = true;
+                break;
+            }
+        }
+
+        if (dialogGone) {
+            // 2. Wait for page to settle and look for the new post link
+            await new Promise(r => setTimeout(r, 3000));
+            try {
+                const postLink = await findJustNowPostLink();
+                if (postLink) {
+                    console.log('Captured post link:', postLink);
+                    return postLink;
+                }
+            } catch (e) {
+                console.warn('Failed to capture post link:', e);
+            }
+        }
     } else {
         console.warn('Post button not found');
     }
+    return null;
+}
+
+async function findJustNowPostLink() {
+    // Look for links that contain "Just now" or "เมื่อสักครู่"
+    const timeTexts = ["Just now", "เมื่อสักครู่", "1 min", "1 นาที"];
+    const links = Array.from(document.querySelectorAll('a[role="link"], a'));
+
+    // Sort by position (top first)
+    const candidates = links.filter(a => {
+        const text = (a.innerText || "").trim();
+        const href = a.href || "";
+        const isGroupPost = href.includes('/groups/') && href.includes('/posts/');
+        const isRecent = timeTexts.some(t => text.includes(t));
+        const isVisible = a.offsetWidth > 0 && a.getClientRects().length > 0;
+        return isGroupPost && isRecent && isVisible;
+    });
+
+    if (candidates.length > 0) {
+        // Return the one closest to the top of the viewport
+        candidates.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+        let url = candidates[0].href;
+        // Clean up URL (remove tracking params)
+        if (url.includes('?')) url = url.split('?')[0];
+        if (url.includes('&')) url = url.split('&')[0];
+        return url;
+    }
+    return null;
 }

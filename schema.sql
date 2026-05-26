@@ -32,3 +32,26 @@ CREATE POLICY "Allow public read access" ON products
 -- Create policy to allow service role full access (default, but good to ensure)
 CREATE POLICY "Allow all for service role" ON products
   FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+-- Create extension_bots table
+CREATE TABLE IF NOT EXISTS extension_bots (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  bot_name TEXT UNIQUE NOT NULL,
+  browser_type TEXT,
+  status TEXT DEFAULT 'idle',
+  last_heartbeat TIMESTAMPTZ DEFAULT NOW(),
+  stats JSONB DEFAULT '{}',
+  version TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE extension_bots ENABLE ROW LEVEL SECURITY;
+
+-- Create policy to allow public read access
+CREATE POLICY "Allow public read access on extension_bots" ON extension_bots
+  FOR SELECT USING (true);
+
+-- Create policy to allow service role full access
+CREATE POLICY "Allow all for service role on extension_bots" ON extension_bots
+  FOR ALL TO service_role USING (true) WITH CHECK (true);

@@ -1,0 +1,271 @@
+:root {
+    --bg-dark: #1a1a2e;
+    --pixel-green: #00ff41;
+    --pixel-blue: #00d2ff;
+    --pixel-pink: #ff007f;
+    --pixel-yellow: #fdf06d;
+    --surface: #16213e;
+    --text: #e94560;
+    --text-dim: #95a5a6;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Prompt', sans-serif;
+}
+
+body {
+    background: var(--bg-dark);
+    color: #fff;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+.pixel-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-image:
+        linear-gradient(rgba(26, 26, 46, 0.9), rgba(26, 26, 46, 0.9)),
+        url('https://images.unsplash.com/photo-1550745165-9bc0b252723f?auto=format&fit=crop&q=80&w=2000');
+    background-size: cover;
+    background-position: center;
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 4px solid var(--pixel-blue);
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+}
+
+.logo-pixel h1 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.2rem;
+    color: var(--pixel-yellow);
+    text-shadow: 3px 3px 0px #000;
+}
+
+.header-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.stat-box {
+    background: #000;
+    border: 3px solid var(--pixel-pink);
+    padding: 10px 15px;
+    text-align: center;
+    box-shadow: 4px 4px 0px var(--pixel-pink);
+}
+
+.stat-box .label {
+    display: block;
+    font-size: 0.6rem;
+    font-family: 'Press Start 2P', cursive;
+    color: var(--text-dim);
+    margin-bottom: 5px;
+}
+
+.stat-box .value {
+    font-size: 1.4rem;
+    font-family: 'Press Start 2P', cursive;
+    color: var(--pixel-blue);
+}
+
+/* Bot Office Area */
+.bot-office {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    min-height: 400px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 4px solid #333;
+    padding: 30px;
+    position: relative;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+}
+
+.bot-office::before {
+    content: '☕ 🪴 🖥️ 🛋️';
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 2rem;
+    opacity: 0.2;
+    pointer-events: none;
+}
+
+.bot-card {
+    background: var(--surface);
+    border: 4px solid #fff;
+    padding: 20px;
+    position: relative;
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s;
+}
+
+.bot-card:hover {
+    transform: translateY(-5px);
+}
+
+.bot-card.active {
+    border-color: var(--pixel-green);
+}
+
+.bot-card.idle {
+    border-color: var(--pixel-yellow);
+}
+
+.bot-avatar {
+    font-size: 4rem;
+    text-align: center;
+    margin-bottom: 15px;
+    filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.3));
+}
+
+.bot-name {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.9rem;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.bot-status-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 0.6rem;
+    font-family: 'Press Start 2P', cursive;
+    background: #000;
+    margin-bottom: 15px;
+    width: 100%;
+    text-align: center;
+}
+
+.active .bot-status-tag {
+    color: var(--pixel-green);
+}
+
+.idle .bot-status-tag {
+    color: var(--pixel-yellow);
+}
+
+.bot-stats-list {
+    font-size: 0.8rem;
+    border-top: 2px dashed #444;
+    padding-top: 10px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.stat-row .label {
+    color: var(--text-dim);
+}
+
+.stat-row .val {
+    color: var(--pixel-blue);
+}
+
+/* Console */
+.console-window {
+    background: #000;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid #444;
+}
+
+.console-header {
+    background: #333;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.red {
+    background: #ff5f56;
+}
+
+.yellow {
+    background: #ffbd2e;
+}
+
+.green {
+    background: #27c93f;
+}
+
+.console-header .title {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.6rem;
+    color: #888;
+    margin-left: 10px;
+}
+
+.console-content {
+    padding: 15px;
+    font-family: 'monospace';
+    color: var(--pixel-green);
+    font-size: 0.85rem;
+    height: 150px;
+    overflow-y: auto;
+    line-height: 1.4;
+}
+
+.loading-pixel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Press Start 2P', cursive;
+    color: var(--pixel-blue);
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+}
