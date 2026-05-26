@@ -216,12 +216,28 @@ function renderGroups() {
 
     list.innerHTML = groups.map(g => `
         <div class="group-item">
-            <a href="${g.url}" target="_blank" class="group-name">👥 ${g.name}</a>
+            <span class="group-link" data-url="${g.url}" title="ไปยังกลุ่ม">👥 ${g.name}</span>
             <div class="group-actions">
                 <span class="btn-del" data-id="${g.id}">🗑️</span>
             </div>
         </div>
     `).join('');
+
+    list.querySelectorAll('.group-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const url = link.dataset.url;
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (tabs[0]) {
+                    chrome.tabs.update(tabs[0].id, { url: url }, async () => {
+                        // After navigation, re-check tab status to refresh UI
+                        await new Promise(r => setTimeout(r, 500)); // Small buffer for nav
+                        await checkCurrentTab();
+                        renderProducts(); // Refresh buttons
+                    });
+                }
+            });
+        });
+    });
 
     list.querySelectorAll('.btn-del').forEach(btn => {
         btn.addEventListener('click', (e) => {
