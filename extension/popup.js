@@ -198,6 +198,52 @@ function initEventListeners() {
         });
     });
 
+    // Test API Button
+    document.getElementById('testApi').addEventListener('click', async () => {
+        const api = document.getElementById('apiEndpoint').value.trim();
+        const bName = document.getElementById('botName').value.trim() || 'Test Bot';
+
+        if (!api) {
+            alert('กรุณาใส่ API Endpoint');
+            return;
+        }
+
+        const btn = document.getElementById('testApi');
+        const originalText = btn.innerText;
+        btn.innerText = '⌛...';
+        btn.disabled = true;
+
+        try {
+            console.log('[ChobShop] Testing connection to:', api);
+            const res = await fetch(`${api}/api/bots/heartbeat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    bot_name: bName,
+                    status: 'test',
+                    version: '1.0'
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ เชื่อมต่อสำเร็จ! ข้อมูลถูกส่งไปยังระบบแล้ว');
+                } else {
+                    alert('❌ เซิร์ฟเวอร์ตอบกลับแต่มีข้อผิดพลาด: ' + data.error);
+                }
+            } else {
+                const text = await res.text();
+                alert(`❌ เชื่อมต่อล้มเหลว (HTTP ${res.status}): ${text.substring(0, 50)}...`);
+            }
+        } catch (e) {
+            alert('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้: ' + e.message);
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    });
+
     document.getElementById('saveSettings').addEventListener('click', () => {
         const api = document.getElementById('apiEndpoint').value.trim();
         const template = document.getElementById('captionTemplate').value;
