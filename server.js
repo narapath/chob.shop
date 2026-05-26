@@ -8,7 +8,7 @@ const rateLimit = require('express-rate-limit');
 const ogs = require('open-graph-scraper');
 const sharp = require('sharp');
 
-const { supabase } = require('./lib/supabase');
+const { supabase, supabaseAdmin } = require('./lib/supabase');
 const { notifyGoogleIndexing, notifyBulkIndexing } = require('./indexingService');
 const { deleteFromFacebook, deleteFromX, generateAICaption, postToFacebookGroups } = require('./socialMedia');
 const { generateLocalSEO } = require('./lib/seo');
@@ -289,7 +289,7 @@ app.post('/api/bots/heartbeat', async (req, res) => {
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('extension_bots')
       .upsert({
         bot_name,
@@ -322,7 +322,7 @@ app.post('/api/bots/heartbeat', async (req, res) => {
 // GET All Bots (Public for the dashboard)
 app.get('/api/bots', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('extension_bots')
       .select('*')
       .order('last_heartbeat', { ascending: false });
