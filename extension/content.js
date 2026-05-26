@@ -121,9 +121,15 @@ async function fillFacebookPost(caption, imageUrl) {
     const lines = caption.split('\n');
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        textbox.dispatchEvent(new InputEvent('beforeinput', { bubbles: true, cancelable: true, inputType: 'insertText', data: line }));
+
+        // CRITICAL: DO NOT dispatch beforeinput with data here. 
+        // Lexical catches beforeinput and inserts the data, then execCommand inserts it again (DOUBLING).
+        // We only dispatch the event for internal Lexical state if needed, but for text, let execCommand handle it.
+
         document.execCommand('insertText', false, line);
+
         if (i < lines.length - 1) {
+            // Newline needs an event to tell Lexical to move down
             textbox.dispatchEvent(new InputEvent('beforeinput', { bubbles: true, cancelable: true, inputType: 'insertParagraph' }));
             document.execCommand('insertParagraph', false, null);
         }
@@ -150,13 +156,17 @@ async function fillFacebookPost(caption, imageUrl) {
 
     if (postButton) {
         console.log('Clicking post button automatically (Ultra-Stable)');
+
+        // Try multiple click methods to bypass React event overrides
         postButton.click();
 
-        // Final sanity click if color is blue but not clicked yet (some Lexical overlays or state lag)
+        // Secondary sanity click with real event dispatch
         setTimeout(() => {
             if (document.querySelector('div[role="dialog"]')) {
-                console.log('Sanity check: Dialog still open, trying secondary click...');
-                postButton.click();
+                console.log('Sanity check: Dialog still open, trying event dispatch...');
+                postButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+                postButton.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+                postButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
             }
         }, 1500);
     } else {
