@@ -149,12 +149,18 @@ async function handleCommand(botName, action) {
     const intervalSelect = document.getElementById(`interval-${botName}`);
     const interval = intervalSelect ? parseInt(intervalSelect.value) : 15;
 
+    // Get admin token for authentication
+    const token = localStorage.getItem('vibe_admin_token');
+
     addConsoleLog(`🕹️ Sending ${action} to ${botName}...`);
 
     try {
         const res = await fetch('/api/bots/command', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({ bot_name: botName, action, interval })
         });
         const data = await res.json();
@@ -164,7 +170,7 @@ async function handleCommand(botName, action) {
             // Refresh quickly
             setTimeout(fetchBots, 1000);
         } else {
-            addConsoleLog(`❌ Command failed: ${data.error}`);
+            addConsoleLog(`❌ Command failed: ${data.status === 401 ? 'Unauthorized (Please login)' : data.error}`);
         }
     } catch (err) {
         addConsoleLog(`❌ Network error: ${err.message}`);
