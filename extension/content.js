@@ -245,85 +245,183 @@ function injectBotController() {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        width: 240px;
-        background: rgba(15, 23, 42, 0.9);
-        backdrop-filter: blur(12px);
+        width: 280px;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
+        border-radius: 16px;
         color: white;
-        z-index: 9999;
-        font-family: 'Segoe UI', Roboto, sans-serif;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        z-index: 99999;
+        font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+        box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.7);
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-bottom: 4px solid #475569;
+        transition: all 0.3s ease;
+        border-bottom: 5px solid #475569;
     `;
 
     widget.innerHTML = `
-        <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <!-- Header -->
+        <div style="background: rgba(255,255,255,0.05); padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08);">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 18px;">🤖</span>
-                <span style="font-weight: 700; font-size: 13px; letter-spacing: 0.5px;">CHOB.SHOP BOT</span>
+                <span style="font-size: 20px;">🤖</span>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-weight: 800; font-size: 11px; letter-spacing: 1px; color: #94a3b8;">CHOB.SHOP</span>
+                    <span style="font-size: 13px; font-weight: 700; color: #f8fafc;">Bot Console</span>
+                </div>
             </div>
-            <div id="widget-toggle" style="cursor: pointer; font-size: 12px; opacity: 0.6;">▼</div>
+            <div id="widget-toggle" style="cursor: pointer; padding: 5px; opacity: 0.7; transition: 0.2s;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
         </div>
-        <div id="widget-body" style="padding: 15px; display: flex; flex-direction: column; gap: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">STATUS</span>
-                <span id="widget-status" style="font-size: 10px; background: #334155; padding: 2px 8px; border-radius: 10px; font-weight: 800;">OFFLINE</span>
+
+        <!-- Body -->
+        <div id="widget-body" style="display: flex; flex-direction: column;">
+            <!-- Tabs Nav -->
+            <div style="display: flex; background: rgba(0,0,0,0.2); padding: 4px; margin: 10px 15px 0; border-radius: 8px;">
+                <button class="w-tab-btn active" data-tab="status" style="flex:1; border:none; background: transparent; color: white; font-size: 11px; font-weight: 600; padding: 6px; cursor: pointer; border-radius: 6px;">Status</button>
+                <button class="w-tab-btn" data-tab="config" style="flex:1; border:none; background: transparent; color: #64748b; font-size: 11px; font-weight: 600; padding: 6px; cursor: pointer; border-radius: 6px;">Config</button>
+                <button class="w-tab-btn" data-tab="logs" style="flex:1; border:none; background: transparent; color: #64748b; font-size: 11px; font-weight: 600; padding: 6px; cursor: pointer; border-radius: 6px;">Logs</button>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">ACTIVE IN</span>
-                <span id="widget-group" style="font-size: 11px; font-weight: 500; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px;">-</span>
+
+            <!-- Tab Content: Status -->
+            <div id="tab-status" class="w-tab-content" style="padding: 15px; display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; color: #94a3b8; font-weight: 700;">STATUS</span>
+                    <span id="widget-status" style="font-size: 9px; background: #334155; padding: 2px 10px; border-radius: 20px; font-weight: 900; color: #f8fafc;">OFFLINE</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <span style="font-size: 11px; color: #94a3b8; font-weight: 700;">ACTIVE IN</span>
+                    <span id="widget-group" style="font-size: 11px; font-weight: 600; text-align: right; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; max-width: 140px; color: #cbd5e1;">-</span>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                   <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 10px; color: #64748b; font-weight: 700;">POSTS</span>
+                        <span id="widget-count" style="font-size: 24px; font-weight: 900; color: #fbbf24; line-height: 1;">0</span>
+                   </div>
+                   <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                        <span style="font-size: 10px; color: #64748b; font-weight: 700; text-align: right;">TARGET</span>
+                        <span id="widget-target-count" style="font-size: 18px; font-weight: 700; color: #94a3b8; text-align: right;">-</span>
+                   </div>
+                </div>
+                <button id="widget-action-btn" style="width: 100%; padding: 12px; border: none; border-radius: 10px; background: #6366f1; color: white; font-weight: 800; cursor: pointer; transition: 0.3s; font-size: 13px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">START AUTO</button>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px;">
-                <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">POSTS</span>
-                <span id="widget-count" style="font-size: 18px; font-weight: 800; color: #fbbf24;">0</span>
+
+            <!-- Tab Content: Config -->
+            <div id="tab-config" class="w-tab-content" style="padding: 15px; display: none; flex-direction: column; gap: 15px;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 11px; color: #94a3b8; font-weight: 700;">INTERVAL (MINUTES)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="widget-interval-input" min="1" value="10" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; color: white; font-size: 13px; font-weight: 600;">
+                        <button id="widget-save-interval" style="padding: 0 12px; background: #475569; border: none; border-radius: 6px; color: white; font-size: 11px; font-weight: 700; cursor: pointer;">SET</button>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 11px; color: #94a3b8; font-weight: 700;">GROUPS TO POST</label>
+                    <div id="widget-groups-list" style="max-height: 100px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; font-size: 11px; color: #cbd5e1; display: flex; flex-direction: column; gap: 6px; border: 1px solid rgba(255,255,255,0.05);">
+                        Loading groups...
+                    </div>
+                </div>
             </div>
-            <button id="widget-action-btn" style="width: 100%; padding: 10px; border: none; border-radius: 8px; background: #6366f1; color: white; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 13px;">START AUTO</button>
+
+            <!-- Tab Content: Logs -->
+            <div id="tab-logs" class="w-tab-content" style="padding: 15px; display: none; flex-direction: column;">
+                <label style="font-size: 11px; color: #94a3b8; font-weight: 700; margin-bottom: 8px;">RECENT ACTIVITY</label>
+                <div id="widget-log-container" style="height: 140px; overflow-y: auto; background: rgba(0,0,0,0.4); border-radius: 10px; padding: 10px; font-family: 'Consolas', monospace; font-size: 10px; color: #10b981; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);">
+                    No logs yet.
+                </div>
+            </div>
         </div>
+
+        <style>
+            #chobshop-bot-controller .w-tab-btn.active {
+                background: #6366f1 !important;
+                color: white !important;
+                box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+            }
+            #chobshop-bot-controller .w-tab-content::-webkit-scrollbar {
+                width: 4px;
+            }
+            #chobshop-bot-controller .w-tab-content::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.1);
+                border-radius: 10px;
+            }
+        </style>
     `;
 
     document.body.appendChild(widget);
 
-    // Initial State Fetch
-    chrome.runtime.sendMessage({ action: 'GET_AUTO_STATUS' }, (response) => {
-        if (response && response.state) {
-            updateBotController(response.state);
-        }
+    // --- State & Updates ---
+    const refreshData = () => {
+        chrome.runtime.sendMessage({ action: 'GET_AUTO_STATUS' }, (response) => {
+            if (response && response.state) {
+                updateBotController(response.state);
+            }
+        });
+        chrome.runtime.sendMessage({ action: 'GET_GROUPS' }, (response) => {
+            if (response && response.groups) {
+                const listEl = widget.querySelector('#widget-groups-list');
+                listEl.innerHTML = '';
+                response.groups.forEach((g, idx) => {
+                    listEl.innerHTML += `<div style="padding: 5px 8px; background: rgba(255,255,255,0.03); border-radius: 4px; border-left: 2px solid #6366f1;">${idx + 1}. ${g.name}</div>`;
+                });
+                widget.querySelector('#widget-target-count').innerText = response.groups.length;
+                if (response.groups.length === 0) listEl.innerText = 'No groups added yet.';
+            }
+        });
+    };
+    refreshData();
+
+    // --- Event Listeners ---
+
+    // Tab Switching
+    widget.querySelectorAll('.w-tab-btn').forEach(btn => {
+        btn.onclick = () => {
+            widget.querySelectorAll('.w-tab-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.color = '#64748b';
+            });
+            btn.classList.add('active');
+            btn.style.color = 'white';
+
+            widget.querySelectorAll('.w-tab-content').forEach(c => c.style.display = 'none');
+            widget.querySelector(`#tab-${btn.dataset.tab}`).style.display = 'flex';
+        };
     });
 
-    // Event Listeners
+    // Toggle Collapsed
     const toggleBtn = widget.querySelector('#widget-toggle');
     const body = widget.querySelector('#widget-body');
     let collapsed = false;
-
     toggleBtn.onclick = () => {
         collapsed = !collapsed;
         body.style.display = collapsed ? 'none' : 'flex';
-        toggleBtn.innerText = collapsed ? '▲' : '▼';
-        widget.style.width = collapsed ? '180px' : '240px';
+        toggleBtn.style.transform = collapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+        widget.style.width = collapsed ? '180px' : '280px';
     };
 
+    // Action Button
     const actionBtn = widget.querySelector('#widget-action-btn');
     actionBtn.onclick = () => {
         chrome.runtime.sendMessage({ action: 'GET_AUTO_STATUS' }, (response) => {
             const isRunning = response && response.state && response.state.isRunning;
             if (isRunning) {
-                chrome.runtime.sendMessage({ action: 'STOP_AUTO_POST' }, (res) => {
-                    if (res && res.success) {
-                        chrome.runtime.sendMessage({ action: 'GET_AUTO_STATUS' }, (r) => updateBotController(r.state));
-                    }
-                });
+                chrome.runtime.sendMessage({ action: 'STOP_AUTO_POST' }, (res) => { if (res && res.success) refreshData(); });
             } else {
-                // For simplicity, start with default 10 min interval if starting from widget
-                chrome.runtime.sendMessage({ action: 'START_AUTO_POST', intervalMinutes: 10 }, (res) => {
-                    if (res && res.success) {
-                        chrome.runtime.sendMessage({ action: 'GET_AUTO_STATUS' }, (r) => updateBotController(r.state));
-                    }
-                });
+                const mins = widget.querySelector('#widget-interval-input').value || 10;
+                chrome.runtime.sendMessage({ action: 'START_AUTO_POST', intervalMinutes: parseInt(mins) }, (res) => { if (res && res.success) refreshData(); });
+            }
+        });
+    };
+
+    // Save Interval
+    widget.querySelector('#widget-save-interval').onclick = () => {
+        const mins = widget.querySelector('#widget-interval-input').value;
+        chrome.runtime.sendMessage({ action: 'UPDATE_INTERVAL', minutes: mins }, (res) => {
+            if (res && res.success) {
+                updateStatus('✅ อัปเดตความถี่เรียบร้อย!', false, 2000);
+                refreshData();
             }
         });
     };
@@ -337,20 +435,28 @@ function updateBotController(state) {
     const actionBtn = widget.querySelector('#widget-action-btn');
     const countEl = widget.querySelector('#widget-count');
     const groupEl = widget.querySelector('#widget-group');
+    const logEl = widget.querySelector('#widget-log-container');
+    const intervalInput = widget.querySelector('#widget-interval-input');
 
     countEl.innerText = state.postCount || 0;
+    if (state.intervalMinutes && intervalInput) intervalInput.value = state.intervalMinutes;
+
+    if (state.log && state.log.length > 0 && logEl) {
+        logEl.innerHTML = state.log.map(line => `<div style="margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">${line}</div>`).join('');
+    }
 
     if (state.isRunning) {
         statusEl.innerText = state.isPosting ? 'WORKING...' : 'ACTIVE';
         statusEl.style.background = state.isPosting ? '#e11d48' : '#10b981';
+        statusEl.style.boxShadow = state.isPosting ? '0 0 10px rgba(225, 29, 72, 0.4)' : '0 0 10px rgba(16, 185, 129, 0.4)';
         actionBtn.innerText = 'STOP AUTO';
         actionBtn.style.background = '#f43f5e';
-        widget.style.borderBottom = '4px solid #10b981';
+        actionBtn.style.boxShadow = '0 4px 12px rgba(244, 63, 94, 0.3)';
+        widget.style.borderBottom = '5px solid #10b981';
 
-        // Extract group name from last log if available
         if (state.log && state.log.length > 0) {
-            const lastLog = state.log[0];
-            if (lastLog.includes('|')) {
+            const lastLog = state.log.find(l => l.includes('|'));
+            if (lastLog) {
                 const parts = lastLog.split('|');
                 if (parts.length > 1) groupEl.innerText = parts[1].trim();
             }
@@ -358,9 +464,11 @@ function updateBotController(state) {
     } else {
         statusEl.innerText = 'OFFLINE';
         statusEl.style.background = '#334155';
+        statusEl.style.boxShadow = 'none';
         actionBtn.innerText = 'START AUTO';
         actionBtn.style.background = '#6366f1';
-        widget.style.borderBottom = '4px solid #475569';
+        actionBtn.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)';
+        widget.style.borderBottom = '5px solid #475569';
         groupEl.innerText = '-';
     }
 }

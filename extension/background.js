@@ -35,6 +35,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.action === 'GET_AUTO_STATUS') {
         getAutoStatus().then(status => sendResponse(status));
         return true; // async
+    } else if (request.action === 'GET_GROUPS') {
+        chrome.storage.sync.get('facebookGroups', (data) => {
+            sendResponse({ groups: data.facebookGroups || [] });
+        });
+        return true;
+    } else if (request.action === 'UPDATE_INTERVAL') {
+        updateInterval(request.minutes).then(() => sendResponse({ success: true }));
+        return true;
     } else if (request.action === 'PING') {
         sendResponse({ success: true, timestamp: Date.now() });
         return true;
@@ -76,6 +84,22 @@ async function stopAutoPost() {
         autoPostState.isRunning = false;
         autoPostState.log = [`⏸️ ${new Date().toLocaleTimeString('th-TH')} | หยุดออโต้โพสต์`, ...(autoPostState.log || [])].slice(0, 20);
         await chrome.storage.local.set({ autoPostState });
+    }
+}
+
+async function updateInterval(minutes) {
+    const { autoPostState } = await chrome.storage.local.get('autoPostState');
+    if (autoPostState) {
+        autoPostState.intervalMinutes = parseInt(minutes);
+        autoPostState.log = [`⚙️ ${new Date().toLocaleTimeString('th-TH')} | เปลี่ยนความถี่เป็น ${minutes} นาที`, ...(autoPostState.log || [])].slice(0, 20);
+        await chrome.storage.local.set({ autoPostState });
+
+        // If running, restart alarm with new interval
+        if (autoPostState.isRunning) {
+            chrome.alarms.create(ALARM_NAME, {
+                periodInMinutes: parseInt(minutes)
+            });
+        }
     }
 }
 
