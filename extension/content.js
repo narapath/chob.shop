@@ -103,16 +103,14 @@ async function fillFacebookPost(caption, imageUrl) {
     document.execCommand('selectAll', false, null);
     document.execCommand('delete', false, null);
 
-    // Split into lines and insert with paragraph breaks
-    const lines = caption.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].trim() !== '' || i < lines.length - 1) {
-            document.execCommand('insertText', false, lines[i]);
-        }
-        if (i < lines.length - 1) {
-            document.execCommand('insertParagraph', false, null);
-        }
-    }
+    // Split into lines and insert with <br> tags
+    const htmlCaption = caption
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
+
+    document.execCommand('insertHTML', false, htmlCaption);
 
     // Trigger input event
     textbox.dispatchEvent(new Event('input', { bubbles: true }));
