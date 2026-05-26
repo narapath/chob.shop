@@ -52,6 +52,10 @@ ALTER TABLE extension_bots ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read access on extension_bots" ON extension_bots
   FOR SELECT USING (true);
 
+-- Create policy to allow public to send heartbeats (upsert)
+CREATE POLICY "Allow public heartbeats on extension_bots" ON extension_bots
+  FOR ALL TO public USING (true) WITH CHECK (true);
+
 -- Create policy to allow service role full access
 CREATE POLICY "Allow all for service role on extension_bots" ON extension_bots
   FOR ALL TO service_role USING (true) WITH CHECK (true);

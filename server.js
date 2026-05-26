@@ -282,6 +282,8 @@ app.put('/api/settings', requireAuth, async (req, res) => {
 app.post('/api/bots/heartbeat', async (req, res) => {
   const { bot_name, browser_type, status, stats, version } = req.body;
 
+  console.log(`🤖 [Heartbeat] Received from "${bot_name}" (${status})`);
+
   if (!bot_name) {
     return res.status(400).json({ success: false, error: 'bot_name is required' });
   }
@@ -299,10 +301,14 @@ app.post('/api/bots/heartbeat', async (req, res) => {
       }, { onConflict: 'bot_name' })
       .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error(`❌ [Heartbeat DB Error]`, error);
+      throw error;
+    }
+
     res.json({ success: true, bot: data[0] });
   } catch (err) {
-    console.error('Heartbeat error:', err);
+    console.error(`❌ [Heartbeat Server Error]`, err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

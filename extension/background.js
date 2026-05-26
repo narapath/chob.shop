@@ -288,7 +288,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function sendHeartbeat() {
     try {
         const { botName, apiEndpoint } = await chrome.storage.sync.get(['botName', 'apiEndpoint']);
-        if (!botName) return; // Don't report if unnamed
+        if (!botName) {
+            console.log('[Heartbeat] Skipping: No botName set');
+            return;
+        }
 
         const endpoint = apiEndpoint || 'https://chob.shop';
         const { autoPostState } = await chrome.storage.local.get('autoPostState');
@@ -304,11 +307,13 @@ async function sendHeartbeat() {
 
         const body = {
             bot_name: botName,
-            browser_type: 'Chrome', // Could be refined
+            browser_type: 'Chrome',
             status,
             stats,
             version: manifest.version
         };
+
+        console.log(`[Heartbeat] Sending to ${endpoint}/api/bots/heartbeat...`, body);
 
         const res = await fetch(`${endpoint}/api/bots/heartbeat`, {
             method: 'POST',
@@ -316,12 +321,19 @@ async function sendHeartbeat() {
             body: JSON.stringify(body)
         });
 
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Server responded with ${res.status}: ${errorText}`);
+        }
+
         const data = await res.json();
         if (data.success) {
-            console.log(`[Heartbeat] Reported as "${botName}" - ${status}`);
+            console.log(`[Heartbeat] Success: Reported as "${botName}"`);
+        } else {
+            console.warn(`[Heartbeat] Server reported failure:`, data.error);
         }
     } catch (err) {
-        console.error('[Heartbeat] Failed:', err);
+        console.error('[Heartbeat] Critical Error:', err.message);
     }
 }
 
