@@ -99,18 +99,26 @@ async function fillFacebookPost(caption, imageUrl) {
         selection.addRange(range);
     } catch (e) { console.error('Selection error:', e); }
 
-    // Clear and Insert
+    // Clear and Insert using simulated paste
     document.execCommand('selectAll', false, null);
     document.execCommand('delete', false, null);
 
-    // Split into lines and insert with <br> tags
-    const htmlCaption = caption
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\n/g, '<br>');
-
-    document.execCommand('insertHTML', false, htmlCaption);
+    // Simulated Paste approach (Native-like)
+    try {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.setData('text/plain', caption);
+        const event = new ClipboardEvent('paste', {
+            clipboardData: dataTransfer,
+            bubbles: true,
+            cancelable: true
+        });
+        textbox.dispatchEvent(event);
+        console.log('Simulated paste executed');
+    } catch (e) {
+        console.error('Simulated paste failed, falling back:', e);
+        // Fallback to basic text insertion if paste event is blocked
+        document.execCommand('insertText', false, caption);
+    }
 
     // Trigger input event
     textbox.dispatchEvent(new Event('input', { bubbles: true }));

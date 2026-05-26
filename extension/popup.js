@@ -22,6 +22,9 @@ async function copyToClipboard(id) {
         .replace('{{desc}}', p.description || '')
         .replace('{{tags}}', tags);
 
+    // Safety: Ensure double newlines
+    caption = caption.replace(/\n\s*\n/g, '\n\n').trim();
+
     try {
         await navigator.clipboard.writeText(caption);
         showToast('✅ คัดลอกแคปชั่นแล้ว!');
@@ -353,6 +356,9 @@ async function postToCurrentGroup(id) {
         .replace('{{link}}', link)
         .replace('{{desc}}', p.description || '')
         .replace('{{tags}}', tags);
+
+    // Safety: Ensure double newlines
+    caption = caption.replace(/\n\s*\n/g, '\n\n').trim();
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]) {
