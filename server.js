@@ -280,9 +280,9 @@ app.put('/api/settings', requireAuth, async (req, res) => {
 
 // POST Bot Heartbeat (Public, for the extension)
 app.post('/api/bots/heartbeat', async (req, res) => {
-  const { bot_name, browser_type, status, stats, version } = req.body;
+  const { bot_name, browser_type, status, stats, version, ack_command_ts } = req.body;
 
-  console.log(`🤖 [Heartbeat] Received from "${bot_name}" (${status})`);
+  console.log(`🤖 [Heartbeat] Received from "${bot_name}" (Status: ${status}, Ack: ${ack_command_ts || 'none'})`);
 
   if (!bot_name) {
     return res.status(400).json({ success: false, error: 'bot_name is required' });
@@ -324,10 +324,12 @@ app.post('/api/bots/heartbeat', async (req, res) => {
     const currentBot = data[0];
     const pendingCommand = currentBot?.command || {};
 
-    // If there was a command, clear it from the DB so it's only executed once
-    if (Object.keys(pendingCommand).length > 0) {
-      console.log(`📡 [Heartbeat] Found pending command for "${bot_name}":`, pendingCommand);
+    // Clear command only if it was acknowledged by the bot
+    if (ack_command_ts && pendingCommand.timestamp && ack_command_ts === pendingCommand.timestamp) {
+      console.log(`✅ [Heartbeat] Command acknowledged by "${bot_name}". Clearing...`);
       await db.from('extension_bots').update({ command: {} }).eq('bot_name', bot_name);
+      // Return empty object for command since it's now acknowledged
+      return res.json({ success: true, bot: currentBot, command: {} });
     }
 
     res.json({ success: true, bot: currentBot, command: pendingCommand });

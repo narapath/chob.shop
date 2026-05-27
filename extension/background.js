@@ -319,6 +319,7 @@ async function sendHeartbeat() {
 
         const endpoint = apiEndpoint || 'https://chob.shop';
         const { autoPostState } = await chrome.storage.local.get('autoPostState');
+        const { lastCommandTs } = await chrome.storage.local.get('lastCommandTs');
         const alarm = await chrome.alarms.get(ALARM_NAME);
         const manifest = chrome.runtime.getManifest();
 
@@ -336,7 +337,8 @@ async function sendHeartbeat() {
             browser_type: 'Chrome',
             status,
             stats,
-            version: manifest.version
+            version: manifest.version,
+            ack_command_ts: lastCommandTs || null
         };
 
         console.log(`[Heartbeat] Sending to ${endpoint}/api/bots/heartbeat...`, body);
@@ -359,14 +361,29 @@ async function sendHeartbeat() {
             // Handle Remote Commands
             if (data.command && data.command.action) {
                 const cmd = data.command;
-                console.log(`🎮 [Remote Command] Received:`, cmd);
+                const cmdTs = cmd.timestamp;
 
-                if (cmd.action === 'START') {
-                    await startAutoPost(cmd.interval || 15);
-                } else if (cmd.action === 'STOP') {
-                    await stopAutoPost();
-                } else if (cmd.action === 'SET_INTERVAL') {
-                    await updateInterval(cmd.interval);
+                // Only process if it's a new command
+                if (cmdTs && cmdTs !== lastCommandTs) {
+                    console.log(`🎮 [Remote Command] Processing:`, cmd);
+
+                    if (cmd.action === 'START') {
+                        await startAutoPost(cmd.interval || 15);
+                    } else if (cmd.action === 'STOP') {
+                        await stopAutoPost();
+                    } else if (cmd.action === 'SET_INTERVAL') {
+                        await updateInterval(cmd.interval);
+                    }
+
+                    // Save this timestamp as processed
+                    await chrome.storage.local.set({ lastCommandTs: cmdTs });
+                    console.log(`✅ [Remote Command] Completed and saved timestamp: ${cmdTs}`);
+
+                    // Trigger an immediate heartbeat to acknowledge
+                    setTimeout(sendHeartbeat, 1000);
+                } else if (cmdTs) {
+                    // Command already processed, just waiting for server to clear it
+                    console.log(`⏳ [Remote Command] Already processed "${cmd.action}", waiting for server ack.`);
                 }
             }
         } else {
