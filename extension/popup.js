@@ -3,7 +3,7 @@ let groups = [];
 const settings = {
     botName: '',
     apiEndpoint: 'https://chob.shop', // Default
-    captionTemplate: '✨ {{title}} ✨\n\n{{desc}}\n\n✅ สินค้าคุณภาพดี คัดสรรมาเพื่อคุณ\n🌟 ดีไซน์สวย ทันสมัย ใช้งานง่าย\n💎 แข็งแรง ทนทาน คุ้มค่าที่สุด\n🚀 พร้อมส่งด่วน สั่งซื้อได้เลยวันนี้!\n\n💰 ราคาพิเศษเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่นี่: {{link}}\n\n#ช้อปปิ้งออนไลน์ #สินค้าดีบอกต่อ #คุ้มค่า #รับประกันคุณภาพ'
+    captionTemplate: '✨ {{title}} ✨\n\n{{desc}}\n\n💰 ราคาพิเศษเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่นี่: {{link}}'
 };
 let currentTabIsFBGroup = false;
 let displayLimit = 10;

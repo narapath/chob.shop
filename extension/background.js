@@ -14,8 +14,37 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 // Clear alarms on install/update then recreate to ensure persistence
 chrome.runtime.onInstalled.addListener(() => {
     setupAlarms();
+    migrateTemplate();
     console.log('[AutoPost] Extension installed/updated, alarms initialized.');
 });
+
+async function migrateTemplate() {
+    chrome.storage.sync.get(['captionTemplate'], (result) => {
+        if (result.captionTemplate) {
+            let t = result.captionTemplate;
+            const toRemove = [
+                '✅ สินค้าคุณภาพดี คัดสรรมาเพื่อคุณ',
+                '🌟 ดีไซน์สวย ทันสมัย ใช้งานง่าย',
+                '💎 แข็งแรง ทนทาน คุ้มค่าที่สุด',
+                '🚀 พร้อมส่งด่วน สั่งซื้อได้เลยวันนี้!',
+                '#ช้อปปิ้งออนไลน์ #สินค้าดีบอกต่อ #คุ้มค่า #รับประกันคุณภาพ'
+            ];
+            let modified = false;
+            toRemove.forEach(line => {
+                if (t.includes(line)) {
+                    t = t.replace(line, '').trim();
+                    modified = true;
+                }
+            });
+            if (modified) {
+                // Clean up double newlines that might result from removal
+                t = t.replace(/\n\s*\n\s*\n/g, '\n\n').trim();
+                chrome.storage.sync.set({ captionTemplate: t });
+                console.log('[Migration] Cleaned up caption template');
+            }
+        }
+    });
+}
 
 chrome.runtime.onStartup.addListener(() => {
     setupAlarms();
@@ -153,7 +182,7 @@ async function executeAutoPost() {
         // 3. Get settings and products
         const { apiEndpoint, captionTemplate } = await chrome.storage.sync.get(['apiEndpoint', 'captionTemplate']);
         const endpoint = apiEndpoint || 'https://chob.shop';
-        const template = captionTemplate || '✨ {{title}} ✨\n\n{{desc}}\n\n✅ สินค้าคุณภาพดี คัดสรรมาเพื่อคุณ\n🌟 ดีไซน์สวย ทันสมัย ใช้งานง่าย\n💎 แข็งแรง ทนทาน คุ้มค่าที่สุด\n🚀 พร้อมส่งด่วน สั่งซื้อได้เลยวันนี้!\n\n💰 ราคาพิเศษเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่นี่: {{link}}\n\n#ช้อปปิ้งออนไลน์ #สินค้าดีบอกต่อ #คุ้มค่า #รับประกันคุณภาพ';
+        const template = captionTemplate || '✨ {{title}} ✨\n\n{{desc}}\n\n💰 ราคาพิเศษเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่นี่: {{link}}';
 
         let products;
         try {
