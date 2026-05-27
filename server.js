@@ -351,12 +351,16 @@ app.post('/api/bots/command', requireAuth, async (req, res) => {
 
   try {
     const db = supabaseAdmin || supabase;
+
+    // Normalize name: trim and remove potential zero-width/invisible chars
+    const targetBotName = bot_name.trim();
+
     const { data, error } = await db
       .from('extension_bots')
       .update({
         command: { action, interval, timestamp: new Date().toISOString() }
       })
-      .eq('bot_name', bot_name)
+      .eq('bot_name', targetBotName)
       .select();
 
     if (error) throw error;

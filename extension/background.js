@@ -301,12 +301,18 @@ function toUnicodeBold(text) {
 
 
 // ===================== HEARTBEAT SYSTEM =====================
-// Register/Check Heartbeat Alarm at top-level is risky for resets, 
-// using a check function instead
+// Register/Check Heartbeat Alarm
 setupAlarms();
 
-// Also send one immediately on startup
-// sendHeartbeat(); // Called in setupAlarms now
+function normalizeBotName(name) {
+    if (!name) return "";
+    // Remove invisible characters (like Thai vowel dots or zero-width spaces)
+    return name.trim().replace(/[\u0E00-\u0E7F\u200B-\u200D\uFEFF]/g, c => {
+        // Keep actual Thai characters, but maybe some are problematic?
+        // Actually, let's just trim and allow Thai for now, but be careful.
+        return c;
+    }).trim();
+}
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === HEARTBEAT_ALARM) {
@@ -324,15 +330,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function sendHeartbeat() {
     try {
-        const { botName, apiEndpoint } = await chrome.storage.sync.get(['botName', 'apiEndpoint']);
+        const settings = await chrome.storage.sync.get(['botName', 'apiEndpoint']);
+        const botName = normalizeBotName(settings.botName);
+        const endpoint = (settings.apiEndpoint || 'https://chob.shop').replace(/\/$/, '');
+
         if (!botName) {
             console.log('[Heartbeat] Skipping: No botName set');
             return;
         }
 
-        const endpoint = apiEndpoint || 'https://chob.shop';
-        const { autoPostState } = await chrome.storage.local.get('autoPostState');
-        const { lastCommandTs } = await chrome.storage.local.get('lastCommandTs');
+        // 1. Get current auto-post state for stats
+        const { autoPostState, lastCommandTs } = await chrome.storage.local.get(['autoPostState', 'lastCommandTs']);
         const alarm = await chrome.alarms.get(ALARM_NAME);
         const manifest = chrome.runtime.getManifest();
 
@@ -374,29 +382,31 @@ async function sendHeartbeat() {
             // Handle Remote Commands
             if (data.command && data.command.action) {
                 const cmd = data.command;
-                const cmdTs = cmd.timestamp;
+                const cmdTs = cmd ? cmd.timestamp : null;
 
-                // Only process if it's a new command
-                if (cmdTs && cmdTs !== lastCommandTs) {
-                    console.log(`🎮 [Remote Command] Processing:`, cmd);
+                if (cmd && cmdTs && cmdTs !== lastCommandTs) {
+                    console.log(`🎮 [Remote Command] Received: ${cmd.action} (TS: ${cmdTs})`);
 
-                    if (cmd.action === 'START') {
-                        await startAutoPost(cmd.interval || 15);
-                    } else if (cmd.action === 'STOP') {
-                        await stopAutoPost();
-                    } else if (cmd.action === 'SET_INTERVAL') {
-                        await updateInterval(cmd.interval);
+                    try {
+                        if (cmd.action === 'START') {
+                            await startAutoPost(cmd.interval || 15);
+                        } else if (cmd.action === 'STOP') {
+                            await stopAutoPost();
+                        } else if (cmd.action === 'SET_INTERVAL') {
+                            await updateInterval(cmd.interval);
+                        }
+
+                        // Save this timestamp as processed ONLY after success
+                        await chrome.storage.local.set({ lastCommandTs: cmdTs });
+                        console.log(`✅ [Remote Command] ${cmd.action} processed successfully.`);
+
+                        // Trigger an immediate heartbeat to acknowledge
+                        sendHeartbeat();
+                    } catch (cmdErr) {
+                        console.error(`❌ [Remote Command] Failed to execute ${cmd.action}:`, cmdErr);
                     }
-
-                    // Save this timestamp as processed
-                    await chrome.storage.local.set({ lastCommandTs: cmdTs });
-                    console.log(`✅ [Remote Command] Completed and saved timestamp: ${cmdTs}`);
-
-                    // Trigger an immediate heartbeat to acknowledge (direct call is safer than setTimeout in MV3)
-                    sendHeartbeat();
-                } else if (cmdTs) {
-                    // Command already processed, just waiting for server to clear it
-                    console.log(`⏳ [Remote Command] Already processed "${cmd.action}", waiting for server ack.`);
+                } else if (cmd && cmdTs) {
+                    console.log(`⏳ [Remote Command] Already handled "${cmd.action}" (TS: ${cmdTs}), waiting server cleanup.`);
                 }
             }
         } else {

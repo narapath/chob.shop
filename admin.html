@@ -4945,13 +4945,16 @@
             addConsoleLog(`🕹️ Dispatching ${action} to ${botName}...`);
 
             try {
+                // Normalize: trim and remove non-printable/zero-width chars if any
+                const targetBotName = botName.trim();
+
                 const res = await fetch('/api/bots/command', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${authToken}`
                     },
-                    body: JSON.stringify({ bot_name: botName, action, interval })
+                    body: JSON.stringify({ bot_name: targetBotName, action, interval })
                 });
 
                 const data = await res.json();
