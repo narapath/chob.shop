@@ -3,7 +3,7 @@ let groups = [];
 const settings = {
     botName: '',
     apiEndpoint: 'https://chob.shop', // Default
-    captionTemplate: '✨ {{title}} ✨\n\n{{desc}}\n\n💰 ราคาพิเศษเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่นี่: {{link}}'
+    captionTemplate: '✨ {{title}} ✨\n\n{{desc}}\n\n🏷️ งบประมาณ: {{price}}.-\n📍 พิกัดของอยู่ตรงนี้:\n{{link}}'
 };
 let currentTabIsFBGroup = false;
 let displayLimit = 10;

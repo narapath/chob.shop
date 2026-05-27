@@ -27,7 +27,9 @@ async function migrateTemplate() {
                 '🌟 ดีไซน์สวย ทันสมัย ใช้งานง่าย',
                 '💎 แข็งแรง ทนทาน คุ้มค่าที่สุด',
                 '🚀 พร้อมส่งด่วน สั่งซื้อได้เลยวันนี้!',
-                '#ช้อปปิ้งออนไลน์ #สินค้าดีบอกต่อ #คุ้มค่า #รับประกันคุณภาพ'
+                '#ช้อปปิ้งออนไลน์ #สินค้าดีบอกต่อ #คุ้มค่า #รับประกันคุณภาพ',
+                '💰 ราคาพิเศษเพียง:',
+                '📍 สนใจสั่งซื้อได้ที่นี่:'
             ];
             let modified = false;
             toRemove.forEach(line => {
@@ -182,7 +184,7 @@ async function executeAutoPost() {
         // 3. Get settings and products
         const { apiEndpoint, captionTemplate } = await chrome.storage.sync.get(['apiEndpoint', 'captionTemplate']);
         const endpoint = apiEndpoint || 'https://chob.shop';
-        const template = captionTemplate || '✨ {{title}} ✨\n\n{{desc}}\n\n💰 ราคาพิเศษเพียง: {{price}} บาท\n📍 สนใจสั่งซื้อได้ที่นี่: {{link}}';
+        const template = captionTemplate || '✨ {{title}} ✨\n\n{{desc}}\n\n🏷️ งบประมาณ: {{price}}.-\n📍 พิกัดของอยู่ตรงนี้:\n{{link}}';
 
         let products;
         try {
