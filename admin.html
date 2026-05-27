@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;600&family=Press+Start+2P&display=swap"
         rel="stylesheet" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/css/theme_vars.css" />
@@ -1647,15 +1647,215 @@
             transition: var(--transition-fast);
         }
 
-        @media (max-width: 1024px) {
-            .mobile-close-btn {
-                display: flex;
-            }
+        /* === BOT DASHBOARD NATIVE STYLES === */
+        :root {
+            --pixel-green: #00ff41;
+            --pixel-blue: #00d2ff;
+            --pixel-pink: #ff007f;
+            --pixel-yellow: #fdf06d;
+            --bot-surface: #16213e;
+        }
 
-            .sidebar-brand {
-                justify-content: space-between;
-                padding-right: 12px;
-            }
+        .bot-office {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            min-height: 400px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--border);
+            padding: 30px;
+            position: relative;
+            border-radius: var(--radius-lg);
+            margin-bottom: 24px;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .bot-office::before {
+            content: '☕ 🪴 🖥️ 🛋️';
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 2rem;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .bot-card {
+            background: var(--bot-surface);
+            border: 4px solid #fff;
+            padding: 20px;
+            position: relative;
+            box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s;
+            border-radius: 4px;
+        }
+
+        .bot-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .bot-card.active {
+            border-color: var(--pixel-green);
+        }
+
+        .bot-card.idle {
+            border-color: var(--pixel-yellow);
+        }
+
+        .bot-card.offline {
+            border-color: #666;
+            opacity: 0.8;
+        }
+
+        .bot-avatar {
+            font-size: 3.5rem;
+            text-align: center;
+            margin-bottom: 15px;
+            filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.3));
+        }
+
+        .bot-name {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.75rem;
+            text-align: center;
+            color: #fff;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .bot-status-tag {
+            display: inline-block;
+            padding: 6px 8px;
+            font-size: 10px;
+            font-family: 'Press Start 2P', cursive;
+            background: #000;
+            margin-bottom: 15px;
+            width: 100%;
+            text-align: center;
+            border-radius: 2px;
+        }
+
+        .active .bot-status-tag {
+            color: var(--pixel-green);
+        }
+
+        .idle .bot-status-tag {
+            color: var(--pixel-yellow);
+        }
+
+        .offline .bot-status-tag {
+            color: #888;
+        }
+
+        .bot-stats-list {
+            font-size: 12px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+            padding-top: 12px;
+        }
+
+        .bot-controls {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .interval-select {
+            flex: 1;
+            background: #000;
+            color: var(--pixel-blue);
+            border: 1px solid #444;
+            padding: 5px;
+            font-size: 11px;
+            outline: none;
+            height: 32px;
+        }
+
+        .ctrl-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            padding: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            border-radius: 2px;
+        }
+
+        .ctrl-btn.apply {
+            background: #333;
+            color: #fff;
+        }
+
+        .ctrl-btn.start {
+            background: var(--pixel-green);
+            color: #000;
+            width: 100%;
+        }
+
+        .ctrl-btn.stop {
+            background: var(--pixel-pink);
+            color: #fff;
+            width: 100%;
+        }
+
+        .ctrl-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Console */
+        .console-window {
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .console-header {
+            background: #1a1a1a;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #333;
+        }
+
+        .console-header .title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            color: #888;
+            margin-left: 10px;
+        }
+
+        .console-content {
+            padding: 15px;
+            font-family: 'monospace';
+            color: var(--pixel-green);
+            font-size: 13px;
+            height: 200px;
+            overflow-y: auto;
+            line-height: 1.5;
+            background: #000;
+        }
+
+        .loading-pixel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: var(--pixel-blue);
+            animation: blink 1s infinite;
         }
     </style>
 </head>
@@ -2307,14 +2507,43 @@
                         <h2>🤖 ระบบควบคุมบอท</h2>
                         <p>ตรวจสอบสถานะและสั่งการบอทที่กำลังทำงานอยู่แบบ Real-time</p>
                     </div>
-                    <div class="panel" style="padding: 0; overflow: hidden; height: 70vh;">
-                        <iframe src="/dashboard"
-                            style="width: 100%; height: 100%; border: none; background: #030305;"></iframe>
+
+                    <div class="header-stats" style="display: flex; gap: 20px; margin-bottom: 24px;">
+                        <div class="stat-box"
+                            style="background: rgba(0,0,0,0.3); border: 2px solid var(--accent); padding: 15px 24px; border-radius: var(--radius-lg); flex: 1;">
+                            <span class="label"
+                                style="display: block; font-size: 11px; color: var(--text-muted); font-weight: 700; margin-bottom: 4px;">ACTIVE
+                                BOTS</span>
+                            <span id="activeCount" class="value"
+                                style="font-size: 28px; font-weight: 800; color: var(--accent-light);">0</span>
+                        </div>
+                        <div class="stat-box"
+                            style="background: rgba(0,0,0,0.3); border: 2px solid var(--accent2); padding: 15px 24px; border-radius: var(--radius-lg); flex: 1;">
+                            <span class="label"
+                                style="display: block; font-size: 11px; color: var(--text-muted); font-weight: 700; margin-bottom: 4px;">TOTAL
+                                POSTS</span>
+                            <span id="totalPosts" class="value"
+                                style="font-size: 28px; font-weight: 800; color: var(--accent-light);">0</span>
+                        </div>
                     </div>
-                    <div style="margin-top: 16px;">
-                        <button class="btn btn-secondary" onclick="window.open('/dashboard', '_blank')">↗️
-                            เปิดในหน้าต่างใหม่</button>
-                    </div>
+
+                    <main id="botOffice" class="bot-office">
+                        <div class="loading-pixel">SCANNING FOR BOTS...</div>
+                    </main>
+
+                    <section class="console-section" style="margin-top: 24px;">
+                        <div class="console-window">
+                            <div class="console-header">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                                <span class="title">SYSTEM_CONSOLE.LOG</span>
+                            </div>
+                            <div id="consoleLog" class="console-content">
+                                [System] Ready to monitor bots...
+                            </div>
+                        </div>
+                    </section>
                 </div>
 
                 <!-- ========== TAB: FB GROUPS ========== -->
@@ -4568,8 +4797,209 @@
             originalSwitchTab(tabId, el);
             if (tabId === 'fb-groups') renderFBGroupsTab();
             if (tabId === 'activity-logs') addLog("Viewing activity logs...");
-            if (tabId === 'bot-control') addLog("Accessing Bot Control Center...");
+
+            // Bot Dashboard Logic
+            if (tabId === 'bot-control') {
+                addLog("Accessing Bot Control Center...");
+                startBotPolling();
+                addConsoleLog('📡 Connected to Bot Control Center');
+            } else {
+                stopBotPolling();
+            }
         };
+
+        // === BOT DASHBOARD LOGIC (NATIVE) ===
+        let botPollingInterval = null;
+        let botList = [];
+        let lastBotCount = 0;
+
+        async function fetchBotsForAdmin() {
+            try {
+                // Use fetchWithAuth if available, otherwise regular fetch with the token
+                const res = await fetch('/api/bots', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    botList = data.bots;
+                    renderBotOffice();
+                    updateBotStats();
+                }
+            } catch (err) {
+                console.error('Fetch bots error:', err);
+                addConsoleLog('❌ Error connecting to API: ' + err.message);
+            }
+        }
+
+        function renderBotOffice() {
+            const office = document.getElementById('botOffice');
+            if (!office) return;
+
+            if (botList.length === 0) {
+                office.innerHTML = '<div class="loading-pixel">NO BOTS ONLINE...</div>';
+                return;
+            }
+
+            office.innerHTML = '';
+
+            botList.forEach(bot => {
+                const isOffline = (Date.now() - new Date(bot.last_heartbeat).getTime()) > 120000;
+                const cardClass = isOffline ? 'offline' : (bot.status === 'active' ? 'active' : 'idle');
+                const statusText = isOffline ? 'OFFLINE' : (bot.status === 'active' ? 'WORKING' : 'ZzZ_IDLE');
+                const avatar = getBotAvatarSymbol(bot.bot_name);
+
+                const card = document.createElement('div');
+                card.className = `bot-card ${cardClass}`;
+
+                const nextRunTime = bot.stats.next_run;
+                const nextRunDisplay = bot.stats.isPosting ? 'POSTING...' : formatNextRunTime(nextRunTime);
+
+                card.innerHTML = `
+                    <div class="bot-avatar">${avatar}</div>
+                    <div class="bot-name">${bot.bot_name}</div>
+                    <div class="bot-status-tag">${statusText}</div>
+                    <div class="bot-stats-list">
+                        <div class="stat-row">
+                            <span class="label">POSTS:</span>
+                            <span class="val" style="color: var(--pixel-blue);">${bot.stats.postCount || 0}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="label">NEXT RUN:</span>
+                            <span class="val countdown" style="color: var(--pixel-blue);" data-time="${nextRunTime || ''}">${nextRunDisplay}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="label">LAST:</span>
+                            <span class="val" style="color: var(--pixel-blue);">${formatSimpleTime(bot.last_heartbeat)}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="label">VER:</span>
+                            <span class="val" style="color: var(--pixel-blue);">${bot.version || '1.0'}</span>
+                        </div>
+                    </div>
+                    <div class="bot-controls">
+                        <div class="control-group">
+                            <select class="interval-select" id="interval-${bot.bot_name}">
+                                <option value="5" ${bot.stats.interval == 5 ? 'selected' : ''}>5 min</option>
+                                <option value="10" ${bot.stats.interval == 10 ? 'selected' : ''}>10 min</option>
+                                <option value="15" ${bot.stats.interval == 15 ? 'selected' : ''}>15 min</option>
+                                <option value="30" ${bot.stats.interval == 30 ? 'selected' : ''}>30 min</option>
+                                <option value="60" ${bot.stats.interval == 60 ? 'selected' : ''}>60 min</option>
+                            </select>
+                            <button class="ctrl-btn apply" onclick="sendBotCommand('${bot.bot_name}', 'SET_INTERVAL')">⚙️</button>
+                        </div>
+                        <div class="control-actions">
+                            ${bot.status === 'active'
+                        ? `<button class="ctrl-btn stop" onclick="sendBotCommand('${bot.bot_name}', 'STOP')">STOP</button>`
+                        : `<button class="ctrl-btn start" onclick="sendBotCommand('${bot.bot_name}', 'START')">START</button>`
+                    }
+                        </div>
+                    </div>
+                `;
+                office.appendChild(card);
+            });
+
+            if (botList.length !== lastBotCount) {
+                const diff = botList.length - lastBotCount;
+                if (diff > 0) addConsoleLog(`✨ ${diff} bot(s) joined the network`);
+                lastBotCount = botList.length;
+            }
+        }
+
+        function updateBotStats() {
+            const activeCount = botList.filter(b => (Date.now() - new Date(b.last_heartbeat).getTime()) < 120000).length;
+            const totalPosts = botList.reduce((acc, bot) => acc + (bot.stats.postCount || 0), 0);
+
+            const activeEl = document.getElementById('activeCount');
+            const postsEl = document.getElementById('totalPosts');
+            if (activeEl) activeEl.textContent = activeCount;
+            if (postsEl) postsEl.textContent = totalPosts;
+        }
+
+        function getBotAvatarSymbol(name) {
+            const avatars = ['🤖', '🐱', '🐶', '🦊', '🦁', '🦖', '🐼', '🐨', '👾', '👻'];
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return avatars[Math.abs(hash) % avatars.length];
+        }
+
+        function formatSimpleTime(isoString) {
+            if (!isoString) return '--:--';
+            const date = new Date(isoString);
+            return date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        }
+
+        function formatNextRunTime(timestamp) {
+            if (!timestamp) return 'IDLE';
+            const diff = timestamp - Date.now();
+            if (diff <= 0) return 'DUE NOW';
+            const mins = Math.floor(diff / 60000);
+            const secs = Math.floor((diff % 60000) / 1000);
+            return `${mins}m ${secs}s`;
+        }
+
+        async function sendBotCommand(botName, action) {
+            const intervalSelect = document.getElementById(`interval-${botName}`);
+            const interval = intervalSelect ? parseInt(intervalSelect.value) : 15;
+
+            addConsoleLog(`🕹️ Dispatching ${action} to ${botName}...`);
+
+            try {
+                const res = await fetch('/api/bots/command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ bot_name: botName, action, interval })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    addConsoleLog(`✅ Success: ${action} for ${botName}`);
+                    setTimeout(fetchBotsForAdmin, 1000);
+                } else {
+                    addConsoleLog(`❌ Failed: ${data.error || 'Server error'}`);
+                }
+            } catch (err) {
+                addConsoleLog(`❌ Network error: ${err.message}`);
+            }
+        }
+
+        function addConsoleLog(msg) {
+            const consoleLog = document.getElementById('consoleLog');
+            if (!consoleLog) return;
+            const time = new Date().toLocaleTimeString('th-TH', { hour12: false });
+            const line = document.createElement('div');
+            line.innerHTML = `<span style="color: #666;">[${time}]</span> ${msg}`;
+            consoleLog.appendChild(line);
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        }
+
+        function startBotPolling() {
+            if (botPollingInterval) return;
+            fetchBotsForAdmin();
+            botPollingInterval = setInterval(fetchBotsForAdmin, 5000);
+
+            // Countdown updater
+            this.countdownInterval = setInterval(() => {
+                document.querySelectorAll('.countdown').forEach(el => {
+                    const time = el.getAttribute('data-time');
+                    if (time) el.textContent = formatNextRunTime(parseInt(time));
+                });
+            }, 1000);
+        }
+
+        function stopBotPolling() {
+            if (botPollingInterval) {
+                clearInterval(botPollingInterval);
+                botPollingInterval = null;
+            }
+            if (this.countdownInterval) {
+                clearInterval(this.countdownInterval);
+                this.countdownInterval = null;
+            }
+        }
 
         checkAuth();
 
