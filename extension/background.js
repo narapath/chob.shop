@@ -11,11 +11,25 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     }
 });
 
-// Clear alarms on install/update to prevent stale timers
+// Clear alarms on install/update then recreate to ensure persistence
 chrome.runtime.onInstalled.addListener(() => {
-    chrome.alarms.clearAll();
-    console.log('[AutoPost] Extension installed/updated, alarms cleared.');
+    setupAlarms();
+    console.log('[AutoPost] Extension installed/updated, alarms initialized.');
 });
+
+chrome.runtime.onStartup.addListener(() => {
+    setupAlarms();
+    console.log('[AutoPost] Browser started, alarms checked.');
+});
+
+async function setupAlarms() {
+    const alarms = await chrome.alarms.getAll();
+    if (!alarms.find(a => a.name === HEARTBEAT_ALARM)) {
+        chrome.alarms.create(HEARTBEAT_ALARM, { periodInMinutes: 1 });
+    }
+    // Also send an initial heartbeat immediately on setup
+    sendHeartbeat();
+}
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -287,13 +301,12 @@ function toUnicodeBold(text) {
 
 
 // ===================== HEARTBEAT SYSTEM =====================
-const HEARTBEAT_ALARM = 'CHOBSHOP_HEARTBEAT';
-
-// Register Heartbeat Alarm
-chrome.alarms.create(HEARTBEAT_ALARM, { periodInMinutes: 1 });
+// Register/Check Heartbeat Alarm at top-level is risky for resets, 
+// using a check function instead
+setupAlarms();
 
 // Also send one immediately on startup
-sendHeartbeat();
+// sendHeartbeat(); // Called in setupAlarms now
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === HEARTBEAT_ALARM) {
@@ -379,8 +392,8 @@ async function sendHeartbeat() {
                     await chrome.storage.local.set({ lastCommandTs: cmdTs });
                     console.log(`✅ [Remote Command] Completed and saved timestamp: ${cmdTs}`);
 
-                    // Trigger an immediate heartbeat to acknowledge
-                    setTimeout(sendHeartbeat, 1000);
+                    // Trigger an immediate heartbeat to acknowledge (direct call is safer than setTimeout in MV3)
+                    sendHeartbeat();
                 } else if (cmdTs) {
                     // Command already processed, just waiting for server to clear it
                     console.log(`⏳ [Remote Command] Already processed "${cmd.action}", waiting for server ack.`);
