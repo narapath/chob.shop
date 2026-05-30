@@ -127,6 +127,8 @@ header {
 
 .bot-card.active {
     border-color: var(--pixel-green);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.2), 8px 8px 0px rgba(0, 0, 0, 0.5);
+    animation: glow-pulse 2s infinite alternate;
 }
 
 .bot-card.idle {
@@ -340,6 +342,102 @@ header {
     font-weight: bold;
     min-width: 60px;
     text-align: right;
+}
+
+/* History Section */
+.history-section {
+    margin-top: 30px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 3px solid #444;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.history-section h2 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.9rem;
+    color: var(--pixel-blue);
+    margin-bottom: 20px;
+}
+
+.history-list {
+    max-height: 300px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 15px;
+    border-left: 4px solid #666;
+    font-size: 0.8rem;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    border-radius: 4px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-10px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.history-item.success {
+    border-left-color: var(--pixel-green);
+}
+
+.history-item.error {
+    border-left-color: var(--pixel-pink);
+}
+
+.history-item.info {
+    border-left-color: var(--pixel-blue);
+}
+
+.history-time {
+    color: var(--text-dim);
+    min-width: 80px;
+}
+
+.history-bot {
+    font-weight: bold;
+    color: var(--pixel-yellow);
+    min-width: 80px;
+}
+
+.history-action {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    color: #fff;
+}
+
+.history-msg {
+    flex: 1;
+    color: #eee;
+}
+
+@keyframes glow-pulse {
+    from {
+        border-color: var(--pixel-green);
+    }
+
+    to {
+        border-color: #fff;
+        box-shadow: 0 0 30px rgba(0, 255, 65, 0.4), 8px 8px 0px rgba(0, 0, 0, 0.5);
+    }
 }
 
 @media (max-width: 768px) {

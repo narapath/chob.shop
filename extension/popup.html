@@ -43,6 +43,7 @@
             <div class="tab-btn" data-tab="products">สินค้า</div>
             <div class="tab-btn" data-tab="groups">กลุ่มของฉัน</div>
             <div class="tab-btn active" data-tab="auto">🤖 ออโต้</div>
+            <div class="tab-btn" data-tab="scraper">🔍 ดึงข้อมูล</div>
         </div>
 
         <div id="productsView" class="hidden">
@@ -144,6 +145,40 @@
                     <div class="auto-log-list" id="autoLogList">
                         <div class="auto-log-empty">ยังไม่มีประวัติการโพสต์</div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="scraperView" class="hidden">
+            <div class="auto-panel">
+                <h3>🔍 ดึงข้อมูลสินค้าจากลิงก์</h3>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>วางลิงก์สินค้า (Shopee)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="scrapeUrlInput" placeholder="https://shopee.co.th/..." style="flex: 1;">
+                        <button id="scrapeBtn" class="btn-primary btn-sm">ดึงข้อมูล</button>
+                    </div>
+                </div>
+
+                <div id="scrapeResult" class="hidden">
+                    <div class="stat-card" style="width: 100%; text-align: left; margin-bottom: 15px;">
+                        <div id="scrapeTitle" style="font-weight: 600; font-size: 14px; margin-bottom: 10px;">-</div>
+                        <div id="scrapeImageContainer"
+                            style="width: 100%; height: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <img id="scrapePreview" src=""
+                                style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                        </div>
+                        <div id="scrapeInfo" style="margin-top: 10px; font-size: 11px; color: #94a3b8;">-</div>
+                    </div>
+                    <button id="copyBase64Btn" class="btn-secondary btn-sm" style="width: 100%;">คัดลอก Base64</button>
+                    <button id="useScrapedBtn" class="btn-primary btn-sm"
+                        style="width: 100%; margin-top: 8px;">ใช้รูปนี้โพสต์</button>
+                </div>
+
+                <div id="scrapeLoading" class="hidden" style="text-align: center; padding: 20px;">
+                    <div class="spinner"></div>
+                    <p style="font-size: 12px; margin-top: 10px; color: #94a3b8;">กำลังดึงข้อมูล... อาจใช้เวลาสักครู่
+                    </p>
                 </div>
             </div>
         </div>

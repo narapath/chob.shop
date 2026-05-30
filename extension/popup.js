@@ -8,6 +8,7 @@ const settings = {
 let currentTabIsFBGroup = false;
 let displayLimit = 10;
 const ITEMS_PER_PAGE = 10;
+const scrapedImages = new Map(); // Store high-res Base64 images here
 
 async function copyToClipboard(id) {
     const p = products.find(prod => prod.id == id);
@@ -129,7 +130,7 @@ function initEventListeners() {
             btn.classList.add('active');
 
             const tab = btn.dataset.tab;
-            const views = ['productsView', 'groupsView', 'autoView'];
+            const views = ['productsView', 'groupsView', 'autoView', 'scraperView'];
             views.forEach(v => document.getElementById(v).classList.add('hidden'));
 
             // Show/hide search bar and filters (only for products tab)
@@ -149,9 +150,15 @@ function initEventListeners() {
                 document.getElementById('autoView').classList.remove('hidden');
                 refreshAutoStatus();
                 startAutoPolling();
+            } else if (tab === 'scraper') {
+                document.getElementById('scraperView').classList.remove('hidden');
+                stopAutoPolling();
             }
         });
     });
+
+    // Scraper Initialization
+    initScraper();
 
     // Auto Toggle Button
     document.getElementById('autoToggleBtn').addEventListener('click', toggleAutoPost);
@@ -408,6 +415,9 @@ function renderProducts() {
                                 <span>📍</span> ลงกลุ่มนี้
                             </button>
                         ` : ''}
+                        <button class="btn-sm btn-scrape" data-id="${p.id}" title="ดึงรูปต้นฉบับ">
+                            <span>🔍</span> ดึงรูป
+                        </button>
                         <button class="btn-sm btn-copy" data-id="${p.id}" title="คัดลอกแคปชั่น">
                             <span>📋</span> ก๊อปโพสต์
                         </button>
@@ -431,6 +441,10 @@ function renderProducts() {
 
     list.querySelectorAll('.btn-group-post').forEach(btn => {
         btn.addEventListener('click', () => postToCurrentGroup(btn.dataset.id));
+    });
+
+    list.querySelectorAll('.btn-scrape').forEach(btn => {
+        btn.addEventListener('click', () => scrapeAndPreview(btn.dataset.id, btn));
     });
 
     list.querySelectorAll('.btn-img').forEach(btn => {
@@ -471,7 +485,7 @@ async function postToCurrentGroup(id) {
                 action: 'FILL_POST',
                 data: {
                     caption: caption,
-                    imageUrl: p.image
+                    imageUrl: scrapedImages.get(id) || p.image
                 }
             }, (response) => {
                 if (chrome.runtime.lastError) {
@@ -672,5 +686,152 @@ function stopAutoPolling() {
     if (autoPollingInterval) {
         clearInterval(autoPollingInterval);
         autoPollingInterval = null;
+    }
+}
+
+// ===================== SCRAPER SYSTEM =====================
+let lastScrapedData = null;
+
+function initScraper() {
+    const scrapeBtn = document.getElementById('scrapeBtn');
+    const input = document.getElementById('scrapeUrlInput');
+    const resultDiv = document.getElementById('scrapeResult');
+    const loadingDiv = document.getElementById('scrapeLoading');
+    const copyBtn = document.getElementById('copyBase64Btn');
+    const useBtn = document.getElementById('useScrapedBtn');
+
+    if (!scrapeBtn) return;
+
+    scrapeBtn.addEventListener('click', async () => {
+        const url = input.value.trim();
+        if (!url) {
+            showToast('⚠️ กรุณาใส่ลิงก์สินค้า');
+            return;
+        }
+
+        scrapeBtn.disabled = true;
+        resultDiv.classList.add('hidden');
+        loadingDiv.classList.remove('hidden');
+
+        try {
+            console.log('[Popup] Sending SCRAPE_PRODUCT request for:', url);
+            const result = await new Promise((resolve) => {
+                chrome.runtime.sendMessage({ action: 'SCRAPE_PRODUCT', url }, resolve);
+            });
+
+            if (result && result.success) {
+                lastScrapedData = result;
+                document.getElementById('scrapeTitle').textContent = result.title;
+                document.getElementById('scrapePreview').src = result.base64 || result.imageUrl;
+                document.getElementById('scrapeInfo').textContent = `ดึงข้อมูลสำเร็จ! (${result.base64 ? 'มีรูปภาพ Base64' : 'ไม่มี Base64'})`;
+
+                resultDiv.classList.remove('hidden');
+                showToast('✅ ดึงข้อมูลสำเร็จ!');
+            } else {
+                showToast('❌ ผิดพลาด: ' + (result?.error || 'ไม่สามารถดึงข้อมูลได้'));
+            }
+        } catch (err) {
+            console.error('Scrape error:', err);
+            showToast('❌ เกิดข้อผิดพลาดทางเทคนิค');
+        } finally {
+            scrapeBtn.disabled = false;
+            loadingDiv.classList.add('hidden');
+        }
+    });
+
+    copyBtn.addEventListener('click', () => {
+        if (lastScrapedData && lastScrapedData.base64) {
+            navigator.clipboard.writeText(lastScrapedData.base64);
+            showToast('📋 คัดลอก Base64 แล้ว!');
+        } else {
+            showToast('⚠️ ไม่มีข้อมูล Base64');
+        }
+    });
+
+    useBtn.addEventListener('click', () => {
+        if (!lastScrapedData) return;
+
+        // Find any active Facebook group tab to post to
+        chrome.tabs.query({ url: "*://*.facebook.com/groups/*" }, (tabs) => {
+            if (tabs.length === 0) {
+                showToast('⚠️ กรุณาเปิดหน้ากลุ่ม Facebook ก่อน');
+                return;
+            }
+
+            const tab = tabs[0];
+            const caption = settings.captionTemplate
+                .replace(/{{title}}/g, lastScrapedData.title)
+                .replace(/{{link}}/g, input.value.trim() + ' ')
+                .replace(/{{price}}/g, '...')
+                .replace(/{{desc}}/g, '');
+
+            chrome.tabs.sendMessage(tab.id, {
+                action: 'FILL_POST',
+                data: {
+                    caption: caption,
+                    imageUrl: lastScrapedData.base64 || lastScrapedData.imageUrl
+                }
+            }, (response) => {
+                if (chrome.runtime.lastError) {
+                    showToast('❌ ไม่สามารถส่งข้อมูลไปยังแท็บ Facebook ได้');
+                } else {
+                    showToast('🚀 ส่งข้อมูลไปยัง Facebook แล้ว!');
+                }
+            });
+        });
+    });
+}
+
+// ===================== PRODUCT LIST SCRAPER =====================
+
+async function scrapeAndPreview(id, btnEl) {
+    const p = products.find(prod => prod.id == id);
+    if (!p) return;
+
+    const url = (p.affiliateUrl && p.affiliateUrl.length > 5) ? p.affiliateUrl : null;
+    if (!url) {
+        showToast('⚠️ ไม่พบบริบท Shopee ให้ดึงรูป');
+        return;
+    }
+
+    const originalText = btnEl.innerHTML;
+    btnEl.innerHTML = '⌛..';
+    btnEl.disabled = true;
+
+    try {
+        console.log(`[Scraper] Requesting high-res image for product: ${p.id}`);
+        const result = await new Promise((resolve) => {
+            chrome.runtime.sendMessage({ action: 'SCRAPE_PRODUCT', url }, resolve);
+        });
+
+        if (result && result.success && result.base64) {
+            // Save to map
+            scrapedImages.set(id, result.base64);
+
+            // Update UI: Find the image element in the specific card
+            const card = btnEl.closest('.product-card');
+            if (card) {
+                const img = card.querySelector('.prod-img');
+                if (img) {
+                    img.src = result.base64;
+                    img.style.border = '2px solid #10b981';
+                    img.style.borderRadius = '8px';
+                }
+            }
+
+            showToast('✅ ดึงรูปต้นฉบับสำเร็จ!');
+            btnEl.innerHTML = '<span>✨</span> สำเร็จ';
+            btnEl.style.backgroundColor = '#10b981';
+            btnEl.style.color = 'white';
+        } else {
+            showToast('❌ ไม่พบรูป (OG Image)');
+            btnEl.innerHTML = originalText;
+            btnEl.disabled = false;
+        }
+    } catch (err) {
+        console.error('Manual scrape error:', err);
+        showToast('❌ เกิดข้อผิดพลาด');
+        btnEl.innerHTML = originalText;
+        btnEl.disabled = false;
     }
 }

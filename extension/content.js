@@ -2,6 +2,24 @@ if (!window.ChobShopInitialized) {
     window.ChobShopInitialized = true;
     console.log('ChobShop Extension initialized on Facebook');
 
+    // Helper to convert Base64 to File object
+    function base64ToFile(base64String, filename) {
+        try {
+            let arr = base64String.split(','),
+                mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]),
+                n = bstr.length,
+                u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new File([u8arr], filename, { type: mime });
+        } catch (e) {
+            console.error('[ChobShop] Base64 to File failed:', e);
+            return null;
+        }
+    }
+
     // Inject Bot Controller Widget (Only on groups)
     if (window.location.href.includes('/groups/')) {
         injectBotController();
@@ -137,6 +155,33 @@ async function fillFacebookPost(caption, imageUrl) {
     // 3. Insert Text
     textbox.focus();
 
+    // --- NEW: Manual Photo Upload Logic ---
+    if (imageUrl) {
+        updateStatus('🖼️ กำลังอัปโหลดรูปภาพ...');
+        try {
+            const file = imageUrl.startsWith('data:')
+                ? base64ToFile(imageUrl, 'product.jpg')
+                : null;
+
+            if (file) {
+                // Find hidden file input in the dialog
+                const fileInput = dialog.querySelector('input[type="file"][accept*="image"]');
+                if (fileInput) {
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files;
+                    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    console.log('[ChobShop] Image uploaded successfully via file input');
+                    await new Promise(r => setTimeout(r, 2000)); // Wait for upload to register
+                } else {
+                    console.warn('[ChobShop] Photo upload input not found');
+                }
+            }
+        } catch (uploadErr) {
+            console.error('[ChobShop] Photo upload failed:', uploadErr);
+        }
+    }
+
     // Improved clearing: Select all and delete
     document.execCommand('selectAll', false, null);
     document.execCommand('delete', false, null);
@@ -173,8 +218,8 @@ async function fillFacebookPost(caption, imageUrl) {
     textbox.style.outline = '4px solid #10b981';
 
     // 4. Auto-Submit with Sanity Check
-    updateStatus('🔘 รอโหลดรูปภาพ (5 วินาที)...');
-    await new Promise(r => setTimeout(r, 5000)); // Increased from 2s to 5s to allow media load
+    updateStatus('🔘 ตรวจสอบความถูกต้อง (2 วินาที)...');
+    await new Promise(r => setTimeout(r, 2000));
 
     let postButton = null;
     if (dialog) {

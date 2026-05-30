@@ -9,7 +9,8 @@
         "clipboardWrite",
         "alarms",
         "tabs",
-        "activeTab"
+        "activeTab",
+        "scripting"
     ],
     "host_permissions": [
         "https://*.vercel.app/*",

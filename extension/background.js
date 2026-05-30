@@ -2,6 +2,8 @@
 // Uses Chrome Alarms API to schedule posts and cycle through Facebook groups
 
 const ALARM_NAME = 'CHOBSHOP_AUTO_POST';
+const HEARTBEAT_ALARM = 'CHOBSHOP_HEARTBEAT';
+let logQueue = []; // Queue for syncing to server
 
 // Listen for alarm
 chrome.alarms.onAlarm.addListener(async (alarm) => {
@@ -91,8 +93,128 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.action === 'PING') {
         sendResponse({ success: true, timestamp: Date.now() });
         return true;
+    } else if (request.action === 'SCRAPE_PRODUCT') {
+        scrapeProductData(request.url).then(result => {
+            sendResponse(result);
+        }).catch(err => {
+            console.error('[Scraper] Error:', err);
+            sendResponse({ success: false, error: err.message });
+        });
+        return true;
     }
 });
+
+async function scrapeProductData(url) {
+    let tabId = null;
+    try {
+        console.log(`[Scraper] Starting scrape for: ${url}`);
+
+        // 1. Create tab
+        const tab = await chrome.tabs.create({ url, active: false });
+        tabId = tab.id;
+
+        // 2. Wait for loading to complete
+        await new Promise((resolve) => {
+            const listener = (id, info) => {
+                if (id === tabId && info.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    resolve();
+                }
+            };
+            chrome.tabs.onUpdated.addListener(listener);
+
+            // Safety timeout
+            setTimeout(() => {
+                chrome.tabs.onUpdated.removeListener(listener);
+                resolve();
+            }, 15000);
+        });
+
+        // 2.5 Additional delay for stability (Shopee redirects and dynamic content)
+        await new Promise(r => setTimeout(r, 3000));
+
+        // 3. Inject script to extract image URL
+        const results = await chrome.scripting.executeScript({
+            target: { tabId },
+            func: () => {
+                const getMeta = (name) => {
+                    const el = document.querySelector(`meta[property="${name}"], meta[name="${name}"]`);
+                    return el ? el.getAttribute('content') : null;
+                };
+
+                const title = getMeta('og:title') || document.title;
+                const ogImage = getMeta('og:image');
+
+                // FALLBACKS for Shopee if og:image is missing or dynamic
+                let mainImage = ogImage;
+                if (!mainImage) {
+                    // Try the hero image selector found in debug
+                    const heroImg = document.querySelector('img[elementtiming="shopee:heroComponentPaint"]');
+                    if (heroImg && heroImg.src) {
+                        mainImage = heroImg.src.replace('_tn', ''); // Remove thumbnail suffix if present
+                    }
+                }
+
+                if (!mainImage) {
+                    // Other common Shopee/E-commerce selectors
+                    const selectors = [
+                        '.product-briefing img',
+                        'div.flex-shrink-0 img',
+                        '._2GChvG img',
+                        '.product-gallery__main-image img'
+                    ];
+                    for (const s of selectors) {
+                        const img = document.querySelector(s);
+                        if (img && img.src && img.src.startsWith('http')) {
+                            mainImage = img.src;
+                            break;
+                        }
+                    }
+                }
+
+                return { title, imageUrl: mainImage };
+            }
+        });
+
+        const data = results[0].result;
+        if (!data || !data.imageUrl) {
+            throw new Error('Could not find product image');
+        }
+
+        console.log(`[Scraper] Found image URL: ${data.imageUrl}`);
+
+        // 4. Convert to Base64
+        const base64 = await imageUrlToBase64(data.imageUrl);
+
+        return {
+            success: true,
+            title: data.title,
+            imageUrl: data.imageUrl,
+            base64: base64
+        };
+
+    } finally {
+        if (tabId) {
+            chrome.tabs.remove(tabId).catch(() => { });
+        }
+    }
+}
+
+async function imageUrlToBase64(url) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (e) {
+        console.error('[Scraper] Base64 conversion failed:', e);
+        return null;
+    }
+}
 
 async function startAutoPost(intervalMinutes) {
     try {
@@ -170,6 +292,7 @@ async function executeAutoPost() {
         // Set isPosting flag
         autoPostState.isPosting = true;
         await chrome.storage.local.set({ autoPostState });
+        sendHeartbeat(); // Immediate sync starting
 
         // 2. Get groups
         const { fbGroups } = await chrome.storage.sync.get('fbGroups');
@@ -192,7 +315,7 @@ async function executeAutoPost() {
             const data = await res.json();
             products = Array.isArray(data) ? data : (data.products || []);
         } catch (e) {
-            addLog('❌ ดึงสินค้าไม่สำเร็จ: ' + e.message);
+            addLog('❌ ดึงสินค้าไม่สำเร็จ: ' + e.message, 'ERROR', 'FETCH_PRODUCTS');
             await scheduleNextAlarm(autoPostState);
             return;
         }
@@ -249,12 +372,22 @@ async function executeAutoPost() {
         // 8. Wait for page to load (8 seconds)
         await delay(8000);
 
+        // 8.5 Convert image to Base64 (Essential for manual upload bypass)
+        let b64Image = null;
+        if (product.image) {
+            console.log('[AutoPost] Converting image to Base64:', product.image);
+            b64Image = await imageUrlToBase64(product.image);
+        }
+
         // 9. Send fill command
         let postLink = null;
         try {
             const response = await chrome.tabs.sendMessage(tabId, {
                 action: 'FILL_POST',
-                data: { caption, imageUrl: product.image }
+                data: {
+                    caption,
+                    imageUrl: b64Image || product.image
+                }
             });
             postLink = response ? response.postLink : null;
         } catch (msgErr) {
@@ -287,6 +420,12 @@ async function executeAutoPost() {
         await chrome.storage.local.set({ autoPostState });
         console.log(`[AutoPost] Posted to "${group.name}" successfully`);
 
+        addLog(`✅ โพสต์สำเร็จ: ${group.name}`, 'SUCCESS', 'POST_FINISHED', {
+            group: group.name,
+            product: product.title,
+            link: postLink
+        });
+
         // 11. Schedule next alarm
         await scheduleNextAlarm(autoPostState);
 
@@ -313,11 +452,25 @@ async function scheduleNextAlarm(state) {
     await chrome.alarms.create(ALARM_NAME, { delayInMinutes: minutes });
 }
 
-async function addLog(msg) {
+async function addLog(msg, type = 'INFO', action = 'LOG', details = {}) {
     const { autoPostState } = await chrome.storage.local.get('autoPostState');
     if (autoPostState) {
         autoPostState.log = [msg, ...(autoPostState.log || [])].slice(0, 20);
         await chrome.storage.local.set({ autoPostState });
+    }
+
+    // Add to sync queue for server
+    logQueue.push({
+        status: type,
+        message: msg,
+        action: action,
+        details: details,
+        timestamp: new Date().toISOString()
+    });
+
+    // If it's an important log (Post finished/Error), trigger heartbeat immediately
+    if (action === 'POST_FINISHED' || type === 'ERROR') {
+        sendHeartbeat();
     }
 }
 
@@ -390,10 +543,11 @@ async function sendHeartbeat() {
             status,
             stats,
             version: manifest.version,
-            ack_command_ts: lastCommandTs || null
+            ack_command_ts: lastCommandTs || null,
+            new_logs: [...logQueue] // Send current queue
         };
 
-        console.log(`[Heartbeat] Sending to ${endpoint}/api/bots/heartbeat...`, body);
+        console.log(`[Heartbeat] Sending to ${endpoint}/api/bots/heartbeat... (${logQueue.length} logs)`);
 
         const res = await fetch(`${endpoint}/api/bots/heartbeat`, {
             method: 'POST',
@@ -409,6 +563,7 @@ async function sendHeartbeat() {
         const data = await res.json();
         if (data.success) {
             console.log(`[Heartbeat] Success: Reported as "${botName}"`);
+            logQueue = []; // Clear queue on success
 
             // Handle Remote Commands
             if (data.command && data.command.action) {

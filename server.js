@@ -280,9 +280,9 @@ app.put('/api/settings', requireAuth, async (req, res) => {
 
 // POST Bot Heartbeat (Public, for the extension)
 app.post('/api/bots/heartbeat', async (req, res) => {
-  const { bot_name, browser_type, status, stats, version, ack_command_ts } = req.body;
+  const { bot_name, browser_type, status, stats, version, ack_command_ts, new_logs } = req.body;
 
-  console.log(`🤖 [Heartbeat] Received from "${bot_name}" (Status: ${status}, Ack: ${ack_command_ts || 'none'})`);
+  console.log(`🤖 [Heartbeat] Received from "${bot_name}" (Status: ${status}, Logs: ${new_logs ? new_logs.length : 0})`);
 
   if (!bot_name) {
     return res.status(400).json({ success: false, error: 'bot_name is required' });
@@ -323,6 +323,24 @@ app.post('/api/bots/heartbeat', async (req, res) => {
 
     const currentBot = data[0];
     const pendingCommand = currentBot?.command || {};
+
+    // --- Sync Logs to extension_logs table ---
+    if (new_logs && Array.isArray(new_logs) && new_logs.length > 0) {
+      try {
+        const logEntries = new_logs.map(log => ({
+          bot_name,
+          status: log.status || 'INFO',
+          action: log.action || 'LOG',
+          message: log.message || log,
+          details: log.details || {},
+          created_at: log.timestamp || new Date().toISOString()
+        }));
+        await db.from('extension_logs').insert(logEntries);
+      } catch (logErr) {
+        console.error('⚠️ [Heartbeat] Failed to sync logs:', logErr.message);
+        // Don't fail the heartbeat if logging fails
+      }
+    }
 
     // Clear command only if it was acknowledged by the bot
     if (ack_command_ts && pendingCommand.timestamp && ack_command_ts === pendingCommand.timestamp) {
@@ -394,6 +412,28 @@ app.get('/api/bots', async (req, res) => {
   } catch (err) {
     console.error('Fetch bots error:', err);
     res.status(500).json({ success: false, error: err.message, bots: [] });
+  }
+});
+
+// GET Bot Logs (Public for the dashboard)
+app.get('/api/bots/logs', async (req, res) => {
+  try {
+    const db = supabaseAdmin || supabase;
+    const { bot_name, limit = 50 } = req.query;
+
+    let query = db.from('extension_logs').select('*').order('created_at', { ascending: false }).limit(parseInt(limit));
+
+    if (bot_name) {
+      query = query.eq('bot_name', bot_name);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    res.json({ success: true, logs: data || [] });
+  } catch (err) {
+    console.error('Fetch logs error:', err);
+    res.status(500).json({ success: false, error: err.message, logs: [] });
   }
 });
 

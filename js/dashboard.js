@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     startPolling();
     addConsoleLog('🚀 Chob.Shop Bot Dashboard started');
     addConsoleLog('📡 Connecting to system office...');
+
+    // Initial fetch
+    fetchBots();
+    fetchLogs();
 });
 
 async function fetchBots() {
@@ -111,6 +115,43 @@ function updateGlobalStats() {
     document.getElementById('totalPosts').textContent = totalPosts;
 }
 
+async function fetchLogs() {
+    try {
+        const response = await fetch('/api/bots/logs?limit=15');
+        const data = await response.json();
+
+        if (data.success) {
+            renderLogs(data.logs);
+        }
+    } catch (err) {
+        console.error('Fetch logs error:', err);
+    }
+}
+
+function renderLogs(logs) {
+    const list = document.getElementById('workHistory');
+    if (!logs || logs.length === 0) {
+        list.innerHTML = '<div class="loading-pixel">NO RECENT HISTORY...</div>';
+        return;
+    }
+
+    list.innerHTML = '';
+    logs.forEach(log => {
+        const row = document.createElement('div');
+        row.className = `history-item ${log.status.toLowerCase()}`;
+
+        const time = new Date(log.created_at).toLocaleTimeString('th-TH');
+
+        row.innerHTML = `
+            <span class="history-time">[${time}]</span>
+            <span class="history-bot">${log.bot_name}</span>
+            <span class="history-action">${log.action}</span>
+            <span class="history-msg">${log.message}</span>
+        `;
+        list.appendChild(row);
+    });
+}
+
 function getBotAvatar(name) {
     const avatars = ['🤖', '🐱', '🐶', '🦊', '🦁', '🦖', '🐼', '🐨', '👾', '👻'];
     // Simple hash to keep same avatar for same name
@@ -198,6 +239,7 @@ function addConsoleLog(msg) {
 }
 
 function startPolling() {
-    fetchBots();
-    setInterval(fetchBots, 5000);
+    // Second-by-second feel (2 seconds polling)
+    setInterval(fetchBots, 2000);
+    setInterval(fetchLogs, 2000);
 }
