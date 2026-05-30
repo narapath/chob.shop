@@ -331,24 +331,40 @@ function injectBotController() {
             </div>
 
             <!-- Tab Content: Status -->
-            <div id="tab-status" class="w-tab-content" style="padding: 15px; display: flex; flex-direction: column; gap: 12px;">
+            <div id="tab-status" class="w-tab-content" style="padding: 15px; display: flex; flex-direction: column; gap: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 11px; color: #94a3b8; font-weight: 700;">STATUS</span>
                     <span id="widget-status" style="font-size: 9px; background: #334155; padding: 2px 10px; border-radius: 20px; font-weight: 900; color: #f8fafc;">OFFLINE</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; color: #94a3b8; font-weight: 700;">PING</span>
+                    <span id="widget-ping" style="font-size: 11px; font-weight: 700; color: #10b981;">- ms</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <span style="font-size: 11px; color: #94a3b8; font-weight: 700;">ACTIVE IN</span>
                     <span id="widget-group" style="font-size: 11px; font-weight: 600; text-align: right; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; max-width: 140px; color: #cbd5e1;">-</span>
                 </div>
-                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center;">
                    <div style="display: flex; flex-direction: column;">
-                        <span style="font-size: 10px; color: #64748b; font-weight: 700;">POSTS</span>
-                        <span id="widget-count" style="font-size: 24px; font-weight: 900; color: #fbbf24; line-height: 1;">0</span>
+                        <span style="font-size: 9px; color: #64748b; font-weight: 700;">POSTS</span>
+                        <span id="widget-count" style="font-size: 22px; font-weight: 900; color: #fbbf24; line-height: 1.2;">0</span>
                    </div>
-                   <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                        <span style="font-size: 10px; color: #64748b; font-weight: 700; text-align: right;">TARGET</span>
-                        <span id="widget-target-count" style="font-size: 18px; font-weight: 700; color: #94a3b8; text-align: right;">-</span>
+                   <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 9px; color: #64748b; font-weight: 700;">NEXT RUN</span>
+                        <span id="widget-next-run" style="font-size: 13px; font-weight: 700; color: #38bdf8; line-height: 1.2; margin-top: 4px;">-</span>
                    </div>
+                   <div style="display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 9px; color: #64748b; font-weight: 700;">TARGET</span>
+                        <span id="widget-target-count" style="font-size: 18px; font-weight: 700; color: #94a3b8; line-height: 1.2; margin-top: 2px;">-</span>
+                   </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b;">
+                    <span>⏱ INTERVAL</span>
+                    <span id="widget-interval-display" style="color: #cbd5e1; font-weight: 600;">- min</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b;">
+                    <span>📅 LAST POST</span>
+                    <span id="widget-last-post" style="color: #cbd5e1; font-weight: 600;">-</span>
                 </div>
                 <button id="widget-action-btn" style="width: 100%; padding: 12px; border: none; border-radius: 10px; background: #6366f1; color: white; font-weight: 800; cursor: pointer; transition: 0.3s; font-size: 13px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">START AUTO</button>
             </div>
@@ -417,6 +433,8 @@ function injectBotController() {
         });
     };
     refreshData();
+    // Auto-refresh every 3 seconds for continuous data
+    setInterval(refreshData, 3000);
 
     // --- Event Listeners ---
 
@@ -482,9 +500,58 @@ function updateBotController(state) {
     const groupEl = widget.querySelector('#widget-group');
     const logEl = widget.querySelector('#widget-log-container');
     const intervalInput = widget.querySelector('#widget-interval-input');
+    const pingEl = widget.querySelector('#widget-ping');
+    const nextRunEl = widget.querySelector('#widget-next-run');
+    const intervalDisplay = widget.querySelector('#widget-interval-display');
+    const lastPostEl = widget.querySelector('#widget-last-post');
 
     countEl.innerText = state.postCount || 0;
     if (state.intervalMinutes && intervalInput) intervalInput.value = state.intervalMinutes;
+
+    // Update Ping
+    if (pingEl) {
+        const ping = state.lastPingMs || 0;
+        pingEl.innerText = ping > 0 ? `${ping} ms` : '- ms';
+        if (ping > 0 && ping < 300) { pingEl.style.color = '#10b981'; }
+        else if (ping < 1000) { pingEl.style.color = '#fbbf24'; }
+        else { pingEl.style.color = '#f43f5e'; }
+    }
+
+    // Update Interval Display
+    if (intervalDisplay) {
+        intervalDisplay.innerText = state.intervalMinutes ? `${state.intervalMinutes} min` : '- min';
+    }
+
+    // Update Last Post Time
+    if (lastPostEl) {
+        if (state.lastPostTime) {
+            lastPostEl.innerText = new Date(state.lastPostTime).toLocaleTimeString('th-TH');
+        } else {
+            lastPostEl.innerText = '-';
+        }
+    }
+
+    // Update Next Run
+    if (nextRunEl) {
+        if (state.isPosting) {
+            nextRunEl.innerText = 'NOW!';
+            nextRunEl.style.color = '#f43f5e';
+        } else if (state.nextRunTime) {
+            const diff = state.nextRunTime - Date.now();
+            if (diff > 0) {
+                const mins = Math.floor(diff / 60000);
+                const secs = Math.floor((diff % 60000) / 1000);
+                nextRunEl.innerText = `${mins}:${String(secs).padStart(2, '0')}`;
+                nextRunEl.style.color = '#38bdf8';
+            } else {
+                nextRunEl.innerText = 'SOON';
+                nextRunEl.style.color = '#fbbf24';
+            }
+        } else {
+            nextRunEl.innerText = '-';
+            nextRunEl.style.color = '#94a3b8';
+        }
+    }
 
     if (state.log && state.log.length > 0 && logEl) {
         logEl.innerHTML = state.log.map(line => `<div style="margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">${line}</div>`).join('');

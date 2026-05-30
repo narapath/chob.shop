@@ -275,8 +275,14 @@ async function getAutoStatus() {
     const { autoPostState } = await chrome.storage.local.get('autoPostState');
     const alarm = await chrome.alarms.get(ALARM_NAME);
 
+    const state = autoPostState || { isRunning: false, postCount: 0, log: [] };
+
+    // Inject real-time info for widget display
+    state.lastPingMs = typeof lastPing !== 'undefined' ? lastPing : 0;
+    state.nextRunTime = alarm ? alarm.scheduledTime : null;
+
     return {
-        state: autoPostState || { isRunning: false, postCount: 0, log: [] },
+        state: state,
         nextAlarm: alarm ? alarm.scheduledTime : null
     };
 }
