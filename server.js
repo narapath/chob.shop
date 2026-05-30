@@ -437,6 +437,28 @@ app.get('/api/bots/logs', async (req, res) => {
   }
 });
 
+// DELETE Bot (Admin only)
+app.delete('/api/bots', requireAuth, async (req, res) => {
+  try {
+    const db = supabaseAdmin || supabase;
+    const { bot_name } = req.body;
+
+    if (!bot_name) {
+      return res.status(400).json({ success: false, error: 'bot_name is required' });
+    }
+
+    console.log(`🗑️ [Delete] Removing bot "${bot_name}"`);
+
+    const { error } = await db.from('extension_bots').delete().eq('bot_name', bot_name);
+
+    if (error) throw error;
+    res.json({ success: true, message: `Bot ${bot_name} deleted successfully` });
+  } catch (err) {
+    console.error('Delete bot error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // --- POST categorize via Local AI ---
 app.post('/api/categorize', requireAuth, async (req, res) => {
   const { title } = req.body;

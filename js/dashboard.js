@@ -63,6 +63,7 @@ function renderOffice() {
         const nextRunDisplay = bot.stats.isPosting ? 'POSTING...' : formatNextRun(nextRunTime);
 
         card.innerHTML = `
+            <button class="delete-bot-btn" onclick="deleteBot('${bot.bot_name}')" title="Delete Bot">🗑️</button>
             <div class="bot-avatar">${avatar}</div>
             <div class="bot-name">${bot.bot_name}</div>
             <div class="bot-status-tag">${statusText}</div>
@@ -235,6 +236,34 @@ async function handleCommand(botName, action) {
         }
     } catch (err) {
         addConsoleLog(`❌ Network error: ${err.message}`);
+    }
+}
+
+async function deleteBot(botName) {
+    if (!confirm(`Are you sure you want to delete "${botName}"? This cannot be undone.`)) return;
+
+    try {
+        let token = localStorage.getItem('vibe_admin_token');
+        if (!token) token = 'vibe_secret_token_12345'; // Fallback
+
+        const res = await fetch('/api/bots', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ bot_name: botName })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            addConsoleLog(`🗑️ Bot "${botName}" removed from office!`);
+            fetchBots();
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (err) {
+        alert('Delete failed: ' + err.message);
     }
 }
 
