@@ -4,6 +4,7 @@
 const ALARM_NAME = 'CHOBSHOP_AUTO_POST';
 const HEARTBEAT_ALARM = 'CHOBSHOP_HEARTBEAT';
 let logQueue = []; // Queue for syncing to server
+let lastPing = 0;   // Store last heartbeat duration
 
 // Listen for alarm
 chrome.alarms.onAlarm.addListener(async (alarm) => {
@@ -534,7 +535,8 @@ async function sendHeartbeat() {
             lastPostTime: autoPostState ? autoPostState.lastPostTime : null,
             interval: autoPostState ? autoPostState.intervalMinutes : null,
             isPosting: autoPostState ? !!autoPostState.isPosting : false,
-            next_run: alarm ? alarm.scheduledTime : null
+            next_run: alarm ? alarm.scheduledTime : null,
+            ping: lastPing // Include last measured ping
         };
 
         const body = {
@@ -549,11 +551,15 @@ async function sendHeartbeat() {
 
         console.log(`[Heartbeat] Sending to ${endpoint}/api/bots/heartbeat... (${logQueue.length} logs)`);
 
+        const startTime = Date.now();
         const res = await fetch(`${endpoint}/api/bots/heartbeat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
+
+        lastPing = Date.now() - startTime;
+        console.log(`[Heartbeat] Latency: ${lastPing}ms`);
 
         if (!res.ok) {
             const errorText = await res.text();

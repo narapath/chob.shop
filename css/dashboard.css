@@ -177,9 +177,45 @@ header {
     font-size: 0.6rem;
     font-family: 'Press Start 2P', cursive;
     background: #000;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
     width: 100%;
     text-align: center;
+}
+
+.bot-ping-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 15px;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+}
+
+.ping-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.ping-dot.green {
+    background: var(--pixel-green);
+    box-shadow: 0 0 8px var(--pixel-green);
+}
+
+.ping-dot.yellow {
+    background: var(--pixel-yellow);
+    box-shadow: 0 0 8px var(--pixel-yellow);
+}
+
+.ping-dot.red {
+    background: var(--pixel-pink);
+    box-shadow: 0 0 8px var(--pixel-pink);
+}
+
+.ping-dot.gray {
+    background: #666;
 }
 
 .active .bot-status-tag {

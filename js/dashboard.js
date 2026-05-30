@@ -67,6 +67,10 @@ function renderOffice() {
             <div class="bot-avatar">${avatar}</div>
             <div class="bot-name">${bot.bot_name}</div>
             <div class="bot-status-tag">${statusText}</div>
+            <div class="bot-ping-indicator">
+                <span class="ping-dot ${getPingClass(bot.stats.ping)}"></span>
+                <span class="ping-val">${bot.stats.ping || 0} ms</span>
+            </div>
             <div class="bot-stats-list">
                 <div class="stat-row">
                     <span class="label">POSTS:</span>
@@ -280,4 +284,11 @@ function startPolling() {
     // Second-by-second feel (2 seconds polling)
     setInterval(fetchBots, 2000);
     setInterval(fetchLogs, 2000);
+}
+
+function getPingClass(ping) {
+    if (!ping || ping === 0) return 'gray';
+    if (ping < 300) return 'green';
+    if (ping < 1000) return 'yellow';
+    return 'red';
 }
