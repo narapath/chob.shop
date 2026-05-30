@@ -433,8 +433,27 @@ function injectBotController() {
         });
     };
     refreshData();
-    // Auto-refresh every 3 seconds for continuous data
-    setInterval(refreshData, 3000);
+    // Auto-refresh data from background every 2 seconds for fresh status
+    setInterval(refreshData, 2000);
+
+    // High-frequency 1s interval for countdown only
+    setInterval(() => {
+        const nextRunEl = widget.querySelector('#widget-next-run');
+        if (nextRunEl && nextRunEl.dataset.nextRun) {
+            const nextTime = parseInt(nextRunEl.dataset.nextRun);
+            if (!isNaN(nextTime)) {
+                const diff = nextTime - Date.now();
+                if (diff > 0) {
+                    const mins = Math.floor(diff / 60000);
+                    const secs = Math.floor((diff % 60000) / 1000);
+                    nextRunEl.innerText = `${mins}:${String(secs).padStart(2, '0')}`;
+                    nextRunEl.style.color = '#38bdf8';
+                } else if (diff > -5000) { // Keep "NOW!" for a few seconds
+                    // status check will override this via updateBotController
+                }
+            }
+        }
+    }, 1000);
 
     // --- Event Listeners ---
 
@@ -536,7 +555,9 @@ function updateBotController(state) {
         if (state.isPosting) {
             nextRunEl.innerText = 'NOW!';
             nextRunEl.style.color = '#f43f5e';
+            nextRunEl.removeAttribute('data-next-run');
         } else if (state.nextRunTime) {
+            nextRunEl.setAttribute('data-next-run', state.nextRunTime);
             const diff = state.nextRunTime - Date.now();
             if (diff > 0) {
                 const mins = Math.floor(diff / 60000);
@@ -550,6 +571,7 @@ function updateBotController(state) {
         } else {
             nextRunEl.innerText = '-';
             nextRunEl.style.color = '#94a3b8';
+            nextRunEl.removeAttribute('data-next-run');
         }
     }
 

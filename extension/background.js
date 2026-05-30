@@ -63,6 +63,11 @@ async function setupAlarms() {
     }
     // Also send an initial heartbeat immediately on setup
     sendHeartbeat();
+
+    // Secondary faster loop (15s) - won't persist like Alarms but good for active sessions
+    setInterval(() => {
+        sendHeartbeat();
+    }, 15000);
 }
 
 // Listen for messages from popup

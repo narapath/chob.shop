@@ -283,9 +283,9 @@ function addConsoleLog(msg) {
 }
 
 function startPolling() {
-    // Second-by-second feel (2 seconds polling)
-    setInterval(fetchBots, 2000);
-    setInterval(fetchLogs, 2000);
+    // True real-time feel (1 second polling)
+    setInterval(fetchBots, 1000);
+    setInterval(fetchLogs, 1000);
 }
 
 function getPingClass(ping) {
