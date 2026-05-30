@@ -20,7 +20,8 @@ async function fetchBots() {
         const data = await response.json();
 
         if (data.success) {
-            bots = data.bots;
+            // Sort bots by name (Bot 1, Bot 2, Bot 3...)
+            bots = data.bots.sort((a, b) => a.bot_name.localeCompare(b.bot_name, undefined, { numeric: true, sensitivity: 'base' }));
             renderOffice();
             updateGlobalStats();
         }
