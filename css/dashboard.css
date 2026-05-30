@@ -486,6 +486,14 @@ header {
     color: #eee;
 }
 
+.history-empty {
+    text-align: center;
+    color: var(--text-dim);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.7rem;
+    padding: 30px;
+}
+
 @keyframes glow-pulse {
     from {
         border-color: var(--pixel-green);

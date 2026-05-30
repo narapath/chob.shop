@@ -139,13 +139,15 @@ async function fetchLogs() {
         }
     } catch (err) {
         console.error('Fetch logs error:', err);
+        const list = document.getElementById('workHistory');
+        list.innerHTML = '<div class="history-empty">⚠️ LOGS UNAVAILABLE</div>';
     }
 }
 
 function renderLogs(logs) {
     const list = document.getElementById('workHistory');
     if (!logs || logs.length === 0) {
-        list.innerHTML = '<div class="loading-pixel">NO RECENT HISTORY...</div>';
+        list.innerHTML = '<div class="history-empty">NO RECENT HISTORY...</div>';
         return;
     }
 
