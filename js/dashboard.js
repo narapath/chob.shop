@@ -186,11 +186,19 @@ function renderLogs(logs) {
 
         const time = new Date(log.created_at).toLocaleTimeString('th-TH');
 
+        const details = typeof log.details === 'string' ? JSON.parse(log.details) : (log.details || {});
+        const linkHtml = details.link ? `
+            <a href="${details.link}" target="_blank" class="history-link" title="Open Facebook Post">
+                🔗 VIEW POST
+            </a>
+        ` : '';
+
         row.innerHTML = `
             <span class="history-time">[${time}]</span>
             <span class="history-bot">${log.bot_name}</span>
             <span class="history-action">${log.action}</span>
             <span class="history-msg">${log.message}</span>
+            ${linkHtml}
         `;
         list.appendChild(row);
     });

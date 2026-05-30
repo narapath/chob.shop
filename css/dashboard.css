@@ -473,6 +473,25 @@ header {
     min-width: 80px;
 }
 
+.history-link {
+    margin-left: auto;
+    background: var(--pixel-blue);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.history-link:hover {
+    background: white;
+    color: var(--pixel-blue);
+    transform: scale(1.05);
+}
+
 .history-action {
     background: #333;
     padding: 2px 6px;
