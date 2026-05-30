@@ -140,68 +140,109 @@ async function fillFacebookPost(caption, imageUrl) {
     let textbox = null;
     let dialog = null;
     const textboxAriaLabels = [
-        "สร้างโพสต์สาธารณะ...",
-        "สร้างโพสต์...",
+        "สร้างโพสต์สาธารณะ",
+        "สร้างโพสต์",
         "คุณคิดอะไรอยู่",
-        "What's on your mind?",
-        "Create a public post...",
-        "Write something..."
+        "What's on your mind",
+        "Create a public post",
+        "Write something"
     ];
 
-    for (let i = 0; i < 20; i++) { // Increased retries
+    console.log('[ChobShop] Searching for composer dialog...');
+    for (let i = 0; i < 25; i++) { // More retries
         await new Promise(r => setTimeout(r, 400));
         dialog = document.querySelector('div[role="dialog"]');
         if (dialog) {
-            // Priority 1: Search by common aria-labels
+            console.log('[ChobShop] Dialog found, searching for textbox...');
+
+            // Priority 1: Search by common aria-labels (simplified, no dots)
             for (const label of textboxAriaLabels) {
                 textbox = dialog.querySelector(`div[role="textbox"][aria-label*="${label}"]`);
-                if (textbox) break;
+                if (textbox) {
+                    console.log(`[ChobShop] Textbox found via label: ${label}`);
+                    break;
+                }
             }
 
             if (!textbox) {
-                // Priority 2: Precise class-based selector (fallback)
-                const p = dialog.querySelector('p.xdj266r.x14z9mp.xat24cr.x1lziwak.x16tdsg8');
-                textbox = p ? p.closest('div[contenteditable="true"]') : null;
+                // Priority 2: Accurate role-based search
+                textbox = dialog.querySelector('div[role="textbox"][contenteditable="true"]');
+                if (textbox) console.log('[ChobShop] Textbox found via role="textbox"');
             }
 
             if (!textbox) {
-                // Priority 3: General role-based search
-                textbox = dialog.querySelector('div[role="textbox"][contenteditable="true"]') ||
-                    dialog.querySelector('div[contenteditable="true"]');
+                // Priority 3: General contenteditable search
+                textbox = dialog.querySelector('div[contenteditable="true"]');
+                if (textbox) console.log('[ChobShop] Textbox found via [contenteditable="true"]');
             }
 
+            if (!textbox) {
+                // Priority 4: Search by searching all DIVs for text content that looks like a placeholder
+                const allDivs = dialog.querySelectorAll('div');
+                for (const div of allDivs) {
+                    const text = div.innerText || "";
+                    if (textboxAriaLabels.some(l => text.includes(l)) && div.getAttribute('contenteditable') === 'true') {
+                        textbox = div;
+                        console.log('[ChobShop] Textbox found via brute-force text search');
+                        break;
+                    }
+                }
+            }
+
+            if (textbox) break;
+        } else {
+            // Fallback: search globally if dialog isn't correctly identified as role="dialog"
+            const possibleTextboxes = document.querySelectorAll('div[role="textbox"][contenteditable="true"]');
+            for (const tb of possibleTextboxes) {
+                if (tb.offsetWidth > 0 && tb.offsetHeight > 50) {
+                    textbox = tb;
+                    console.log('[ChobShop] Textbox found globally (no dialog role)');
+                    break;
+                }
+            }
             if (textbox) break;
         }
     }
 
     if (!textbox) throw new Error('ไม่พบช่องใส่ข้อความ');
 
-    // 3. Insert Text
+    // 3. Insert Text — Focus and place cursor
+    console.log('[ChobShop] Attempting to focus and insert text...');
     textbox.focus();
     await new Promise(r => setTimeout(r, 300));
 
-    // Click inside textbox to ensure it's truly focused
-    textbox.click();
+    // Place cursor inside textbox using Selection API
+    try {
+        const sel = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(textbox);
+        range.collapse(false); // Collapse to end
+        sel.removeAllRanges();
+        sel.addRange(range);
+        console.log('[ChobShop] Selection API cursor placed');
+    } catch (selErr) {
+        console.warn('[ChobShop] Selection API failed:', selErr);
+    }
     await new Promise(r => setTimeout(r, 200));
 
-    // --- NEW: Manual Photo Upload Logic ---
+    // --- Photo Upload Logic ---
     if (imageUrl) {
         updateStatus('🖼️ กำลังอัปโหลดรูปภาพ...');
+        console.log('[ChobShop] Starting photo upload...');
         try {
             const file = imageUrl.startsWith('data:')
                 ? base64ToFile(imageUrl, 'product.jpg')
                 : null;
 
             if (file) {
-                // Find hidden file input in the dialog
-                const fileInput = dialog.querySelector('input[type="file"][accept*="image"]');
+                const fileInput = dialog ? dialog.querySelector('input[type="file"][accept*="image"]') : document.querySelector('input[type="file"][accept*="image"]');
                 if (fileInput) {
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
                     fileInput.files = dataTransfer.files;
                     fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-                    console.log('[ChobShop] Image uploaded successfully via file input');
-                    await new Promise(r => setTimeout(r, 2000)); // Wait for upload to register
+                    console.log('[ChobShop] Image uploaded via file input');
+                    await new Promise(r => setTimeout(r, 2500));
                 } else {
                     console.warn('[ChobShop] Photo upload input not found');
                 }
@@ -209,60 +250,58 @@ async function fillFacebookPost(caption, imageUrl) {
         } catch (uploadErr) {
             console.error('[ChobShop] Photo upload failed:', uploadErr);
         }
-    }
-
-    // Ensure textbox is focused after image upload
-    textbox.focus();
-    await new Promise(r => setTimeout(r, 200));
-
-    // Clear existing content
-    document.execCommand('selectAll', false, null);
-    document.execCommand('delete', false, null);
-    await new Promise(r => setTimeout(r, 200));
-
-    if ((textbox.innerText || "").trim().length > 0) {
-        textbox.innerHTML = '';
-        await new Promise(r => setTimeout(r, 100));
+        // Re-focus after upload
         textbox.focus();
+        await new Promise(r => setTimeout(r, 300));
     }
 
     updateStatus('📝 กำลังใส่ข้อความ...');
+    console.log('[ChobShop] Starting text insertion process...');
 
-    // === METHOD 1: InputEvent insertText (works on modern Lexical) ===
-    let inserted = false;
+    // IMPORTANT: Do NOT clear with innerHTML — it destroys Lexical state!
+    // Instead, select all text and let insertText replace it
+    textbox.focus();
     try {
-        const inputEvent = new InputEvent('beforeinput', {
-            inputType: 'insertText',
-            data: caption,
-            bubbles: true,
-            cancelable: true,
-            composed: true
-        });
-        textbox.dispatchEvent(inputEvent);
-        await new Promise(r => setTimeout(r, 500));
+        const selClear = window.getSelection();
+        const rangeClear = document.createRange();
+        rangeClear.selectNodeContents(textbox);
+        selClear.removeAllRanges();
+        selClear.addRange(rangeClear);
+    } catch (e) { }
+    await new Promise(r => setTimeout(r, 100));
+
+    let inserted = false;
+
+    // === METHOD 1: Clipboard API + Ctrl+V (most reliable for Lexical) ===
+    try {
+        console.log('[ChobShop] Method 1: Clipboard API...');
+        await navigator.clipboard.writeText(caption);
+        textbox.focus();
+        document.execCommand('selectAll', false, null);
+        await new Promise(r => setTimeout(r, 100));
+        // Simulate Ctrl+V
+        textbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'v', code: 'KeyV', ctrlKey: true, bubbles: true }));
+        document.execCommand('paste');
+        await new Promise(r => setTimeout(r, 800));
         if ((textbox.innerText || "").trim().length > 5) {
-            console.log('[ChobShop] ✅ Method 1 (InputEvent insertText) succeeded');
+            console.log('[ChobShop] ✅ Method 1 (Clipboard + paste) succeeded');
             inserted = true;
         }
     } catch (e) {
-        console.warn('[ChobShop] Method 1 failed:', e);
+        console.warn('[ChobShop] Method 1 (Clipboard) failed:', e);
     }
 
-    // === METHOD 2: Paste simulation ===
+    // === METHOD 2: execCommand insertText (classic approach) ===
     if (!inserted) {
         try {
             textbox.focus();
-            const dt = new DataTransfer();
-            dt.setData('text/plain', caption);
-            const pasteEvent = new ClipboardEvent('paste', {
-                clipboardData: dt,
-                bubbles: true,
-                cancelable: true
-            });
-            textbox.dispatchEvent(pasteEvent);
+            document.execCommand('selectAll', false, null);
+            document.execCommand('delete', false, null);
+            await new Promise(r => setTimeout(r, 100));
+            document.execCommand('insertText', false, caption);
             await new Promise(r => setTimeout(r, 500));
             if ((textbox.innerText || "").trim().length > 5) {
-                console.log('[ChobShop] ✅ Method 2 (Paste simulation) succeeded');
+                console.log('[ChobShop] ✅ Method 2 (execCommand insertText) succeeded');
                 inserted = true;
             }
         } catch (e) {
@@ -270,14 +309,23 @@ async function fillFacebookPost(caption, imageUrl) {
         }
     }
 
-    // === METHOD 3: execCommand insertText ===
+    // === METHOD 3: InputEvent beforeinput (for Lexical) ===
     if (!inserted) {
         try {
             textbox.focus();
-            document.execCommand('insertText', false, caption);
+            document.execCommand('selectAll', false, null);
+            await new Promise(r => setTimeout(r, 100));
+            const inputEvent = new InputEvent('beforeinput', {
+                inputType: 'insertText',
+                data: caption,
+                bubbles: true,
+                cancelable: true,
+                composed: true
+            });
+            textbox.dispatchEvent(inputEvent);
             await new Promise(r => setTimeout(r, 500));
             if ((textbox.innerText || "").trim().length > 5) {
-                console.log('[ChobShop] ✅ Method 3 (execCommand) succeeded');
+                console.log('[ChobShop] ✅ Method 3 (InputEvent) succeeded');
                 inserted = true;
             }
         } catch (e) {
@@ -285,58 +333,53 @@ async function fillFacebookPost(caption, imageUrl) {
         }
     }
 
-    // === METHOD 4: Keyboard simulation character by character ===
+    // === METHOD 4: ClipboardEvent paste simulation ===
     if (!inserted) {
-        console.log('[ChobShop] Trying Method 4: keyboard simulation...');
-        textbox.focus();
-        for (const char of caption) {
-            textbox.dispatchEvent(new KeyboardEvent('keydown', { key: char, bubbles: true }));
-            textbox.dispatchEvent(new InputEvent('beforeinput', {
-                inputType: 'insertText',
-                data: char,
+        try {
+            textbox.focus();
+            document.execCommand('selectAll', false, null);
+            await new Promise(r => setTimeout(r, 100));
+            const dt = new DataTransfer();
+            dt.setData('text/plain', caption);
+            textbox.dispatchEvent(new ClipboardEvent('paste', {
+                clipboardData: dt,
                 bubbles: true,
-                cancelable: true,
-                composed: true
+                cancelable: true
             }));
-            // Also try direct text node insertion
-            const textNode = document.createTextNode(char);
-            const selection = window.getSelection();
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                range.deleteContents();
-                range.insertNode(textNode);
-                range.setStartAfter(textNode);
-                range.collapse(true);
-                selection.removeAllRanges();
-                selection.addRange(range);
+            await new Promise(r => setTimeout(r, 500));
+            if ((textbox.innerText || "").trim().length > 5) {
+                console.log('[ChobShop] ✅ Method 4 (ClipboardEvent paste) succeeded');
+                inserted = true;
             }
-            textbox.dispatchEvent(new InputEvent('input', {
-                inputType: 'insertText',
-                data: char,
-                bubbles: true
-            }));
-            textbox.dispatchEvent(new KeyboardEvent('keyup', { key: char, bubbles: true }));
-
-            // Small delay every 50 chars to avoid overwhelming
-            if (caption.indexOf(char) % 50 === 0) {
-                await new Promise(r => setTimeout(r, 10));
-            }
-        }
-        await new Promise(r => setTimeout(r, 500));
-        if ((textbox.innerText || "").trim().length > 5) {
-            console.log('[ChobShop] ✅ Method 4 (keyboard sim) succeeded');
-            inserted = true;
+        } catch (e) {
+            console.warn('[ChobShop] Method 4 failed:', e);
         }
     }
 
-    // === LAST RESORT: Direct DOM manipulation ===
+    // === METHOD 5: Direct paragraph text + input event ===
     if (!inserted) {
-        console.warn('[ChobShop] All methods failed, using direct DOM insertion');
-        // Clear and set text directly via paragraph
-        const p = textbox.querySelector('p') || textbox;
-        p.textContent = caption;
+        console.warn('[ChobShop] All smart methods failed, using direct DOM');
+        // Find or create the paragraph element Lexical uses
+        let p = textbox.querySelector('p[data-lexical-text="true"]')
+            || textbox.querySelector('p > span')?.parentElement
+            || textbox.querySelector('p');
+        if (p) {
+            // Set text on existing paragraph's span
+            let span = p.querySelector('span[data-lexical-text="true"]') || p.querySelector('span');
+            if (span) {
+                span.textContent = caption;
+            } else {
+                p.textContent = caption;
+            }
+        } else {
+            // Create paragraph structure that Lexical expects
+            textbox.innerHTML = `<p dir="ltr"><span data-lexical-text="true">${caption}</span></p>`;
+        }
+        // Trigger React/Lexical to sync
         textbox.dispatchEvent(new Event('input', { bubbles: true }));
+        textbox.dispatchEvent(new InputEvent('input', { inputType: 'insertText', data: caption, bubbles: true }));
         await new Promise(r => setTimeout(r, 300));
+        console.log('[ChobShop] Method 5 (Direct DOM) applied');
     }
 
     await new Promise(r => setTimeout(r, 500));
