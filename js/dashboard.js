@@ -46,6 +46,7 @@ function renderOffice() {
     if (office.querySelector('.loading-pixel')) office.innerHTML = '';
 
     bots.forEach(bot => {
+        const safeId = bot.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
         const isOffline = (Date.now() - new Date(bot.last_heartbeat).getTime()) > 120000;
         const cardClass = isOffline ? 'offline' : (bot.status === 'active' ? 'active' : 'idle');
         const statusText = isOffline ? 'OFFLINE' : (bot.status === 'active' ? 'WORKING' : 'ZzZ_IDLE');
@@ -56,12 +57,12 @@ function renderOffice() {
         const nextRunTime = bot.stats.next_run;
         const nextRunDisplay = bot.stats.isPosting ? 'POSTING...' : formatNextRun(nextRunTime);
 
-        let card = document.getElementById(`bot-card-${bot.bot_name}`);
+        let card = document.getElementById(`bot-card-${safeId}`);
 
         if (!card) {
             // Create new card if it doesn't exist
             card = document.createElement('div');
-            card.id = `bot-card-${bot.bot_name}`;
+            card.id = `bot-card-${safeId}`;
             card.className = `bot-card ${cardClass}`;
             office.appendChild(card);
         } else {
@@ -73,7 +74,7 @@ function renderOffice() {
 
         // Only update innerHTML if not interacting with dropdown
         const activeEl = document.activeElement;
-        const isInteracting = activeEl && (activeEl.id === `interval-${bot.bot_name}` || activeEl.closest(`#bot-card-${bot.bot_name}`));
+        const isInteracting = activeEl && (activeEl.id === `interval-${safeId}` || activeEl.closest(`#bot-card-${safeId}`));
 
         // Surgical Update Logic
         card.innerHTML = `
@@ -88,11 +89,11 @@ function renderOffice() {
             <div class="bot-stats-list">
                 <div class="stat-row">
                     <span class="label">POSTS:</span>
-                    <span class="val" id="posts-${bot.bot_name}">${bot.stats.postCount || 0}</span>
+                    <span class="val" id="posts-${safeId}">${bot.stats.postCount || 0}</span>
                 </div>
                 <div class="stat-row">
                     <span class="label">NEXT RUN:</span>
-                    <span class="val countdown" id="next-${bot.bot_name}" data-time="${nextRunTime || ''}">${nextRunDisplay}</span>
+                    <span class="val countdown" id="next-${safeId}" data-time="${nextRunTime || ''}">${nextRunDisplay}</span>
                 </div>
                 <div class="stat-row">
                     <span class="label">LAST:</span>
@@ -105,7 +106,7 @@ function renderOffice() {
             </div>
             <div class="bot-controls">
                 <div class="control-group">
-                    <select class="interval-select" id="interval-${bot.bot_name}" onchange="window.userSelectionCache['${bot.bot_name}'] = this.value">
+                    <select class="interval-select" id="interval-${safeId}" onchange="window.userSelectionCache['${bot.bot_name}'] = this.value">
                         <option value="5" ${currentInterval == 5 ? 'selected' : ''}>5 min</option>
                         <option value="10" ${currentInterval == 10 ? 'selected' : ''}>10 min</option>
                         <option value="15" ${currentInterval == 15 ? 'selected' : ''}>15 min</option>
@@ -132,9 +133,10 @@ function renderOffice() {
     });
 
     // Remove cards for bots that are no longer in the list
+    const currentSafeIds = bots.map(b => b.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''));
     Array.from(office.querySelectorAll('.bot-card')).forEach(card => {
-        const botName = card.id.replace('bot-card-', '');
-        if (!bots.find(b => b.bot_name === botName)) {
+        const cardId = card.id.replace('bot-card-', '');
+        if (!currentSafeIds.includes(cardId)) {
             office.removeChild(card);
         }
     });
