@@ -39,30 +39,43 @@ function renderOffice() {
         return;
     }
 
-    // Cache user selections to not lose them on re-render (every 2s)
+    // Cache user selections to not lose them
     if (!window.userSelectionCache) window.userSelectionCache = {};
 
-    office.innerHTML = ''; // Clear
+    // Remove "NO BOTS ONLINE" if it exists
+    if (office.querySelector('.loading-pixel')) office.innerHTML = '';
 
     bots.forEach(bot => {
-        const isOffline = (Date.now() - new Date(bot.last_heartbeat).getTime()) > 120000; // > 2 mins
+        const isOffline = (Date.now() - new Date(bot.last_heartbeat).getTime()) > 120000;
         const cardClass = isOffline ? 'offline' : (bot.status === 'active' ? 'active' : 'idle');
         const statusText = isOffline ? 'OFFLINE' : (bot.status === 'active' ? 'WORKING' : 'ZzZ_IDLE');
-
-        // Restore interval from cache if exists, otherwise from bot stats
         const currentInterval = window.userSelectionCache[bot.bot_name] !== undefined
             ? window.userSelectionCache[bot.bot_name]
             : (bot.stats.interval || 15);
-
-        // Pick an avatar based on bot name or random
         const avatar = getBotAvatar(bot.bot_name);
-
-        const card = document.createElement('div');
-        card.className = `bot-card ${cardClass}`;
-
         const nextRunTime = bot.stats.next_run;
         const nextRunDisplay = bot.stats.isPosting ? 'POSTING...' : formatNextRun(nextRunTime);
 
+        let card = document.getElementById(`bot-card-${bot.bot_name}`);
+
+        if (!card) {
+            // Create new card if it doesn't exist
+            card = document.createElement('div');
+            card.id = `bot-card-${bot.bot_name}`;
+            card.className = `bot-card ${cardClass}`;
+            office.appendChild(card);
+        } else {
+            // Update classes if changed
+            if (card.className !== `bot-card ${cardClass}`) {
+                card.className = `bot-card ${cardClass}`;
+            }
+        }
+
+        // Only update innerHTML if not interacting with dropdown
+        const activeEl = document.activeElement;
+        const isInteracting = activeEl && (activeEl.id === `interval-${bot.bot_name}` || activeEl.closest(`#bot-card-${bot.bot_name}`));
+
+        // Surgical Update Logic
         card.innerHTML = `
             <button class="delete-bot-btn" onclick="deleteBot('${bot.bot_name}')" title="Delete Bot">🗑️</button>
             <div class="bot-avatar">${avatar}</div>
@@ -75,11 +88,11 @@ function renderOffice() {
             <div class="bot-stats-list">
                 <div class="stat-row">
                     <span class="label">POSTS:</span>
-                    <span class="val">${bot.stats.postCount || 0}</span>
+                    <span class="val" id="posts-${bot.bot_name}">${bot.stats.postCount || 0}</span>
                 </div>
                 <div class="stat-row">
                     <span class="label">NEXT RUN:</span>
-                    <span class="val countdown" data-time="${nextRunTime || ''}">${nextRunDisplay}</span>
+                    <span class="val countdown" id="next-${bot.bot_name}" data-time="${nextRunTime || ''}">${nextRunDisplay}</span>
                 </div>
                 <div class="stat-row">
                     <span class="label">LAST:</span>
@@ -111,8 +124,22 @@ function renderOffice() {
             </div>
         `;
 
-        office.appendChild(card);
+        // Restore focus if we were interacting
+        if (isInteracting && activeEl.id) {
+            const newEl = document.getElementById(activeEl.id);
+            if (newEl) newEl.focus();
+        }
     });
+
+    // Remove cards for bots that are no longer in the list
+    Array.from(office.querySelectorAll('.bot-card')).forEach(card => {
+        const botName = card.id.replace('bot-card-', '');
+        if (!bots.find(b => b.bot_name === botName)) {
+            office.removeChild(card);
+        }
+    });
+
+    // Handle initial sorting on the DOM if needed (they are appended in order of the sorted 'bots' array)
 
     // Logging changes
     if (bots.length !== lastFetchedCount) {
