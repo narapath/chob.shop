@@ -166,6 +166,10 @@ async function fetchLogs() {
 
         if (data.success) {
             renderLogs(data.logs);
+        } else {
+            console.error('API Error:', data.error);
+            const list = document.getElementById('workHistory');
+            list.innerHTML = `<div class="history-empty">⚠️ LOGS UNAVAILABLE: ${data.error || 'Unknown Error'}</div>`;
         }
     } catch (err) {
         console.error('Fetch logs error:', err);

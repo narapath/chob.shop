@@ -59,8 +59,9 @@ CREATE POLICY "Allow public heartbeats on extension_bots" ON extension_bots
 -- Create policy to allow service role full access
 CREATE POLICY "Allow all for service role on extension_bots" ON extension_bots
   FOR ALL TO service_role USING (true) WITH CHECK (true);
--- Create extension_logs table
-CREATE TABLE IF NOT EXISTS extension_logs (
+-- Re-initialize extension_logs table (Safe to run multiple times, will clear history)
+DROP TABLE IF EXISTS extension_logs;
+CREATE TABLE extension_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   bot_name TEXT NOT NULL,
   status TEXT DEFAULT 'INFO',
