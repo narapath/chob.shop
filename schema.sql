@@ -59,3 +59,28 @@ CREATE POLICY "Allow public heartbeats on extension_bots" ON extension_bots
 -- Create policy to allow service role full access
 CREATE POLICY "Allow all for service role on extension_bots" ON extension_bots
   FOR ALL TO service_role USING (true) WITH CHECK (true);
+-- Create extension_logs table
+CREATE TABLE IF NOT EXISTS extension_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  bot_name TEXT NOT NULL,
+  status TEXT DEFAULT 'INFO',
+  action TEXT DEFAULT 'LOG',
+  message TEXT,
+  details JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE extension_logs ENABLE ROW LEVEL SECURITY;
+
+-- Create policy to allow public read access
+CREATE POLICY "Allow public read access on extension_logs" ON extension_logs
+  FOR SELECT USING (true);
+
+-- Create policy to allow public to insert logs (from extension)
+CREATE POLICY "Allow public insert on extension_logs" ON extension_logs
+  FOR INSERT TO public WITH CHECK (true);
+
+-- Create policy to allow service role full access
+CREATE POLICY "Allow all for service role on extension_logs" ON extension_logs
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
