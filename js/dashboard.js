@@ -38,12 +38,20 @@ function renderOffice() {
         return;
     }
 
+    // Cache user selections to not lose them on re-render (every 2s)
+    if (!window.userSelectionCache) window.userSelectionCache = {};
+
     office.innerHTML = ''; // Clear
 
     bots.forEach(bot => {
         const isOffline = (Date.now() - new Date(bot.last_heartbeat).getTime()) > 120000; // > 2 mins
         const cardClass = isOffline ? 'offline' : (bot.status === 'active' ? 'active' : 'idle');
         const statusText = isOffline ? 'OFFLINE' : (bot.status === 'active' ? 'WORKING' : 'ZzZ_IDLE');
+
+        // Restore interval from cache if exists, otherwise from bot stats
+        const currentInterval = window.userSelectionCache[bot.bot_name] !== undefined
+            ? window.userSelectionCache[bot.bot_name]
+            : (bot.stats.interval || 15);
 
         // Pick an avatar based on bot name or random
         const avatar = getBotAvatar(bot.bot_name);
@@ -78,12 +86,13 @@ function renderOffice() {
             </div>
             <div class="bot-controls">
                 <div class="control-group">
-                    <select class="interval-select" id="interval-${bot.bot_name}">
-                        <option value="5" ${bot.stats.interval == 5 ? 'selected' : ''}>5 min</option>
-                        <option value="10" ${bot.stats.interval == 10 ? 'selected' : ''}>10 min</option>
-                        <option value="15" ${bot.stats.interval == 15 ? 'selected' : ''}>15 min</option>
-                        <option value="30" ${bot.stats.interval == 30 ? 'selected' : ''}>30 min</option>
-                        <option value="60" ${bot.stats.interval == 60 ? 'selected' : ''}>60 min</option>
+                    <select class="interval-select" id="interval-${bot.bot_name}" onchange="window.userSelectionCache['${bot.bot_name}'] = this.value">
+                        <option value="5" ${currentInterval == 5 ? 'selected' : ''}>5 min</option>
+                        <option value="10" ${currentInterval == 10 ? 'selected' : ''}>10 min</option>
+                        <option value="15" ${currentInterval == 15 ? 'selected' : ''}>15 min</option>
+                        <option value="30" ${currentInterval == 30 ? 'selected' : ''}>30 min</option>
+                        <option value="60" ${currentInterval == 60 ? 'selected' : ''}>60 min</option>
+                        <option value="120" ${currentInterval == 120 ? 'selected' : ''}>120 min</option>
                     </select>
                     <button class="ctrl-btn apply" onclick="handleCommand('${bot.bot_name}', 'SET_INTERVAL')">⚙️</button>
                 </div>
