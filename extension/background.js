@@ -19,31 +19,67 @@ chrome.runtime.onInstalled.addListener(() => {
     setupAlarms();
     migrateTemplate();
     console.log('[AutoPost] Extension installed/updated, alarms initialized.');
+
+    // Set side panel to open on action click (Chrome 116+)
+    if (chrome.sidePanel && chrome.sidePanel.setPanelOptions) {
+        chrome.sidePanel.setPanelOptions({
+            path: 'popup.html',
+            enabled: true
+        }).catch(err => console.error(err));
+    }
+});
+
+// Configure Side Panel (Global)
+if (chrome.sidePanel && chrome.sidePanel.setPanelOptions) {
+    chrome.sidePanel.setPanelOptions({
+        path: 'popup.html',
+        enabled: true
+    }).catch(err => console.error('[SidePanel] Config Error:', err));
+}
+
+// Open side panel on click
+chrome.action.onClicked.addListener((tab) => {
+    if (chrome.sidePanel && chrome.sidePanel.open) {
+        chrome.sidePanel.open({ windowId: tab.windowId }).catch(err => {
+            console.error('[SidePanel] Open Error:', err);
+        });
+    }
 });
 
 async function migrateTemplate() {
     chrome.storage.sync.get(['captionTemplate'], (result) => {
         if (result.captionTemplate) {
             let t = result.captionTemplate;
-            const toRemove = [
-                '✅ สินค้าคุณภาพดี คัดสรรมาเพื่อคุณ',
-                '🌟 ดีไซน์สวย ทันสมัย ใช้งานง่าย',
-                '💎 แข็งแรง ทนทาน คุ้มค่าที่สุด',
-                '🚀 พร้อมส่งด่วน สั่งซื้อได้เลยวันนี้!',
-                '#ช้อปปิ้งออนไลน์ #สินค้าดีบอกต่อ #คุ้มค่า #รับประกันคุณภาพ',
-                '💰 ราคาพิเศษเพียง:',
-                '📍 สนใจสั่งซื้อได้ที่นี่:'
-            ];
-            let modified = false;
-            toRemove.forEach(line => {
-                if (t.includes(line)) {
-                    t = t.replace(line, '').trim();
-                    modified = true;
+            // Aggressive Purge: If the template contains any of the legacy strings or emojis, force reset to minimal
+            const legacyMarkers = ['Shopee Thailand', 'งบประมาณ', 'พิกัดช้อป', '𝗕𝗲𝘀𝘁 𝗣𝗿𝗶𝗰𝗲𝘀', '✨', '💰', '📍'];
+            let needsReset = false;
+            for (const marker of legacyMarkers) {
+                if (t.includes(marker)) {
+                    needsReset = true;
+                    break;
                 }
-            });
+            }
+
+            if (needsReset || t.length < 5) {
+                t = '{{title}}\n{{desc}}\n\n{{link}}';
+                modified = true;
+            }
+
+            // Migrate format: ✨ {{title}} ✨ → {{title}} ✨
+            if (t.includes('✨ {{title}} ✨')) {
+                t = t.replace('✨ {{title}} ✨', '{{title}} ✨');
+                modified = true;
+            }
+
+            // Migrate emoji: 🏷️ → 💰
+            if (t.includes('🏷️')) {
+                t = t.replace(/🏷️/g, '💰');
+                modified = true;
+            }
+
             if (modified) {
                 // Clean up double newlines that might result from removal
-                t = t.replace(/\n\s*\n\s*\n/g, '\n\n').trim();
+                t = t.replace(/\n\s*\n\s*\n/g, '\n').trim();
                 chrome.storage.sync.set({ captionTemplate: t });
                 console.log('[Migration] Cleaned up caption template');
             }
@@ -89,8 +125,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         getAutoStatus().then(status => sendResponse(status));
         return true; // async
     } else if (request.action === 'GET_GROUPS') {
-        chrome.storage.sync.get('facebookGroups', (data) => {
-            sendResponse({ groups: data.facebookGroups || [] });
+        chrome.storage.sync.get('fbGroups', (data) => {
+            sendResponse({ groups: data.fbGroups || [] });
         });
         return true;
     } else if (request.action === 'UPDATE_INTERVAL') {
@@ -238,8 +274,9 @@ async function startAutoPost(intervalMinutes) {
         await chrome.storage.local.set({ autoPostState: state });
 
         console.log(`[AutoPost] Starting with interval: ${intervalMinutes} minutes`);
+        addLog(`🚀 บอทเริ่มทำงาน (ความถี่ ${intervalMinutes} นาที)`, 'SUCCESS', 'START');
 
-        // Schedule FIRST post immediately via alarm (best for MV3 persistence)
+        // Schedule FIRST post immediately via alarm
         await chrome.alarms.create(ALARM_NAME, { when: Date.now() + 1000 });
 
     } catch (err) {
@@ -319,7 +356,7 @@ async function executeAutoPost() {
         // 3. Get settings and products
         const { apiEndpoint, captionTemplate } = await chrome.storage.sync.get(['apiEndpoint', 'captionTemplate']);
         const endpoint = apiEndpoint || 'https://chob.shop';
-        const template = captionTemplate || '✨ {{title}} ✨\n\n{{desc}}\n\n🏷️ งบประมาณ: {{price}}.-\n📍 พิกัดของอยู่ตรงนี้:\n{{link}}';
+        const template = captionTemplate || '{{title}} ✨\n💰 งบประมาณ: {{price}}.-\n📍 พิกัดของอยู่ตรงนี้: {{link}}';
 
         let products;
         try {
@@ -341,36 +378,62 @@ async function executeAutoPost() {
         // 4. Pick random product
         const product = products[Math.floor(Math.random() * products.length)];
 
-        // 5. Pick current group (round-robin)
-        const groupIndex = autoPostState.groupIndex % fbGroups.length;
+        // 5. Pick random group (Avoids same-group repetitive posting)
+        const groupIndex = Math.floor(Math.random() * fbGroups.length);
         const group = fbGroups[groupIndex];
 
-        // 6. Generate caption
-        const link = (product.affiliateUrl && product.affiliateUrl.length > 5)
+        // 6. Generate caption & Dynamic Scrape
+        let displayTitle = product.title;
+        let b64Image = null;
+
+        const baseLink = (product.affiliateUrl && product.affiliateUrl.length > 5)
             ? product.affiliateUrl
             : `https://chob.shop/?productId=${product.id}`;
 
-        // Apply bold to title (Latin characters)
-        const displayTitle = toUnicodeBold(product.title || '');
+        addLog(`🔍 กำลังดึงข้อมูลล่าสุดจากลิงก์...`, 'INFO', 'SCRAPE_START');
 
-        let caption = template
-            .replace(/{{title}}/g, displayTitle)
+        try {
+            const scrapeResult = await scrapeProductData(baseLink);
+            if (scrapeResult && scrapeResult.success) {
+                displayTitle = scrapeResult.title || product.title;
+                b64Image = scrapeResult.base64;
+                console.log('[AutoPost] Scrape successful');
+            }
+        } catch (scrapeErr) {
+            console.warn('[AutoPost] Scrape failed:', scrapeErr);
+        }
+
+        // UNIFIED CAPTION LOGIC (Matched with popup.js)
+        const boldTitle = toUnicodeBold(displayTitle || '');
+        const currentTemplate = template || '{{title}} ✨\n{{desc}}\n\n💰 งบประมาณ: {{price}}.-\n📍 พิกัดช้อปตรงนี้เลยครับ 👇\n{{link}}';
+
+        let caption = currentTemplate
+            .replace(/{{title}}/g, boldTitle)
             .replace(/{{price}}/g, parseFloat(product.price || 0).toLocaleString())
-            .replace(/{{link}}/g, link + ' ') // Add space to prevent FB masking
+            .replace(/{{link}}/g, baseLink + ' ') // Trailing space is crucial
             .replace(/{{desc}}/g, product.description || '')
             .replace(/{{tags}}/g, '');
 
-        caption = caption.replace(/\n\s*\n/g, '\n\n').trim();
+        caption = caption.replace(/\n{3,}/g, '\n\n').trim();
+
+        // --- ABSOLUTE SELF-CORRECTION (Anti-Doubling) ---
+        if (caption.length > 60) {
+            const halfway = Math.floor(caption.length / 2);
+            const part1 = caption.substring(0, halfway).trim();
+            const part2 = caption.substring(halfway).trim();
+            if (part1 === part2 || part2.startsWith(part1)) {
+                console.warn('[AutoPost] Duplicate formatting detected, cutting in half.');
+                caption = part1;
+            }
+        }
 
         // 7. Navigate or find Facebook group tab
-        // Use lastFocusedWindow to find where the user is actually working
         const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
         let tabId;
         if (tabs.length > 0 && tabs[0].url && tabs[0].url.includes('facebook.com')) {
             tabId = tabs[0].id;
             await chrome.tabs.update(tabId, { url: group.url });
         } else {
-            // No active FB tab? Find any FB tab or create new
             const allFB = await chrome.tabs.query({ url: "*://*.facebook.com/*" });
             if (allFB.length > 0) {
                 tabId = allFB[0].id;
@@ -384,16 +447,16 @@ async function executeAutoPost() {
         // 8. Wait for page to load (8 seconds)
         await delay(8000);
 
-        // 8.5 Convert image to Base64 (Essential for manual upload bypass)
-        let b64Image = null;
-        if (product.image) {
-            console.log('[AutoPost] Converting image to Base64:', product.image);
+        // Fallback for image conversion if scrape didn't provide it
+        if (!b64Image && product.image) {
+            console.log('[AutoPost] Scrape was missing base64, converting DB image instead');
             b64Image = await imageUrlToBase64(product.image);
         }
 
         // 9. Send fill command
         let postLink = null;
         try {
+            console.log('[AutoPost] Sending FILL_POST command for group:', group.name);
             const response = await chrome.tabs.sendMessage(tabId, {
                 action: 'FILL_POST',
                 data: {
@@ -403,24 +466,11 @@ async function executeAutoPost() {
             });
             postLink = response ? response.postLink : null;
         } catch (msgErr) {
-            // Content script might not be loaded yet, retry once after 5s
-            console.warn('[AutoPost] First message failed, retrying...', msgErr);
-            await delay(5000);
-            try {
-                const response = await chrome.tabs.sendMessage(tabId, {
-                    action: 'FILL_POST',
-                    data: { caption, imageUrl: product.image }
-                });
-                postLink = response ? response.postLink : null;
-            } catch (retryErr) {
-                addLog(`❌ กลุ่ม "${group.name}" - ส่งคำสั่งไม่ได้ (รีเฟรชหน้าใหม่)`);
-                await scheduleNextAlarm(autoPostState);
-                return;
-            }
+            console.error('[AutoPost] Message failed, skipping retry to prevent doubling.', msgErr);
+            addLog(`❌ กลุ่ม "${group.name}" - ส่งคำสั่งไม่สำเร็จ (ข้ามเพื่อกันโพสต์ซ้ำ)`);
         }
 
         // 10. Update state
-        autoPostState.groupIndex = groupIndex + 1;
         autoPostState.postCount += 1;
         autoPostState.lastPostTime = Date.now();
 
@@ -617,6 +667,22 @@ async function sendHeartbeat() {
         }
     } catch (err) {
         console.error('[Heartbeat] Critical Error:', err.message);
+    }
+}
+
+async function imageUrlToBase64(url) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (e) {
+        console.error('[AutoPost] Failed to convert image:', e);
+        return null;
     }
 }
 

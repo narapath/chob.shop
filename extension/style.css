@@ -17,12 +17,24 @@
 }
 
 body {
-    width: 350px;
-    height: 550px;
+    width: 100%;
+    min-width: 350px;
+    max-width: 450px;
+    height: 100vh;
+    min-height: 550px;
     background-color: var(--bg);
     color: var(--text);
     font-family: 'Prompt', 'Inter', sans-serif;
     overflow: hidden;
+    margin: 0;
+}
+
+/* For the actual popup (not side panel), Chrome respects these dimensions */
+@media screen and (max-width: 500px) {
+    body {
+        width: 350px;
+        height: 550px;
+    }
 }
 
 .app {

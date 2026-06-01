@@ -3,17 +3,14 @@ let groups = [];
 const settings = {
     botName: '',
     apiEndpoint: 'https://chob.shop', // Default
-    captionTemplate: '✨ {{title}} ✨\n\n{{desc}}\n\n🏷️ งบประมาณ: {{price}}.-\n📍 พิกัดของอยู่ตรงนี้:\n{{link}}'
+    captionTemplate: '{{title}}\n{{desc}}\n\n{{link}}'
 };
 let currentTabIsFBGroup = false;
 let displayLimit = 10;
 const ITEMS_PER_PAGE = 10;
 const scrapedImages = new Map(); // Store high-res Base64 images here
 
-async function copyToClipboard(id) {
-    const p = products.find(prod => prod.id == id);
-    if (!p) return;
-
+function getFormattedCaption(p) {
     const link = (p.affiliateUrl && p.affiliateUrl.length > 5)
         ? p.affiliateUrl
         : `https://chob.shop/?productId=${p.id}`;
@@ -28,8 +25,29 @@ async function copyToClipboard(id) {
         .replace(/{{desc}}/g, p.description || '')
         .replace(/{{tags}}/g, '');
 
-    // Safety: Ensure double newlines
-    caption = caption.replace(/\n\s*\n/g, '\n\n').trim();
+    // Standardize newlines
+    caption = caption.replace(/\n{3,}/g, '\n\n').trim();
+
+    // --- ABSOLUTE SELF-CORRECTION (Anti-Doubling) ---
+    // Detects if the entire content is duplicated (e.g. "Text Text")
+    if (caption.length > 60) {
+        const halfway = Math.floor(caption.length / 2);
+        const part1 = caption.substring(0, halfway).trim();
+        const part2 = caption.substring(halfway).trim();
+        if (part1 === part2 || part2.startsWith(part1)) {
+            console.warn('[ChobShop] Duplicate formatting detected, cutting in half.');
+            caption = part1;
+        }
+    }
+
+    return caption;
+}
+
+async function copyToClipboard(id) {
+    const p = products.find(prod => prod.id == id);
+    if (!p) return;
+
+    const caption = getFormattedCaption(p);
 
     try {
         await navigator.clipboard.writeText(caption);
@@ -61,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function checkCurrentTab() {
     return new Promise((resolve) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
             if (tabs[0] && tabs[0].url) {
                 currentTabIsFBGroup = tabs[0].url.includes('facebook.com/groups/');
             }
@@ -187,7 +205,7 @@ function initEventListeners() {
 
     // Auto-Connect API Button
     document.getElementById('btnAutoConnect').addEventListener('click', () => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
             const activeTab = tabs[0];
             if (activeTab && activeTab.url && activeTab.url.startsWith('http')) {
                 try {
@@ -318,7 +336,7 @@ function renderGroups() {
     list.querySelectorAll('.group-link').forEach(link => {
         link.addEventListener('click', () => {
             const url = link.dataset.url;
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
                 if (tabs[0]) {
                     chrome.tabs.update(tabs[0].id, { url: url }, async () => {
                         // After navigation, re-check tab status to refresh UI
@@ -410,11 +428,6 @@ function renderProducts() {
                 <div class="prod-meta">
                     <div class="prod-price">฿${parseFloat(p.price).toLocaleString()}</div>
                     <div class="prod-actions">
-                        ${currentTabIsFBGroup ? `
-                            <button class="btn-sm btn-group-post" data-id="${p.id}" title="โพสต์ลงกลุ่มนี้">
-                                <span>📍</span> ลงกลุ่มนี้
-                            </button>
-                        ` : ''}
                         <button class="btn-sm btn-scrape" data-id="${p.id}" title="ดึงรูปต้นฉบับ">
                             <span>🔍</span> ดึงรูป
                         </button>
@@ -439,9 +452,6 @@ function renderProducts() {
         btn.addEventListener('click', () => copyToClipboard(btn.dataset.id));
     });
 
-    list.querySelectorAll('.btn-group-post').forEach(btn => {
-        btn.addEventListener('click', () => postToCurrentGroup(btn.dataset.id));
-    });
 
     list.querySelectorAll('.btn-scrape').forEach(btn => {
         btn.addEventListener('click', () => scrapeAndPreview(btn.dataset.id, btn));
@@ -462,24 +472,9 @@ async function postToCurrentGroup(id) {
         return;
     }
 
-    const link = (p.affiliateUrl && p.affiliateUrl.length > 5)
-        ? p.affiliateUrl
-        : `https://chob.shop/?productId=${p.id}`;
+    const caption = getFormattedCaption(p);
 
-    // Apply bold to title (Latin characters)
-    const displayTitle = toUnicodeBold(p.title || '');
-
-    let caption = settings.captionTemplate
-        .replace(/{{title}}/g, displayTitle)
-        .replace(/{{price}}/g, parseFloat(p.price || 0).toLocaleString())
-        .replace(/{{link}}/g, link + ' ') // Add space to prevent FB masking
-        .replace(/{{desc}}/g, p.description || '')
-        .replace(/{{tags}}/g, '');
-
-    // Safety: Ensure double newlines
-    caption = caption.replace(/\n\s*\n/g, '\n\n').trim();
-
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
         if (tabs[0]) {
             chrome.tabs.sendMessage(tabs[0].id, {
                 action: 'FILL_POST',
@@ -543,6 +538,14 @@ function toggleAutoPost() {
             setTimeout(refreshAutoStatus, 100);
         });
     } else {
+        // Pre-flight check: Ensure groups exist
+        if (!groups || groups.length === 0) {
+            alert('⚠️ กรุณาเพิ่มกลุ่ม Facebook ก่อนเริ่มออโต้โพสต์ (ในแท็บ "กลุ่มของฉัน")');
+            // Switch to groups tab for them
+            document.querySelector('.tab-btn[data-tab="groups"]').click();
+            return;
+        }
+
         // Start
         const interval = parseInt(document.getElementById('autoInterval').value);
         chrome.runtime.sendMessage({ action: 'START_AUTO_POST', intervalMinutes: interval }, (res) => {
@@ -553,7 +556,10 @@ function toggleAutoPost() {
             if (res && res.success) {
                 showToast('▶️ เริ่มออโต้โพสต์แล้ว!');
             } else if (res && res.error) {
-                alert('Error from Background: ' + res.error);
+                alert('⚠️ ตรวจพบปัญหาจากระบบหลังบ้าน: ' + res.error);
+            } else {
+                console.warn('[AutoPost] Unknown response from background:', res);
+                showToast('⚠️ ระบบกำลังเริ่ม... กรุณารอสักครู่');
             }
             setTimeout(refreshAutoStatus, 500);
         });
