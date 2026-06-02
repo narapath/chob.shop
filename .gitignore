@@ -40,3 +40,6 @@ Thumbs.db
 products.json
 products_backup.json
 .vercel
+
+# Agent State
+.gemini/

@@ -15,32 +15,43 @@ function getFormattedCaption(p) {
         ? p.affiliateUrl
         : `https://chob.shop/?productId=${p.id}`;
 
-    // Apply bold to title (Latin characters)
-    const displayTitle = toUnicodeBold(p.title || '');
+    const displayTitle = toUnicodeBold(p.title || 'สินค้าคุณภาพดี');
+    const displayDesc = p.description || '';
 
+    // 1. Core Replacement
     let caption = settings.captionTemplate
         .replace(/{{title}}/g, displayTitle)
         .replace(/{{price}}/g, parseFloat(p.price || 0).toLocaleString())
-        .replace(/{{link}}/g, link + ' ') // Add space to prevent FB masking
-        .replace(/{{desc}}/g, p.description || '')
+        .replace(/{{link}}/g, link + '\n')
+        .replace(/{{desc}}/g, displayDesc)
         .replace(/{{tags}}/g, '');
 
-    // Standardize newlines
-    caption = caption.replace(/\n{3,}/g, '\n\n').trim();
-
-    // --- ABSOLUTE SELF-CORRECTION (Anti-Doubling) ---
-    // Detects if the entire content is duplicated (e.g. "Text Text")
-    if (caption.length > 60) {
-        const halfway = Math.floor(caption.length / 2);
-        const part1 = caption.substring(0, halfway).trim();
-        const part2 = caption.substring(halfway).trim();
-        if (part1 === part2 || part2.startsWith(part1)) {
-            console.warn('[ChobShop] Duplicate formatting detected, cutting in half.');
-            caption = part1;
+    // 2. High-Resilience De-duplication (Pattern Matching)
+    // We check if any significant block of text (20+ chars) is repeated.
+    const sanitizeResult = (str) => {
+        const lines = str.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const seen = new Set();
+        const uniqueLines = [];
+        for (const line of lines) {
+            if (!seen.has(line)) {
+                uniqueLines.push(line);
+                seen.add(line);
+            }
         }
+        return uniqueLines.join('\n');
+    };
+
+    caption = sanitizeResult(caption);
+
+    // Final check for 50/50 binary doubling (FB Lexical specific)
+    if (caption.length > 40) {
+        const halfway = Math.floor(caption.length / 2);
+        const p1 = caption.substring(0, halfway).trim();
+        const p2 = caption.substring(halfway).trim();
+        if (p1 === p2 || p2.startsWith(p1)) caption = p1;
     }
 
-    return caption;
+    return caption.trim();
 }
 
 async function copyToClipboard(id) {
@@ -90,32 +101,61 @@ async function checkCurrentTab() {
 
 async function loadSettings() {
     return new Promise((resolve) => {
-        chrome.storage.sync.get(['apiEndpoint', 'captionTemplate', 'botName'], (result) => {
-            if (result.apiEndpoint) settings.apiEndpoint = result.apiEndpoint;
-            if (result.captionTemplate) settings.captionTemplate = result.captionTemplate;
-            if (result.botName) settings.botName = result.botName;
+        chrome.storage.local.get(['apiEndpoint', 'botName'], (localRes) => {
+            chrome.storage.sync.get(['apiEndpoint', 'botName', 'captionTemplate'], (syncRes) => {
+                // Migration: If local is missing but sync has it, use sync and save to local
+                if (!localRes.apiEndpoint && syncRes.apiEndpoint) {
+                    settings.apiEndpoint = syncRes.apiEndpoint;
+                    chrome.storage.local.set({ apiEndpoint: syncRes.apiEndpoint });
+                } else if (localRes.apiEndpoint) {
+                    settings.apiEndpoint = localRes.apiEndpoint;
+                }
 
-            // Populate settings UI
-            document.getElementById('apiEndpoint').value = settings.apiEndpoint;
-            document.getElementById('captionTemplate').value = settings.captionTemplate;
-            document.getElementById('botName').value = settings.botName || '';
-            resolve();
+                if (!localRes.botName && syncRes.botName) {
+                    settings.botName = syncRes.botName;
+                    chrome.storage.local.set({ botName: syncRes.botName });
+                } else if (localRes.botName) {
+                    settings.botName = localRes.botName;
+                }
+
+                if (syncRes.captionTemplate) settings.captionTemplate = syncRes.captionTemplate;
+
+                // Populate UI
+                document.getElementById('apiEndpoint').value = settings.apiEndpoint;
+                document.getElementById('captionTemplate').value = settings.captionTemplate;
+                document.getElementById('botName').value = settings.botName || '';
+                resolve();
+            });
         });
     });
 }
 
 async function loadGroups() {
     return new Promise((resolve) => {
-        chrome.storage.sync.get(['fbGroups'], (result) => {
-            groups = result.fbGroups || [];
-            renderGroups();
-            resolve();
+        chrome.storage.local.get(['fbGroups'], (result) => {
+            if (result.fbGroups && result.fbGroups.length > 0) {
+                groups = result.fbGroups;
+                renderGroups();
+                resolve();
+            } else {
+                // Migration: Check sync storage if local is empty
+                chrome.storage.sync.get(['fbGroups'], (syncResult) => {
+                    if (syncResult.fbGroups && syncResult.fbGroups.length > 0) {
+                        groups = syncResult.fbGroups;
+                        chrome.storage.local.set({ fbGroups: groups });
+                        renderGroups();
+                    } else {
+                        groups = [];
+                    }
+                    resolve();
+                });
+            }
         });
     });
 }
 
 function saveGroups() {
-    chrome.storage.sync.set({ fbGroups: groups }, () => {
+    chrome.storage.local.set({ fbGroups: groups }, () => {
         renderGroups();
     });
 }
@@ -148,7 +188,7 @@ function initEventListeners() {
             btn.classList.add('active');
 
             const tab = btn.dataset.tab;
-            const views = ['productsView', 'groupsView', 'autoView', 'scraperView'];
+            const views = ['productsView', 'groupsView', 'autoView', 'scraperView', 'historyView'];
             views.forEach(v => document.getElementById(v).classList.add('hidden'));
 
             // Show/hide search bar and filters (only for products tab)
@@ -171,8 +211,22 @@ function initEventListeners() {
             } else if (tab === 'scraper') {
                 document.getElementById('scraperView').classList.remove('hidden');
                 stopAutoPolling();
+            } else if (tab === 'history') {
+                document.getElementById('historyView').classList.remove('hidden');
+                renderHistory();
+                stopAutoPolling();
             }
         });
+    });
+
+    // History Listeners
+    document.getElementById('historySearchInput')?.addEventListener('input', () => renderHistory());
+    document.getElementById('clearHistoryBtn')?.addEventListener('click', async () => {
+        if (confirm('คุณแน่ใจหรือไม่ว่าต้องการล้างประวัติการโพสต์ทั้งหมด?')) {
+            await chrome.storage.local.set({ postHistory: [] });
+            renderHistory();
+            showToast('🗑️ ล้างประวัติแล้ว');
+        }
     });
 
     // Scraper Initialization
@@ -274,15 +328,16 @@ function initEventListeners() {
         const template = document.getElementById('captionTemplate').value;
         const botName = document.getElementById('botName').value.trim();
 
-        chrome.storage.sync.set({ apiEndpoint: api, captionTemplate: template, botName: botName }, () => {
-            settings.apiEndpoint = api;
-            settings.captionTemplate = template;
-            settings.botName = botName;
-            document.getElementById('settingsView').classList.add('hidden');
-            fetchProducts(); // Refetch with new endpoint
+        chrome.storage.local.set({ apiEndpoint: api, botName: botName }, () => {
+            chrome.storage.sync.set({ captionTemplate: template }, () => {
+                settings.apiEndpoint = api;
+                settings.captionTemplate = template;
+                settings.botName = botName;
+                document.getElementById('settingsView').classList.add('hidden');
+                fetchProducts();
 
-            // Trigger an immediate heartbeat update
-            chrome.runtime.sendMessage({ action: 'SEND_HEARTBEAT' });
+                chrome.runtime.sendMessage({ action: 'SEND_HEARTBEAT' });
+            });
         });
     });
 }
@@ -290,30 +345,55 @@ function initEventListeners() {
 // --- Data Fetching ---
 async function fetchProducts() {
     const list = document.getElementById('productList');
-    // Keep skeleton while loading
 
+    // 1. Try to load from cache immediately
+    try {
+        const cached = await chrome.storage.local.get('products');
+        if (cached.products && cached.products.length > 0) {
+            products = cached.products;
+            renderProducts();
+            document.querySelector('.status-dot').style.backgroundColor = '#10b981';
+        }
+    } catch (e) {
+        console.warn('Cache load failed:', e);
+    }
+
+    // 2. Try to update from server
     try {
         const response = await fetch(`${settings.apiEndpoint}/api/products`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
         const data = await response.json();
         const rawProducts = Array.isArray(data) ? data : (data.products || []);
 
-        // Randomize products
-        products = rawProducts.sort(() => Math.random() - 0.5);
-
-        renderProducts();
-        document.querySelector('.status-dot').style.backgroundColor = '#10b981'; // Green
+        if (rawProducts.length > 0) {
+            // Only randomize if we don't have products yet (first load)
+            if (products.length === 0) {
+                products = rawProducts.sort(() => Math.random() - 0.5);
+            } else {
+                // Update existing products but keep order if possible, or just update data
+                products = rawProducts;
+            }
+            // PERSIST
+            await chrome.storage.local.set({ products: products });
+            renderProducts();
+            document.querySelector('.status-dot').style.backgroundColor = '#10b981';
+        }
     } catch (err) {
         console.error('Fetch error:', err);
-        list.innerHTML = `
-            <div class="error-msg">
-                <div class="error-icon">⚠️</div>
-                <div class="error-title">เชื่อมต่อคลังสินค้าไม่ได้</div>
-                <div class="error-detail">${err.message}</div>
-                <button id="retryBtn" class="btn-secondary btn-sm" style="margin-top:10px">ลองใหม่</button>
-                <p style="font-size:10px; color:var(--text-dim); margin-top:10px;">ตรวจสอบ URL ในหน้าตั้งค่า (ฟันเฟือง)</p>
-            </div>`;
-        document.querySelector('.status-dot').style.backgroundColor = '#ef4444'; // Red
-        document.getElementById('retryBtn')?.addEventListener('click', fetchProducts);
+        // Only show error if we have NO products at all
+        if (products.length === 0) {
+            list.innerHTML = `
+                <div class="error-msg">
+                    <div class="error-icon">⚠️</div>
+                    <div class="error-title">เชื่อมต่อคลังสินค้าไม่ได้</div>
+                    <div class="error-detail">${err.message}</div>
+                    <button id="retryBtn" class="btn-secondary btn-sm" style="margin-top:10px">ลองใหม่</button>
+                </div>
+            `;
+            document.querySelector('.status-dot').style.backgroundColor = '#ef4444'; // Red
+            document.getElementById('retryBtn')?.addEventListener('click', fetchProducts);
+        }
     }
 }
 
@@ -486,7 +566,12 @@ async function postToCurrentGroup(id) {
                 if (chrome.runtime.lastError) {
                     showToast('⚠️ โปรด Refresh หน้า Facebook ก่อนใช้งานครั้งแรก');
                 } else if (response && response.success) {
-                    showToast('✅ กรอกข้อมูลลงหน้าเว็บแล้ว!');
+                    const result = response.postLink || { status: 'FAILED' };
+                    if (result.status === 'PENDING') {
+                        showToast('⏳ ส่งแล้ว (รอผู้ดูแลอนุมัติ)');
+                    } else {
+                        showToast('✅ กรอกข้อมูลลงหน้าเว็บแล้ว!');
+                    }
                 }
             });
         }
@@ -574,7 +659,7 @@ function refreshAutoStatus() {
             return;
         }
 
-        if (!response) {
+        if (!response || !response.state) {
             console.warn('No response from status check');
             return;
         }
@@ -586,15 +671,39 @@ function refreshAutoStatus() {
         // Status Badge
         const badge = document.getElementById('autoStatusBadge');
         const statusText = document.getElementById('autoStatusText');
+        const hero = document.getElementById('autoHero');
+        const statusTextLarge = document.getElementById('autoStatusTextLarge');
+        const subtext = document.getElementById('autoSubtext');
+        const botIcon = document.getElementById('botIcon');
+        const liveBadge = document.getElementById('liveBadge');
+        const progress = document.getElementById('botProgress');
+
+        // Reset classes
+        hero.classList.remove('running', 'posting');
+        statusTextLarge.className = 'hero-status-text';
+        liveBadge.style.display = 'none';
+        progress.style.display = 'none';
+
         if (isPosting) {
-            badge.classList.add('running');
-            statusText.textContent = '🚀 กำลังเตรียมโพสต์...';
+            hero.classList.add('running', 'posting');
+            statusTextLarge.textContent = 'กำลังโพสต์...';
+            statusTextLarge.classList.add('status-posting');
+            subtext.textContent = 'ระบบกำลังส่งข้อมูลไปยังกลุ่ม Facebook';
+            botIcon.textContent = '🚀';
+            liveBadge.style.display = 'inline-flex';
+            progress.style.display = 'block';
         } else if (isRunning) {
-            badge.classList.add('running');
-            statusText.textContent = '🟢 กำลังทำงาน';
+            hero.classList.add('running');
+            statusTextLarge.textContent = 'ระบบกำลังทำงาน';
+            statusTextLarge.classList.add('status-active');
+            subtext.textContent = 'เตรียมความพร้อมสำหรับโพสต์ถัดไป';
+            botIcon.textContent = '🟢';
+            liveBadge.style.display = 'inline-flex';
         } else {
-            badge.classList.remove('running');
-            statusText.textContent = '🔴 หยุดอยู่';
+            statusTextLarge.textContent = 'หยุดทำงาน';
+            statusTextLarge.classList.add('status-idle');
+            subtext.textContent = 'กดเริ่มเพื่อเริ่มระบบโพสต์ออโต้';
+            botIcon.textContent = '🤖';
         }
 
         // Toggle Button
@@ -606,7 +715,7 @@ function refreshAutoStatus() {
             intervalSelect.disabled = true;
         } else {
             btn.className = 'auto-start-btn';
-            btn.innerHTML = '<span class="auto-btn-icon">▶️</span><span class="auto-btn-text">เริ่มออโต้</span>';
+            btn.innerHTML = '<span class="auto-btn-icon">▶️</span><span class="auto-btn-text">เริ่มระบบออโต้</span>';
             intervalSelect.disabled = false;
         }
 
@@ -619,20 +728,22 @@ function refreshAutoStatus() {
         document.getElementById('statPostCount').textContent = state.postCount || 0;
 
         // Current group
-        chrome.storage.sync.get(['fbGroups'], (result) => {
+        chrome.storage.local.get(['fbGroups'], (result) => {
             const fbGroups = result.fbGroups || [];
+            const el = document.getElementById('statCurrentGroup');
             if (fbGroups.length > 0 && state.groupIndex !== undefined) {
                 const idx = state.groupIndex % fbGroups.length;
                 const groupName = fbGroups[idx]?.name || '-';
-                document.getElementById('statCurrentGroup').textContent = groupName.length > 6 ? groupName.substring(0, 6) + '..' : groupName;
+                el.textContent = groupName;
+                el.title = groupName; // Show full name on hover
             } else {
-                document.getElementById('statCurrentGroup').textContent = '-';
+                el.textContent = '-';
             }
         });
 
         // Countdown
         if (isPosting) {
-            document.getElementById('statCountdown').textContent = 'Processing..';
+            document.getElementById('statCountdown').textContent = 'Live';
         } else if (nextAlarm && isRunning) {
             updateCountdown(nextAlarm);
         } else {
@@ -671,15 +782,68 @@ function renderAutoLog(log) {
 
     list.innerHTML = log.map(entry => {
         const isError = entry.includes('❌');
-
-        // Convert URLs to clickable links
-        // Regex to find http/https links
         const linkRegex = /(https?:\/\/[^\s]+)/g;
-        let html = entry.replace(linkRegex, (url) => {
-            return `<a href="${url}" target="_blank" class="log-link">ดูโพสต์</a>`;
+        let mainContent = entry;
+        let actionHtml = '';
+
+        // Extract last link to be the action button
+        const links = entry.match(linkRegex);
+        if (links && links.length > 0) {
+            const lastLink = links[links.length - 1];
+            mainContent = entry.replace(lastLink, '').replace(/\s*\|\s*$/, '').trim();
+            actionHtml = `<a href="${lastLink}" target="_blank" class="log-action">ดูโพสต์</a>`;
+        }
+
+        return `
+            <div class="log-entry ${isError ? 'error' : ''}">
+                <div class="log-content">${mainContent}</div>
+                ${actionHtml}
+            </div>
+        `;
+    }).join('');
+}
+
+async function renderHistory() {
+    const list = document.getElementById('historyList');
+    const search = document.getElementById('historySearchInput').value.toLowerCase();
+
+    const { postHistory = [] } = await chrome.storage.local.get('postHistory');
+
+    const filtered = postHistory.filter(h =>
+        h.groupName.toLowerCase().includes(search) ||
+        h.productTitle.toLowerCase().includes(search)
+    );
+
+    if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-msg">🚫 ไม่พบประวัติการโพสต์</div>';
+        return;
+    }
+
+    list.innerHTML = filtered.map(h => {
+        const time = new Date(h.timestamp).toLocaleString('th-TH', {
+            hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short'
         });
 
-        return `<div class="auto-log-entry${isError ? ' error' : ''}">${html}</div>`;
+        return `
+            <div class="product-card" style="padding: 10px;">
+                <img src="${h.image || 'https://via.placeholder.com/60'}" class="prod-img" style="width: 50px; height: 50px;">
+                <div class="prod-info">
+                    <div class="prod-title" style="font-size: 12px; margin-bottom: 2px;">${h.productTitle}</div>
+                    <div style="font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center;">
+                        <span>👥 ${h.groupName}</span>
+                        <span>⏰ ${time}</span>
+                    </div>
+                    <div style="margin-top: 6px; display: flex; gap: 8px;">
+                        ${h.status === 'PENDING'
+                ? `<span style="font-size: 10px; color: #f59e0b; font-weight: bold;">⏳ รออนุมัติ</span>`
+                : h.link
+                    ? `<a href="${h.link}" target="_blank" class="btn-sm btn-copy" style="text-decoration: none; padding: 4px 10px;">🔗 ดูโพสต์</a>`
+                    : `<span style="font-size: 10px; color: var(--error);">❌ ไม่มีลิงก์</span>`
+            }
+                    </div>
+                </div>
+            </div>
+        `;
     }).join('');
 }
 

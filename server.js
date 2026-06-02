@@ -279,8 +279,20 @@ app.put('/api/settings', requireAuth, async (req, res) => {
 // --- Bot Dashboard API ---
 
 // POST Bot Heartbeat (Public, for the extension)
-app.post('/api/bots/heartbeat', async (req, res) => {
-  const { bot_name, browser_type, status, stats, version, ack_command_ts, new_logs } = req.body;
+// Supports both legacy /api/heartbeat and new /api/bots/heartbeat
+const handleHeartbeat = async (req, res) => {
+  // Normalize fields between legacy extension (name, logs) and current schema (bot_name, new_logs)
+  const bot_name = req.body.bot_name || req.body.name;
+  const status = req.body.status;
+  const stats = req.body.stats || {
+    postCount: req.body.postCount,
+    lastActive: req.body.lastActive,
+    ping: req.body.ping
+  };
+  const browser_type = req.body.browser_type;
+  const version = req.body.version;
+  const ack_command_ts = req.body.ack_command_ts;
+  const new_logs = req.body.new_logs || req.body.logs;
 
   console.log(`🤖 [Heartbeat] Received from "${bot_name}" (Status: ${status}, Logs: ${new_logs ? new_logs.length : 0})`);
 
@@ -355,7 +367,10 @@ app.post('/api/bots/heartbeat', async (req, res) => {
     console.error(`❌ [Heartbeat Server Error]`, err);
     res.status(500).json({ success: false, error: err.message });
   }
-});
+};
+
+app.post('/api/bots/heartbeat', handleHeartbeat);
+app.post('/api/heartbeat', handleHeartbeat);
 
 // POST Send Command to Bot (Protected)
 app.post('/api/bots/command', requireAuth, async (req, res) => {

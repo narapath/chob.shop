@@ -40,10 +40,11 @@
         </div>
 
         <div class="tabs">
-            <div class="tab-btn" data-tab="products">สินค้า</div>
-            <div class="tab-btn" data-tab="groups">กลุ่มของฉัน</div>
+            <div class="tab-btn" data-tab="products">📦 สินค้า</div>
+            <div class="tab-btn" data-tab="groups">👥 กลุ่ม</div>
             <div class="tab-btn active" data-tab="auto">🤖 ออโต้</div>
-            <div class="tab-btn" data-tab="scraper">🔍 ดึงข้อมูล</div>
+            <div class="tab-btn" data-tab="scraper">🔎 ดึงรูป</div>
+            <div class="tab-btn" data-tab="history">📜 ประวัติ</div>
         </div>
 
         <div id="productsView" class="hidden">
@@ -94,18 +95,46 @@
             </div>
         </div>
 
-        <div id="autoView">
+        <div id="autoView" class="hidden">
             <div class="auto-panel">
-                <!-- Status Badge -->
-                <div class="auto-status-badge" id="autoStatusBadge">
-                    <div class="status-indicator" id="autoIndicator"></div>
-                    <span id="autoStatusText">หยุดอยู่</span>
+                <!-- Premium Hero Dashboard -->
+                <div class="hero-dashboard glass-card" id="autoHero">
+                    <div class="live-badge" id="liveBadge" style="display:none;">
+                        <span class="status-dot" style="width:6px;height:6px;"></span>
+                        LIVE
+                    </div>
+                    <div class="bot-status-ring">
+                        <div class="status-pulse" id="statusPulse"></div>
+                        <i id="botIcon">🤖</i>
+                    </div>
+                    <h2 class="hero-status-text" id="autoStatusTextLarge">พร้อมทำงาน</h2>
+                    <p class="hero-subtext" id="autoSubtext">เลือกความถี่แล้วกดปุ่มเริ่มด้านล่าง</p>
+
+                    <div class="progress-container" id="botProgress" style="display:none;">
+                        <div class="progress-bar" id="botProgressBar"></div>
+                    </div>
+                </div>
+
+                <!-- Modern Stats Grid -->
+                <div class="modern-grid">
+                    <div class="modern-stat glass-card">
+                        <span class="modern-stat-value" id="statPostCount">0</span>
+                        <span class="modern-stat-label">สำเร็จ</span>
+                    </div>
+                    <div class="modern-stat glass-card">
+                        <span class="modern-stat-value" id="statCurrentGroup">...</span>
+                        <span class="modern-stat-label">กลุ่มถัดไป</span>
+                    </div>
+                    <div class="modern-stat glass-card">
+                        <span class="modern-stat-value" id="statCountdown">--:--</span>
+                        <span class="modern-stat-label">รอโพสต์</span>
+                    </div>
                 </div>
 
                 <!-- Controls -->
                 <div class="auto-controls">
                     <div class="auto-interval">
-                        <label>⏱️ ความถี่โพสต์</label>
+                        <label>⏱️ ความถี่ในการโพสต์</label>
                         <select id="autoInterval">
                             <option value="10">ทุก 10 นาที</option>
                             <option value="15">ทุก 15 นาที</option>
@@ -116,34 +145,18 @@
                     </div>
                     <button id="autoToggleBtn" class="auto-start-btn">
                         <span class="auto-btn-icon">▶️</span>
-                        <span class="auto-btn-text">เริ่มออโต้</span>
+                        <span class="auto-btn-text">เริ่มระบบออโต้</span>
                     </button>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="auto-stats">
-                    <div class="stat-card">
-                        <div class="stat-value" id="statPostCount">0</div>
-                        <div class="stat-label">โพสต์แล้ว</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="statCurrentGroup">-</div>
-                        <div class="stat-label">กลุ่มถัดไป</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="statCountdown">--:--</div>
-                        <div class="stat-label">โพสต์ถัดไป</div>
-                    </div>
                 </div>
 
                 <!-- Activity Log -->
                 <div class="auto-log-section">
                     <div class="auto-log-header">
-                        <span>📋 ประวัติการโพสต์</span>
+                        <span>📋 ประวัติการทำงานล่าสุด</span>
                         <span class="auto-log-count" id="logCount">0 รายการ</span>
                     </div>
                     <div class="auto-log-list" id="autoLogList">
-                        <div class="auto-log-empty">ยังไม่มีประวัติการโพสต์</div>
+                        <div class="auto-log-empty">ยังไม่มีบันทึกการทำงาน</div>
                     </div>
                 </div>
             </div>
@@ -180,6 +193,20 @@
                     <p style="font-size: 12px; margin-top: 10px; color: #94a3b8;">กำลังดึงข้อมูล... อาจใช้เวลาสักครู่
                     </p>
                 </div>
+            </div>
+        </div>
+
+        <!-- History View -->
+        <div id="historyView" class="hidden">
+            <div class="group-header">
+                <h3>📜 ประวัติการโพสต์</h3>
+                <button id="clearHistoryBtn" class="btn-sm btn-img" style="color: var(--error);">ล้างทั้งหมด</button>
+            </div>
+            <div class="search-container" style="padding-top: 0;">
+                <input type="text" id="historySearchInput" placeholder="ค้นหาประวัติ...">
+            </div>
+            <div id="historyList" class="group-list">
+                <!-- History Cards will be injected here -->
             </div>
         </div>
 

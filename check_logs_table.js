@@ -3,29 +3,24 @@ require('dotenv').config();
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-async function checkLogsTable() {
-    console.log('--- Database Verification ---');
-    console.log('URL:', process.env.SUPABASE_URL);
+async function checkTables() {
+    console.log('--- Database Table Check ---');
 
-    console.log('\n1. Checking extension_bots...');
-    const botRes = await supabase.from('extension_bots').select('count', { count: 'exact', head: true });
-    if (botRes.error) {
-        console.error('❌ extension_bots error:', botRes.error.message);
+    // Check extension_bots
+    const { error: botsError } = await supabase.from('extension_bots').select('count', { count: 'exact', head: true });
+    if (botsError) {
+        console.log('❌ extension_bots table:', botsError.message);
     } else {
-        console.log('✅ extension_bots exists. Rows:', botRes.count);
+        console.log('✅ extension_bots table: Found');
     }
 
-    console.log('\n2. Checking extension_logs...');
-    const logRes = await supabase.from('extension_logs').select('count', { count: 'exact', head: true });
-    if (logRes.error) {
-        console.error('❌ extension_logs error:', logRes.error.message);
-        if (logRes.error.code === 'PGRST205' || logRes.error.code === '42P01') {
-            console.warn('\n⚠️  ACTION REQUIRED: The "extension_logs" table is still missing.');
-            console.warn('Please run the SQL in your Supabase SQL Editor.');
-        }
+    // Check extension_logs
+    const { error: logsError } = await supabase.from('extension_logs').select('count', { count: 'exact', head: true });
+    if (logsError) {
+        console.log('❌ extension_logs table:', logsError.message);
     } else {
-        console.log('✅ extension_logs exists! Rows:', logRes.count);
+        console.log('✅ extension_logs table: Found');
     }
 }
 
-checkLogsTable();
+checkTables();

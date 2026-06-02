@@ -76,9 +76,14 @@ if (!window.ChobShopInitialized) {
             }
 
             fillFacebookPost(caption, request.data.imageUrl)
-                .then((postLink) => {
-                    updateStatus('✅ โพสต์สำเร็จ!', false, 3000);
-                    sendResponse({ success: true, postLink: postLink });
+                .then((result) => {
+                    if (result === undefined) return;
+                    if (result && result.status === 'PENDING') {
+                        updateStatus('⏳ ส่งแล้ว (รออนุมัติ)', false, 4000);
+                    } else {
+                        updateStatus('✅ โพสต์สำเร็จ!', false, 3000);
+                    }
+                    sendResponse({ success: true, postLink: result });
                 })
                 .catch(err => {
                     console.error('Fill post error:', err);
@@ -129,6 +134,19 @@ function updateStatus(msg, persistent = false, timeout = 3000) {
             overlay.style.display = 'none';
         }, timeout);
     }
+
+    // Also append to the widget log if it exists
+    const logContainer = document.getElementById('widget-log-container');
+    if (logContainer) {
+        const time = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const logEntry = document.createElement('div');
+        logEntry.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+        logEntry.style.padding = '2px 0';
+        logEntry.innerHTML = `<span style="color: #64748b;">${time}</span> ${msg}`;
+        logContainer.prepend(logEntry);
+        // Keep only last 20 local logs
+        if (logContainer.children.length > 20) logContainer.lastChild.remove();
+    }
 }
 
 async function fillFacebookPost(caption, imageUrl) {
@@ -140,72 +158,247 @@ async function fillFacebookPost(caption, imageUrl) {
     window._chobShopPostLocked = true;
 
     try {
-        updateStatus('📝 กำลังกรอกข้อมูล...');
+        updateStatus('📝 กำลังเตรียมข้อมูลโพสต์...');
+
+        // --- HELPERS (Define first to avoid hoisting issues) ---
+        const isVisible = (el) => {
+            if (!el) return false;
+            const style = window.getComputedStyle(el);
+            return el.offsetWidth > 0 && el.offsetHeight > 0 && style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+        };
+
+        const getVisibleDialog = () => {
+            const dialogs = Array.from(document.querySelectorAll('div[role="dialog"], div[aria-modal="true"]'));
+            return dialogs.find(isVisible);
+        };
+
+        const findExistingTextbox = () => {
+            const selectors = [
+                'div[role="dialog"] [role="textbox"]',
+                'div[role="dialog"] [contenteditable="true"]',
+                '[role="main"] [role="textbox"]:not([aria-label*="ความคิดเห็น"]):not([aria-label*="comment"])',
+                '[role="main"] [contenteditable="true"]:not([aria-label*="ความคิดเห็น"]):not([aria-label*="comment"])'
+            ];
+            for (const sel of selectors) {
+                const elements = document.querySelectorAll(sel);
+                for (const tb of elements) {
+                    if (isVisible(tb) && tb.offsetHeight > 40) {
+                        if (tb.closest('[id*="comment"], [class*="comment"]')) continue;
+                        return tb;
+                    }
+                }
+            }
+            return null;
+        };
+
+        // --- Click Strategies for Facebook's React Event System ---
+        const clickStrategyA = async (el) => {
+            // Strategy A: Clean mousedown → mouseup → click (Facebook React standard)
+            const rect = el.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const evtParams = { bubbles: true, cancelable: true, view: window, clientX: cx, clientY: cy, button: 0, buttons: 1 };
+
+            el.dispatchEvent(new MouseEvent('mousedown', evtParams));
+            await new Promise(r => setTimeout(r, 80));
+            el.dispatchEvent(new MouseEvent('mouseup', evtParams));
+            await new Promise(r => setTimeout(r, 30));
+            el.dispatchEvent(new MouseEvent('click', evtParams));
+            console.log('[ChobShop] Strategy A: mousedown→mouseup→click dispatched');
+        };
+
+        const clickStrategyB = async (el) => {
+            // Strategy B: Pointer + Mouse events (for newer Chrome/React)
+            const btn = el.closest('div[role="button"][tabindex="0"]') || el;
+            const rect = btn.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const evtParams = { bubbles: true, cancelable: true, view: window, clientX: cx, clientY: cy, button: 0, buttons: 1, pointerId: 1, pointerType: 'mouse', isPrimary: true };
+
+            btn.dispatchEvent(new PointerEvent('pointerdown', evtParams));
+            btn.dispatchEvent(new MouseEvent('mousedown', evtParams));
+            await new Promise(r => setTimeout(r, 120));
+            btn.dispatchEvent(new PointerEvent('pointerup', evtParams));
+            btn.dispatchEvent(new MouseEvent('mouseup', evtParams));
+            btn.dispatchEvent(new MouseEvent('click', evtParams));
+            console.log('[ChobShop] Strategy B: Pointer+Mouse events dispatched');
+        };
+
+        const clickStrategyC = async (el) => {
+            // Strategy C: Direct .click() + focus (simplest, works in some FB versions)
+            const btn = el.closest('div[role="button"]') || el;
+            btn.focus();
+            await new Promise(r => setTimeout(r, 50));
+            btn.click();
+            console.log('[ChobShop] Strategy C: Direct .click()');
+        };
+
+        const visualHighlight = (el, color = '#6366f1') => {
+            try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { }
+            el.style.transition = 'all 0.3s ease';
+            el.style.boxShadow = `0 0 0 4px ${color}, 0 0 25px ${color}`;
+            el.style.borderRadius = '8px';
+            setTimeout(() => { try { el.style.boxShadow = ''; } catch (e) { } }, 2000);
+        };
 
         const recognizedTexts = [
             "เขียนอะไรสักหน่อย", "คุณคิดอะไรอยู่", "What's on your mind", "เขียนอะไรบางอย่าง",
-            "Create a public post", "Write something", "Write a post"
+            "Create a public post", "Write something", "Write a post", "Something about this",
+            "Create post", "สร้างโพสต์", "ลงมือเลย", "แชร์สิ่งที่คุณคิด",
+            "เขียนอะไรสักหน่อย....", "เขียนอะไรหน่อย", "Post a status update"
         ];
+
         let opener = null;
-        const possibleOpeners = document.querySelectorAll('.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6, .x1i10hfl.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee');
-        for (const el of possibleOpeners) {
-            const text = el.innerText || "";
-            if ((text.includes('เขียนอะไร') || text.includes('Write something') || text.includes('mind')) && el.offsetWidth > 0) {
-                opener = el.closest('div[role="button"]') || el;
+
+        // Strategy 1: PRECISE — Find div[role="button"][tabindex="0"] containing recognized text
+        const roleButtons = document.querySelectorAll('div[role="button"][tabindex="0"]');
+        for (const btn of roleButtons) {
+            const text = (btn.innerText || "").trim();
+            if (recognizedTexts.some(t => text.includes(t)) && isVisible(btn)) {
+                opener = btn;
+                console.log('[ChobShop] Opener found via Strategy 1 (role=button+tabindex):', text.substring(0, 40));
                 break;
             }
         }
 
+        // Strategy 2: Find span with recognized text, walk up to div[role="button"]
         if (!opener) {
-            const elements = document.querySelectorAll('div[role="button"], span, div');
-            for (const el of elements) {
-                const text = (el.innerText || "").trim();
-                if (recognizedTexts.some(t => text.includes(t)) && el.offsetWidth > 0) {
-                    opener = el.closest('div[role="button"]') || el;
+            const allSpans = document.querySelectorAll('span');
+            for (const span of allSpans) {
+                const text = (span.innerText || "").trim();
+                if (recognizedTexts.some(t => text.includes(t)) && isVisible(span)) {
+                    const parentBtn = span.closest('div[role="button"]');
+                    if (parentBtn && isVisible(parentBtn)) {
+                        opener = parentBtn;
+                        console.log('[ChobShop] Opener found via Strategy 2 (span→parent button):', text.substring(0, 40));
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Strategy 3: aria-label / placeholder search
+        if (!opener) {
+            for (const label of recognizedTexts) {
+                const el = document.querySelector(`[aria-label*="${label}"], [placeholder*="${label}"], [aria-placeholder*="${label}"]`);
+                if (el && el.offsetWidth > 0) {
+                    opener = el.closest('div[role="button"]') || el.closest('[role="link"]') || el;
+                    console.log('[ChobShop] Opener found via Strategy 3 (aria-label)');
                     break;
                 }
             }
         }
 
-        if (!opener) throw new Error('ไม่พบปุ่มเริ่มโพสต์');
-        opener.click();
+        // Strategy 4: Facebook class patterns
+        if (!opener) {
+            const patternSelectors = [
+                'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6',
+                'div.x1i10hfl[role="button"][tabindex="0"]'
+            ];
+            for (const sel of patternSelectors) {
+                const elements = Array.from(document.querySelectorAll(sel));
+                const match = elements.find(el => {
+                    const text = (el.innerText || "").trim();
+                    return recognizedTexts.some(t => text.includes(t)) && isVisible(el);
+                });
+                if (match) {
+                    opener = match.closest('div[role="button"]') || match;
+                    console.log('[ChobShop] Opener found via Strategy 4 (class pattern)');
+                    break;
+                }
+            }
+        }
+
+        const existingTextbox = findExistingTextbox();
+        const dialogVisible = getVisibleDialog();
+
+        if (existingTextbox && dialogVisible) {
+            console.log('[ChobShop] 🔍 Active composer dialog already detected.');
+            updateStatus('📝 พบช่องสร้างโพสต์แล้ว...');
+            existingTextbox.focus();
+        } else {
+            if (!opener || !isVisible(opener)) throw new Error('ไม่พบปุ่มเริ่มโพสต์ (Opener) หรือปุ่มถูกซ่อนอยู่');
+
+            visualHighlight(opener, '#6366f1');
+            await new Promise(r => setTimeout(r, 500));
+
+            // Multi-strategy click with retry — try each method until dialog opens
+            let opened = false;
+            const strategies = [
+                { name: 'A (mousedown→mouseup→click)', fn: clickStrategyA },
+                { name: 'B (Pointer+Mouse)', fn: clickStrategyB },
+                { name: 'C (Direct click)', fn: clickStrategyC },
+            ];
+
+            for (const strategy of strategies) {
+                if (opened) break;
+                console.log(`[ChobShop] 🖱️ Trying click strategy ${strategy.name}...`);
+                updateStatus(`🖱️ กำลังคลิก (${strategy.name})...`);
+                await strategy.fn(opener);
+
+                // Wait and check if dialog opened
+                for (let j = 0; j < 6; j++) {
+                    await new Promise(r => setTimeout(r, 500));
+                    if (getVisibleDialog()) {
+                        opened = true;
+                        console.log(`[ChobShop] ✅ Dialog opened with strategy ${strategy.name}`);
+                        updateStatus('✅ หน้าต่างสร้างโพสต์เปิดแล้ว!');
+                        break;
+                    }
+                }
+            }
+
+            if (!opened) throw new Error('คลิกปุ่มเริ่มโพสต์แล้ว แต่หน้าต่างสร้างโพสต์ไม่ยอมเปิดขึ้นมา (ลองกดเองดูสักครั้งครับ)');
+        }
 
         // --- Wait for composer ---
         let textbox = null;
         let dialog = null;
+        let anchor = null; // Declare anchor at outer scope for submit button search
         const textboxAriaLabels = [
             "สร้างโพสต์สาธารณะ", "สร้างโพสต์", "คุณคิดอะไรอยู่", "แชร์สิ่งที่คุณกำลังคิด",
             "What's on your mind", "Create a public post", "Write something",
             "Tell us about what you are sharing", "แชร์อะไรบางอย่าง", "เขียนอะไรบางอย่าง",
             "คุณกำลังขายอะไร", "What are you selling", "รายละเอียดสินค้า", "Product description",
-            "ชื่อบทความ", "Article title", "หัวข้อ", "Title"
+            "ชื่อบทความ", "Article title", "หัวข้อ", "Title", "รายละเอียด", "Description",
+            "เขียนบางอย่าง", "Say something", "เขียนอะไรหน่อย...", "เขียนอะไรหน่อย",
+            "เขียนบางอย่างที่นี่", "Write something here..."
         ];
 
-        const drawDebug = (el, color) => {
-            if (!el) return;
-            el.style.outline = `3px dashed ${color}`;
-            el.style.outlineOffset = '-3px';
-            setTimeout(() => { if (el) el.style.outline = ''; }, 5000);
-        };
+        // (Helper visualLockAndClick and drawDebug moved to top)
 
         for (let i = 0; i < 45; i++) {
             await new Promise(r => setTimeout(r, 400));
-            dialog = document.querySelector('div[role="dialog"]')
-                || document.querySelector('form[method="POST"]')
-                || document.querySelector('div[aria-modal="true"]');
+            dialog = getVisibleDialog();
 
-            const anchor = (dialog && dialog !== document.body) ? dialog : document.body;
+            if (!dialog) continue; // STRIKT: Must have a visible dialog now
 
+            anchor = dialog; // Update outer-scope anchor
+
+            // Try precise labels first
             for (const label of textboxAriaLabels) {
                 textbox = anchor.querySelector(`[role="textbox"][aria-label*="${label}"]`)
                     || anchor.querySelector(`[aria-placeholder*="${label}"]`)
-                    || anchor.querySelector(`[placeholder*="${label}"]`);
-                if (textbox) break;
+                    || anchor.querySelector(`[placeholder*="${label}"]`)
+                    || anchor.querySelector(`[aria-label*="${label}"]`)
+                    || anchor.querySelector(`[aria-label="${label}"]`);
+
+                if (textbox && isVisible(textbox)) break;
+            }
+
+            // Fallback: Any visible contenteditable in the dialog that isn't a small helper
+            if (!textbox && anchor !== document.body) {
+                const editables = Array.from(anchor.querySelectorAll('[role="textbox"], [contenteditable="true"], textarea'));
+                textbox = editables.find(el => {
+                    const rect = el.getBoundingClientRect();
+                    return isVisible(el) && rect.width > 200 && rect.height > 60;
+                });
             }
 
             if (textbox) {
-                drawDebug(textbox, 'blue');
+                console.log('[ChobShop] ✅ Found textbox:', textbox.getAttribute('aria-placeholder') || textbox.getAttribute('aria-label') || textbox.tagName);
                 textbox.focus();
+                try { textbox.click(); } catch (e) { }
                 break;
             }
         }
@@ -227,7 +420,20 @@ async function fillFacebookPost(caption, imageUrl) {
                 const file = imageUrl.startsWith('data:') ? base64ToFile(imageUrl, 'product.jpg') : null;
                 if (file) {
                     if (!fileInput || fileInput.offsetWidth === 0) {
-                        for (let j = 0; j < 5; j++) {
+                        // Try to click the "Photo/Video" icon to trigger input
+                        const photoLabels = ["รูปภาพ", "วิดีโอ", "Photo", "Video", "รูปภาพ/วิดีโอ"];
+                        const icons = Array.from(searchRoot.querySelectorAll('div[role="button"], i, img'));
+                        for (const icon of icons) {
+                            const label = (icon.getAttribute('aria-label') || "").toLowerCase();
+                            const text = (icon.innerText || "").toLowerCase();
+                            if (photoLabels.some(l => label.includes(l.toLowerCase()) || text.includes(l.toLowerCase()))) {
+                                console.log('[ChobShop] Clicking Photo/Video icon to trigger input');
+                                icon.click();
+                                break;
+                            }
+                        }
+
+                        for (let j = 0; j < 8; j++) {
                             fileInput = findFileInput();
                             if (fileInput && fileInput.offsetWidth > 0) break;
                             await new Promise(r => setTimeout(r, 800));
@@ -246,12 +452,13 @@ async function fillFacebookPost(caption, imageUrl) {
                 }
             } catch (uploadErr) {
                 console.error('[ChobShop] Photo upload failed:', uploadErr);
+                updateStatus('⚠️ อัปโหลดรูปไม่สำเร็จ: ' + uploadErr.message, true);
             }
         }
 
         // --- Text Injection (Hardened Level 5 - Absolute Final) ---
-        await new Promise(r => setTimeout(r, 2000)); // Maximum settle time for SPA
-        updateStatus('✍️ กำลังล้างและเตรียมเนื้อหา...', true);
+        await new Promise(r => setTimeout(r, 2000));
+        updateStatus('✍️ กำลังพิมพ์ข้อความ...', true);
 
         // LOCKOUT CHECK: Ensure no other process starts for 10s
         window.ChobShopLastPostTime = Date.now();
@@ -299,7 +506,11 @@ async function fillFacebookPost(caption, imageUrl) {
             console.error('[ChobShop] Paste failed, fallback to InputEvent:', e);
         }
 
-        if (!inserted || textbox.innerText.trim() === "") {
+        // Wait for Lexical to render before checking (prevents false-empty detection)
+        await new Promise(r => setTimeout(r, 500));
+
+        // Only use InputEvent fallback if paste was NOT attempted at all
+        if (!inserted) {
             try {
                 const inputEvent = new InputEvent('beforeinput', { data: caption, inputType: 'insertFromPaste', bubbles: true, cancelable: true });
                 textbox.dispatchEvent(inputEvent);
@@ -323,7 +534,8 @@ async function fillFacebookPost(caption, imageUrl) {
         for (let attempt = 0; attempt < 3; attempt++) {
             await new Promise(r => setTimeout(r, 2000));
             const submitLabels = ["โพสต์", "post", "แชร์", "share", "ส่ง", "submit", "publish"];
-            const btns = Array.from(document.querySelectorAll('div[role="button"], span[role="button"], button'));
+            const searchAnchor = anchor || dialog || document.body;
+            const btns = Array.from(searchAnchor.querySelectorAll('div[role="button"], span[role="button"], button'));
             let bestBtn = null;
             let maxScore = -1;
 
@@ -334,7 +546,9 @@ async function fillFacebookPost(caption, imageUrl) {
                 const label = (b.getAttribute('aria-label') || "").toLowerCase();
                 const title = (b.getAttribute('title') || "").toLowerCase();
                 const style = window.getComputedStyle(b);
-                const isBlue = style.backgroundColor.includes('rgb(8, 102, 255)') || style.backgroundColor.includes('rgb(0, 100, 209)');
+                const isBlue = style.backgroundColor.includes('rgb(8, 102, 255)')
+                    || style.backgroundColor.includes('rgb(0, 100, 209)')
+                    || style.backgroundColor.includes('rgb(24, 119, 242)'); // New FB Blue
                 const hasSubmitText = submitLabels.some(l => text.includes(l) || label.includes(l) || title.includes(l));
 
                 if (!hasSubmitText && !isBlue) return;
@@ -345,24 +559,55 @@ async function fillFacebookPost(caption, imageUrl) {
                 // Extra weight for explicit semantic labels (Unlocks Dark Mode compatibility)
                 if (label === 'โพสต์' || label === 'post' || label === 'แชร์') score += 1000;
 
-                if (isBlue) score += 200;
-                if (b.closest('[role="dialog"]')) score += 500;
+                if (isBlue) score += 500;
+                if (b.closest('[role="dialog"]')) score += 1000;
 
-                // Proximity to center-bottom of searching dialog/viewport
-                const distToCenter = Math.abs(window.innerWidth / 2 - (rect.left + rect.width / 2));
-                score += (1000 - distToCenter);
+                // Proximity to bottom-right of dialog/viewport
+                const distToBottomRight = Math.abs(window.innerWidth - rect.right) + Math.abs(window.innerHeight - rect.bottom);
+                score += (2000 - distToBottomRight);
 
                 if (score > maxScore) { maxScore = score; bestBtn = b; }
             });
 
             if (bestBtn) {
-                bestBtn.click();
-                console.log('[ChobShop] Clicked post button');
-                break;
+                updateStatus('🎯 ล็อกเป้าหมายปุ่มโพสต์...');
+                visualHighlight(bestBtn, '#10b981');
+
+                // Multi-strategy click for Submit Button
+                let submitted = false;
+                const submitStrategies = [
+                    { name: 'A', fn: clickStrategyA },
+                    { name: 'B', fn: clickStrategyB },
+                    { name: 'C', fn: clickStrategyC }
+                ];
+
+                for (const strategy of submitStrategies) {
+                    if (submitted) break;
+                    console.log(`[ChobShop] 🖱️ Attempting submit with strategy ${strategy.name}...`);
+                    await strategy.fn(bestBtn);
+
+                    // Wait for dialog to disappear (sign of success)
+                    for (let j = 0; j < 5; j++) {
+                        await new Promise(r => setTimeout(r, 600));
+                        if (!dialog || !document.body.contains(dialog)) {
+                            submitted = true;
+                            console.log(`[ChobShop] ✅ Submit success with strategy ${strategy.name}`);
+                            break;
+                        }
+                    }
+                }
+
+                if (submitted) break;
+            } else {
+                console.warn('[ChobShop] Post button not found in attempt', attempt);
             }
         }
 
-        return await findJustNowPostLink();
+        return await findJustNowPostLink(caption);
+    } catch (err) {
+        console.error('[ChobShop] fillFacebookPost failed:', err);
+        updateStatus('❌ เกิดข้อผิดพลาด: ' + err.message);
+        throw err; // RE-THROW so caller knows it failed!
     } finally {
         window._chobShopPostLocked = false;
     }
@@ -370,25 +615,166 @@ async function fillFacebookPost(caption, imageUrl) {
 
 function injectBotController() {
     if (document.getElementById('chobshop-bot-controller')) return;
+
+    // Inject responsive styles
+    const styleId = 'chobshop-widget-styles';
+    if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.innerHTML = `
+            #chobshop-bot-controller {
+                position: fixed;
+                bottom: 10px;
+                right: 10px;
+                width: 280px;
+                min-width: 180px;
+                max-width: calc(100vw - 20px);
+                background: rgba(15, 23, 42, 0.98);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 14px;
+                color: white;
+                z-index: 999999;
+                font-family: -apple-system, system-ui, sans-serif;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s, width 0.3s;
+            }
+            #chobshop-bot-controller.minimized {
+                width: auto;
+                min-width: 150px;
+                height: 44px;
+            }
+            .widget-header {
+                padding: 10px 14px;
+                font-weight: 800;
+                font-size: 11px;
+                letter-spacing: 0.05em;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                cursor: pointer;
+                background: rgba(255,255,255,0.03);
+            }
+            .widget-content {
+                padding: 12px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                transition: all 0.3s;
+            }
+            #chobshop-bot-controller.minimized .widget-content {
+                display: none;
+            }
+            .widget-toggle {
+                width: 22px;
+                height: 22px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 5px;
+                background: rgba(255,255,255,0.1);
+                font-size: 14px;
+                font-weight: bold;
+            }
+            .stat-box {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                background: rgba(255,255,255,0.05);
+                padding: 8px;
+                border-radius: 10px;
+            }
+            .stat-line {
+                display: flex;
+                justify-content: space-between;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+            .widget-log {
+                height: 80px;
+                overflow-y: auto;
+                background: rgba(0,0,0,0.4);
+                border-radius: 8px;
+                padding: 6px;
+                font-size: 9px;
+                color: #34d399;
+                font-family: 'Cascadia Code', 'Consolas', monospace;
+                border: 1px solid rgba(255,255,255,0.05);
+            }
+            #widget-action-btn {
+                padding: 10px;
+                background: linear-gradient(135deg, #6366f1, #4f46e5);
+                border: none;
+                border-radius: 10px;
+                color: white;
+                font-weight: 700;
+                font-size: 12px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            }
+            #widget-action-btn.active {
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            }
+            
+            @media (max-width: 320px) {
+                #chobshop-bot-controller {
+                    width: calc(100vw - 16px);
+                    right: 8px;
+                    bottom: 8px;
+                }
+                .widget-header { font-size: 10px; padding: 8px 10px; }
+                .stat-line { font-size: 10px; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     const widget = document.createElement('div');
     widget.id = 'chobshop-bot-controller';
-    widget.style.cssText = `position: fixed; bottom: 20px; right: 20px; width: 280px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; color: white; z-index: 99999; font-family: sans-serif; display: flex; flex-direction: column; overflow: hidden;`;
-    widget.innerHTML = `<div style="padding: 12px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.1);">🤖 CHOB.SHOP Bot Console</div>
-                <div id="widget-status-row" style="padding: 15px; display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; justify-content: space-between;"><span>Status:</span> <span id="widget-status">OFFLINE</span></div>
-                    <div style="display: flex; justify-content: space-between;"><span>Count:</span> <span id="widget-count">0</span></div>
-                    <div id="widget-log-container" style="height: 100px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 5px; font-size: 10px; color: #10b981;"></div>
-                    <button id="widget-action-btn" style="padding: 10px; background: #6366f1; border: none; border-radius: 8px; color: white; cursor: pointer;">START AUTO</button>
-                </div>`;
+    widget.innerHTML = `
+        <div class="widget-header" id="widget-header">
+            <span>BOT CONSOLE</span>
+            <div class="widget-toggle" id="widget-toggle">−</div>
+        </div>
+        <div class="widget-content">
+            <div class="stat-box">
+                <div class="stat-line">
+                    <span style="color: #94a3b8;">STATUS:</span> 
+                    <span id="widget-status" style="color: #94a3b8;">OFFLINE</span>
+                </div>
+                <div class="stat-line">
+                    <span style="color: #94a3b8;">POSTS:</span> 
+                    <span id="widget-count" style="font-weight: 800;">0</span>
+                </div>
+            </div>
+            <div id="widget-log-container" class="widget-log"></div>
+            <button id="widget-action-btn">START AUTO</button>
+        </div>`;
     document.body.appendChild(widget);
 
+    // Toggle functionality
+    const toggleBtn = widget.querySelector('#widget-header');
+    toggleBtn.onclick = () => {
+        widget.classList.toggle('minimized');
+        const icon = widget.querySelector('#widget-toggle');
+        icon.textContent = widget.classList.contains('minimized') ? '+' : '−';
+    };
+
     const refreshData = () => {
-        chrome.runtime.sendMessage({ action: 'GET_AUTO_STATUS' }, (res) => { if (res && res.state) updateBotController(res.state); });
+        chrome.runtime.sendMessage({ action: 'GET_AUTO_STATUS' }, (res) => {
+            if (res && res.state) updateBotController(res.state);
+        });
     };
     setInterval(refreshData, 2000);
 
     const actionBtn = widget.querySelector('#widget-action-btn');
-    actionBtn.onclick = () => {
+    actionBtn.onclick = (e) => {
+        e.stopPropagation(); // Don't trigger minimize
         chrome.runtime.sendMessage({ action: 'GET_AUTO_STATUS' }, (res) => {
             if (res && res.state && res.state.isRunning) {
                 chrome.runtime.sendMessage({ action: 'STOP_AUTO_POST' }, () => refreshData());
@@ -404,24 +790,90 @@ function updateBotController(state) {
     const c = document.getElementById('widget-count');
     const b = document.getElementById('widget-action-btn');
     const l = document.getElementById('widget-log-container');
-    if (s) { s.innerText = state.isRunning ? 'ACTIVE' : 'OFFLINE'; s.style.color = state.isRunning ? '#10b981' : '#94a3b8'; }
+    if (s) {
+        s.innerText = state.isRunning ? 'ACTIVE' : 'OFFLINE';
+        s.style.color = state.isRunning ? '#10b981' : '#94a3b8';
+    }
     if (c) c.innerText = state.postCount || 0;
-    if (b) b.innerText = state.isRunning ? 'STOP AUTO' : 'START AUTO';
+    if (b) {
+        b.innerText = state.isRunning ? 'STOP AUTO' : 'START AUTO';
+        if (state.isRunning) b.classList.add('active');
+        else b.classList.remove('active');
+    }
     if (l && state.log) l.innerHTML = state.log.join('<br>');
 }
 
-async function findJustNowPostLink() {
-    const nowMarkers = ["Just now", "เมื่อสักครู่", "1m", "1 นาที", "1 min", "1 min.", "ตอนนี้"];
-    for (let i = 0; i < 10; i++) {
-        const links = Array.from(document.querySelectorAll('a')).filter(a => {
-            const href = a.href || "";
-            const text = (a.innerText || "").trim();
-            const hasPostInUrl = href.includes('/posts/') || href.includes('permalink.php') || href.includes('/groups/') && href.includes('/multi_') || href.includes('/permalink/');
-            const isJustNow = nowMarkers.some(m => text === m || text.startsWith(m));
-            return hasPostInUrl && isJustNow;
-        });
-        if (links.length > 0) return links[0].href;
+async function findJustNowPostLink(targetText) {
+    const nowMarkers = ["Just now", "เมื่อสักครู่", "1m", "1 นาที", "1 min", "1 min.", "ตอนนี้", "0m", "0 นาที", "1น."];
+    const pendingMarkers = [
+        "รอการอนุมัติ", "Submitted for review", "pending approval", "waiting for admin",
+        "รอผู้ดูแลอนุมัติ", "ส่งแล้วและกำลังรอการตรวจสอบ", "รอการตรวจสอบ", "admin must approve",
+        "post has been submitted", "approved before they're visible"
+    ];
+
+    // Clean and prepare title chunks for fuzzy matching
+    const cleanTitle = targetText ? targetText.substring(0, 40).replace(/[^\w\s\u0E00-\u0E7F]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase() : "";
+    const titleChunks = cleanTitle.split(' ').filter(word => word.length > 3);
+
+    console.log('[ChobShop] 🔍 Searching for verification. Chunks:', titleChunks);
+
+    for (let i = 0; i < 20; i++) { // Increase to 20s
         await new Promise(r => setTimeout(r, 1000));
+
+        // 1. Toast / Notification Detection (Fastest)
+        const allLinks = Array.from(document.querySelectorAll('a'));
+        for (const a of allLinks) {
+            const text = (a.innerText || "").toLowerCase();
+            const href = a.href || "";
+            if ((text.includes('ดูโพสต์') || text.includes('view post')) && (href.includes('/posts/') || href.includes('permalink'))) {
+                console.log('[ChobShop] 🎯 Found post link via SUCCESS TOAST:', href);
+                return { status: 'PUBLISHED', url: href };
+            }
+        }
+
+        // 2. Pending keywords in page body
+        const pageText = document.body.innerText.toLowerCase();
+        if (pendingMarkers.some(m => pageText.includes(m.toLowerCase()))) {
+            console.log('[ChobShop] ⏳ Post verified as: PENDING_APPROVAL');
+            return { status: 'PENDING', url: null };
+        }
+
+        // 3. Container-based Search
+        const postContainers = Array.from(document.querySelectorAll('[role="article"], .x1y1aw1k, [data-testid="post_container"]'));
+        for (const container of postContainers) {
+            const cText = (container.innerText || "").toLowerCase();
+
+            // Fuzzy Match: Check if at least 2 relevant words from our title exist in this container
+            const matchCount = titleChunks.filter(word => cText.includes(word)).length;
+            const threshold = Math.min(titleChunks.length, 2);
+            if (titleChunks.length > 0 && matchCount < threshold) continue;
+
+            // Search for "now" marker links in this specific container
+            const links = Array.from(container.querySelectorAll('a'));
+            for (const a of links) {
+                const hr = a.href || "";
+                const isPostLink = hr.includes('/posts/') || hr.includes('permalink.php') || hr.includes('/groups/') && hr.includes('/multi_') || hr.includes('/permalink/') || hr.includes('?id=');
+                if (!isPostLink) continue;
+
+                const label = (a.getAttribute('aria-label') || "").toLowerCase();
+                const text = (a.innerText || "").toLowerCase();
+                const title = (a.getAttribute('title') || "").toLowerCase();
+                const combined = text + "|" + label + "|" + title;
+
+                if (nowMarkers.some(m => combined.includes(m.toLowerCase()))) {
+                    console.log('[ChobShop] ✅ Post verified: PUBLISHED (Container) -', hr);
+                    return { status: 'PUBLISHED', url: hr };
+                }
+            }
+        }
+
+        // Strategy B: Current URL if it's our post (Redirect case)
+        const currentUrl = window.location.href;
+        if ((currentUrl.includes('/posts/') || currentUrl.includes('/permalink')) && titleChunks.every(w => pageText.includes(w))) {
+            return { status: 'PUBLISHED', url: currentUrl };
+        }
     }
-    return null;
+
+    console.warn('[ChobShop] ❌ Verification timed out');
+    return { status: 'FAILED', url: null };
 }

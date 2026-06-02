@@ -20,6 +20,7 @@
         "https://*.vercel.app/*",
         "http://localhost:*/*",
         "https://*.shopee.co.th/*",
+        "https://*.susercontent.com/*",
         "https://*.facebook.com/*",
         "https://chob.shop/*"
     ],
