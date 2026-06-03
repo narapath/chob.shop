@@ -213,6 +213,7 @@ function updateStatus(msg, persistent = false, timeout = 3000) {
 }
 
 // Check if Facebook has restricted the account (Spam protection)
+// WE ONLY CHECK THIS INSIDE DIALOGS TO AVOID FALSE POSITIVES FROM THE NEWS FEED
 function checkFacebookRestricted() {
     const restrictionKeywords = [
         "เราได้จำกัดจำนวนการโพสต์",
@@ -224,34 +225,20 @@ function checkFacebookRestricted() {
         "Community Standards on spam"
     ];
 
-    // 1. Text Search (Body & Dialogs)
-    const bodyText = document.body.innerText || "";
-    const dialogs = Array.from(document.querySelectorAll('div[role="dialog"], div[aria-modal="true"]'));
-    const dialogText = dialogs.map(d => d.innerText).join(" ");
+    // 1. Target check: Only visible dialogs or alerts
+    // (Restriction popups are always modals or alerts in the center)
+    const activeDialogs = Array.from(document.querySelectorAll('div[role="dialog"], div[aria-modal="true"], [role="alert"]'));
 
-    let restricted = restrictionKeywords.some(kw => bodyText.includes(kw) || dialogText.includes(kw));
-
-    // 2. Extra check: Look for elements with role="alert" or red text colors
-    if (!restricted) {
-        const potentialAlerts = document.querySelectorAll('[role="alert"], span, div');
-        for (const el of potentialAlerts) {
-            if (el.innerText && restrictionKeywords.some(kw => el.innerText.includes(kw))) {
-                restricted = true;
-                break;
+    for (const dialog of activeDialogs) {
+        if (dialog.offsetWidth > 0 && dialog.offsetHeight > 0) {
+            const text = dialog.innerText || "";
+            if (restrictionKeywords.some(kw => text.includes(kw))) {
+                console.error('[ChobShop] 🚨 Account restriction detected in dialog!');
+                return true;
             }
         }
     }
 
-    if (restricted) {
-        console.error('[ChobShop] 🚨 Account restriction detected via scanner!');
-        // Force local widget stop as immediate feedback
-        const stopBtn = document.getElementById('widget-action-btn');
-        if (stopBtn && stopBtn.classList.contains('active')) {
-            console.log('[ChobShop] 🛑 Triggering local stop via widget button');
-            stopBtn.click();
-        }
-        return true;
-    }
     return false;
 }
 
