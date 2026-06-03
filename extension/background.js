@@ -157,6 +157,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 
+    if (request.action === 'SEND_HEARTBEAT') {
+        console.log('💓 [Manual] Heartbeat request received from popup');
+        sendHeartbeat().then(() => sendResponse({ success: true }));
+        return true;
+    }
+
     if (request.type === 'RESTRICTION_DETECTED') {
         console.error('🚨 [Background] Restriction detected from content script!');
         stopAutoPost().then(() => {
@@ -469,7 +475,7 @@ async function addLog(msg, type = 'INFO', action = 'LOG', details = {}) {
         timestamp: new Date().toISOString()
     });
 
-    if (action === 'POST_FINISHED' || type === 'ERROR' || action === 'POST_START') {
+    if (action === 'POST_FINISHED' || type === 'ERROR' || type === 'WARN' || action === 'POST_START') {
         sendHeartbeat();
     }
 }

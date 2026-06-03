@@ -250,6 +250,17 @@ function initEventListeners() {
 
     document.getElementById('autoInterval').addEventListener('change', updateAutoInterval);
 
+    document.getElementById('manualSyncBtn')?.addEventListener('click', () => {
+        const btn = document.getElementById('manualSyncBtn');
+        btn.innerHTML = '⌛';
+        chrome.runtime.sendMessage({ action: 'SEND_HEARTBEAT' }, (res) => {
+            setTimeout(() => {
+                btn.innerHTML = '🔄';
+                showToast('💓 ซิงค์ข้อมูลสำเร็จ!');
+            }, 800);
+        });
+    });
+
     // Group Management
     document.getElementById('recheckGroupsBtn')?.addEventListener('click', recheckAllGroups);
     document.getElementById('syncGroupsBtn')?.addEventListener('click', syncGroupsFromServer);

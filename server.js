@@ -282,7 +282,7 @@ app.put('/api/settings', requireAuth, async (req, res) => {
 // Supports both legacy /api/heartbeat and new /api/bots/heartbeat
 const handleHeartbeat = async (req, res) => {
   // Normalize fields between legacy extension (name, logs) and current schema (bot_name, new_logs)
-  const bot_name = req.body.bot_name || req.body.name;
+  let bot_name = (req.body.bot_name || req.body.name || "").trim();
   const status = req.body.status;
   const stats = req.body.stats || {
     postCount: req.body.postCount,
@@ -306,7 +306,8 @@ const handleHeartbeat = async (req, res) => {
   const ack_command_ts = req.body.ack_command_ts;
   const new_logs = req.body.new_logs || req.body.logs;
 
-  console.log(`🤖 [Heartbeat] Received from "${bot_name}" (Status: ${status}, Logs: ${new_logs ? new_logs.length : 0})`);
+  const payloadSize = JSON.stringify(req.body).length;
+  console.log(`🤖 [Heartbeat] Received from "${bot_name}" (Status: ${status}, Logs: ${new_logs ? new_logs.length : 0}, Size: ${(payloadSize / 1024).toFixed(1)}KB)`);
 
   if (!bot_name) {
     return res.status(400).json({ success: false, error: 'bot_name is required' });
