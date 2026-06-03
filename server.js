@@ -289,6 +289,12 @@ const handleHeartbeat = async (req, res) => {
     lastActive: req.body.lastActive,
     ping: req.body.ping
   };
+
+  // Prevent JSONB bloat: Cap history to last 30 entries
+  if (stats.history && Array.isArray(stats.history)) {
+    stats.history = stats.history.slice(0, 30);
+  }
+
   const browser_type = req.body.browser_type;
   const version = req.body.version;
   const ack_command_ts = req.body.ack_command_ts;
@@ -395,19 +401,26 @@ app.post('/api/bots/command', requireAuth, async (req, res) => {
 // GET All Bots (Public for the dashboard)
 app.get('/api/bots', async (req, res) => {
   try {
-    // Use supabaseAdmin if available, otherwise fall back to supabase
     const db = supabaseAdmin || supabase;
     if (!db) {
       return res.status(500).json({ success: false, error: 'Database not configured' });
     }
 
+    // Select only essential fields for the dashboard, avoid pulling full stats blob
     const { data, error } = await db
       .from('extension_bots')
-      .select('*')
+      .select('id, bot_name, browser_type, status, last_heartbeat, stats, command, version')
       .order('last_heartbeat', { ascending: false });
 
     if (error) throw error;
-    res.json({ success: true, bots: data || [] });
+
+    // Trim heavy history from the listing response to keep it fast
+    const lightBots = (data || []).map(bot => {
+      const { history, ...lightStats } = (bot.stats || {});
+      return { ...bot, stats: lightStats };
+    });
+
+    res.json({ success: true, bots: lightBots });
   } catch (err) {
     console.error('Fetch bots error:', err);
     res.status(500).json({ success: false, error: err.message, bots: [] });
@@ -420,6 +433,7 @@ app.get('/api/bots/history', async (req, res) => {
     const db = supabaseAdmin || supabase;
     const { bot_name, limit = 30 } = req.query;
 
+    // Only select bot_name and the stats column to minimize data transfer
     let query = db.from('extension_bots').select('bot_name, stats');
     if (bot_name) {
       query = query.eq('bot_name', bot_name);
@@ -431,7 +445,7 @@ app.get('/api/bots/history', async (req, res) => {
     // Merge all bots' history, tag with bot_name, sort by time
     let allHistory = [];
     (data || []).forEach(bot => {
-      const history = bot.stats?.history || [];
+      const history = (bot.stats?.history || []).slice(0, 30); // Safety cap
       history.forEach(entry => {
         allHistory.push({ ...entry, bot_name: bot.bot_name });
       });

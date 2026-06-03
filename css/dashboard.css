@@ -150,21 +150,100 @@ header.admin-header {
     margin-bottom: 40px;
 }
 
-/* Bot Workstation Card */
-.bot-card {
-    background: var(--pixel-panel);
-    border: 4px solid var(--pixel-border);
-    image-rendering: pixelated;
-    padding: 20px;
-    position: relative;
-    border-radius: 0px;
-    /* Pixel art use square corners */
-    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.5);
-    transition: var(--transition-snappy);
+/* Isometric Simulation Area */
+.office-simulation-area {
+    width: 100%;
+    height: 700px;
+    background: #121225;
+    margin-bottom: 40px;
     overflow: hidden;
-    height: 380px;
+    position: relative;
+    border: 4px solid var(--pixel-border);
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+    perspective: 2000px;
+}
+
+.iso-stage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2000px;
+    height: 2000px;
+    transform: translate(-50%, -50%) rotateX(60deg) rotateZ(-45deg);
+    transform-style: preserve-3d;
+}
+
+.iso-floor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 80px 80px;
+    background-color: #1a1a2e;
+}
+
+.office-zone {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border: 2px dashed rgba(255, 255, 255, 0.1);
     display: flex;
-    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+
+.office-zone::after {
+    content: attr(data-label);
+    font-family: 'Press Start 2P';
+    font-size: 8px;
+    color: var(--text-muted);
+    opacity: 0.5;
+    transform: rotateZ(45deg) rotateX(-60deg);
+    /* Counter-rotate to read flat */
+    white-space: nowrap;
+}
+
+/* Character & Bubble Positioning in Iso Space */
+.bot-office-sprites {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+}
+
+.bot-card {
+    position: absolute;
+    width: 220px;
+    background: rgba(34, 34, 59, 0.95);
+    border: 2px solid var(--pixel-border);
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    transform: rotateZ(45deg) rotateX(-60deg) translateY(-140px);
+    /* Stand upright and float high above head */
+    transform-origin: center bottom;
+    transition: left 2s ease-in-out, top 2s ease-in-out;
+    /* Smooth movement across grid */
+    z-index: 1000;
+}
+
+.bot-character-container {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    transform: rotateZ(45deg) rotateX(-60deg);
+    /* Stand upright */
+    transform-origin: center bottom;
+    z-index: 500;
+    transition: left 2s ease-in-out, top 2s ease-in-out;
+    image-rendering: pixelated;
 }
 
 .bot-card:hover {

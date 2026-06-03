@@ -212,8 +212,8 @@ async function executeAutoPost() {
     }
 
     autoPostState.isPosting = true;
-    autoPostState.currentActivity = 'INITIALIZING';
-    await chrome.storage.local.set({ autoPostState });
+    autoPostState.currentActivity = '⚙️ กำลังเตรียมระบบ...';
+    await saveState();
 
     try {
         // 1. Get configurations
@@ -246,8 +246,8 @@ async function executeAutoPost() {
         caption = caption.replace(/\n{3,}/g, '\n\n').trim();
 
         // 5. Navigate
-        autoPostState.currentActivity = `NAVIGATING TO GROUP`;
-        await chrome.storage.local.set({ autoPostState });
+        autoPostState.currentActivity = `🌐 กำลังเปิดกลุ่ม: ${group.name}`;
+        await saveState();
 
         const tabs = await chrome.tabs.query({ url: "*://*.facebook.com/*" });
         let tabId;
@@ -262,8 +262,8 @@ async function executeAutoPost() {
         await new Promise(r => setTimeout(r, 12000)); // FB Load wait
 
         // 6.5 Prepare Image
-        autoPostState.currentActivity = `PREPARING IMAGE`;
-        await chrome.storage.local.set({ autoPostState });
+        autoPostState.currentActivity = `🖼️ กำลังเตรียมรูปภาพ...`;
+        await saveState();
 
         let finalImageUrl = product.image;
         if (product.image && !product.image.startsWith('data:')) {
@@ -281,10 +281,17 @@ async function executeAutoPost() {
             const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Content script timeout')), 60000)
             );
+
+            autoPostState.currentActivity = `✍️ กำลังพิมพ์รายละเอียด...`;
+            await saveState();
+
             const response = await Promise.race([
                 chrome.tabs.sendMessage(tabId, { action: 'FILL_POST', data: { caption, imageUrl: finalImageUrl } }),
                 timeoutPromise
             ]);
+
+            autoPostState.currentActivity = `🔍 กำลังตรวจสอบโพสต์...`;
+            await saveState();
 
             const result = response ? response.postLink : { status: 'FAILED', url: null };
 
@@ -546,6 +553,10 @@ async function scrapeProduct(url) {
         console.error('[Scraper] Error:', err);
         return { success: false, error: err.message };
     }
+}
+
+async function saveState() {
+    await chrome.storage.local.set({ autoPostState });
 }
 
 function toUnicodeBold(text) {

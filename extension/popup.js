@@ -9,6 +9,8 @@ let currentTabIsFBGroup = false;
 let displayLimit = 10;
 const ITEMS_PER_PAGE = 10;
 const scrapedImages = new Map(); // Store high-res Base64 images here
+let isFetchingProducts = false;
+let productsPage = 1;
 
 function getFormattedCaption(p) {
     const link = (p.affiliateUrl && p.affiliateUrl.length > 5)
@@ -72,20 +74,21 @@ async function copyToClipboard(id) {
 let autoPollingInterval = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await checkCurrentTab();
-    await loadSettings();
-    await loadGroups();
-    await fetchProducts();
-    initEventListeners();
-    initAutoTab();
+    try {
+        await checkCurrentTab();
+        await loadSettings();
+        await loadGroups();
+        await fetchProducts();
+        initEventListeners();
+        initAutoTab();
 
-    // Initial state: hide search container because 'auto' is default
-    const searchContainer = document.querySelector('.search-container');
-    if (searchContainer) {
-        searchContainer.style.display = 'none';
+        // Ensure 'auto' tab is active and visible on startup
+        const autoTabBtn = document.querySelector('.tab-btn[data-tab="auto"]');
+        if (autoTabBtn) autoTabBtn.click();
+
+    } catch (err) {
+        console.error('[ChobShop] Initialization failed:', err);
     }
-    // Start polling since 'auto' is active
-    startAutoPolling();
 });
 
 async function checkCurrentTab() {
@@ -177,8 +180,14 @@ function initEventListeners() {
 
     // Load More
     document.getElementById('loadMoreBtn').addEventListener('click', () => {
-        displayLimit += ITEMS_PER_PAGE;
-        renderProducts();
+        const currentCount = document.querySelectorAll('.product-card').length;
+        if (currentCount >= products.length && products.length % 100 === 0) {
+            // Probably more products on server
+            fetchProducts(true);
+        } else {
+            displayLimit += ITEMS_PER_PAGE;
+            renderProducts();
+        }
     });
 
     // Tab Switching (3 tabs: products / groups / auto)
@@ -343,57 +352,91 @@ function initEventListeners() {
 }
 
 // --- Data Fetching ---
-async function fetchProducts() {
-    const list = document.getElementById('productList');
+async function fetchProducts(isLoadMore = false) {
+    if (isFetchingProducts) return;
 
-    // 1. Try to load from cache immediately
-    try {
-        const cached = await chrome.storage.local.get('products');
-        if (cached.products && cached.products.length > 0) {
-            products = cached.products;
-            renderProducts();
-            document.querySelector('.status-dot').style.backgroundColor = '#10b981';
+    const list = document.getElementById('productList');
+    if (isLoadMore) productsPage++;
+    else productsPage = 1;
+
+    // 1. Try to load from cache immediately (only on first load)
+    if (!isLoadMore) {
+        try {
+            const cached = await chrome.storage.local.get('products');
+            if (cached.products && cached.products.length > 0) {
+                products = cached.products;
+                renderProducts();
+                document.querySelector('.status-dot').style.backgroundColor = '#10b981';
+            }
+        } catch (e) {
+            console.warn('Cache load failed:', e);
         }
-    } catch (e) {
-        console.warn('Cache load failed:', e);
     }
 
-    // 2. Try to update from server
+    // 2. Try to update from server with timeout
+    isFetchingProducts = true;
+    const dot = document.querySelector('.status-dot');
+    if (dot) dot.classList.add('syncing');
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     try {
-        const response = await fetch(`${settings.apiEndpoint}/api/products`);
+        const response = await fetch(`${settings.apiEndpoint}/api/products?page=${productsPage}&limit=100&lite=true`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const data = await response.json();
         const rawProducts = Array.isArray(data) ? data : (data.products || []);
 
         if (rawProducts.length > 0) {
-            // Only randomize if we don't have products yet (first load)
-            if (products.length === 0) {
-                products = rawProducts.sort(() => Math.random() - 0.5);
+            if (isLoadMore) {
+                // Append unique products
+                const existingIds = new Set(products.map(p => p.id));
+                const newItems = rawProducts.filter(p => !existingIds.has(p.id));
+                products = [...products, ...newItems];
             } else {
-                // Update existing products but keep order if possible, or just update data
                 products = rawProducts;
             }
+
             // PERSIST
             await chrome.storage.local.set({ products: products });
+
+            if (isLoadMore) {
+                displayLimit += ITEMS_PER_PAGE * 2; // Show more after fetch
+            }
             renderProducts();
             document.querySelector('.status-dot').style.backgroundColor = '#10b981';
+        } else if (isLoadMore) {
+            console.log('📦 No more products to load');
         }
     } catch (err) {
         console.error('Fetch error:', err);
-        // Only show error if we have NO products at all
+        const isTimeout = err.name === 'AbortError';
+        const errorMsg = isTimeout ? 'การเชื่อมต่อหมดเวลา (ช้าเกินไป)' : err.message;
+
         if (products.length === 0) {
             list.innerHTML = `
                 <div class="error-msg">
                     <div class="error-icon">⚠️</div>
                     <div class="error-title">เชื่อมต่อคลังสินค้าไม่ได้</div>
-                    <div class="error-detail">${err.message}</div>
+                    <div class="error-detail">${errorMsg}</div>
                     <button id="retryBtn" class="btn-secondary btn-sm" style="margin-top:10px">ลองใหม่</button>
                 </div>
             `;
-            document.querySelector('.status-dot').style.backgroundColor = '#ef4444'; // Red
-            document.getElementById('retryBtn')?.addEventListener('click', fetchProducts);
+            document.querySelector('.status-dot').style.backgroundColor = '#ef4444';
+            document.getElementById('retryBtn')?.addEventListener('click', () => fetchProducts(false));
+        } else {
+            console.warn('Silent sync error:', errorMsg);
         }
+    } finally {
+        isFetchingProducts = false;
+        const dot = document.querySelector('.status-dot');
+        if (dot) dot.classList.remove('syncing');
+        clearTimeout(timeoutId);
     }
 }
 
@@ -874,7 +917,7 @@ function refreshAutoStatus() {
     chrome.runtime.sendMessage({ action: 'GET_AUTO_STATUS' }, (response) => {
         if (chrome.runtime.lastError) {
             console.error('Status check failed:', chrome.runtime.lastError);
-            document.getElementById('autoStatusText').textContent = '⚠️ การเชื่อมต่อขัดข้อง';
+            if (document.getElementById('autoSubtext')) document.getElementById('autoSubtext').textContent = '⚠️ การเชื่อมต่อขัดข้อง';
             return;
         }
 
@@ -888,8 +931,6 @@ function refreshAutoStatus() {
         const isPosting = state.isPosting;
 
         // Status Badge
-        const badge = document.getElementById('autoStatusBadge');
-        const statusText = document.getElementById('autoStatusText');
         const hero = document.getElementById('autoHero');
         const statusTextLarge = document.getElementById('autoStatusTextLarge');
         const subtext = document.getElementById('autoSubtext');
@@ -907,7 +948,7 @@ function refreshAutoStatus() {
             hero.classList.add('running', 'posting');
             statusTextLarge.textContent = 'กำลังโพสต์...';
             statusTextLarge.classList.add('status-posting');
-            subtext.textContent = 'ระบบกำลังส่งข้อมูลไปยังกลุ่ม Facebook';
+            subtext.textContent = state.currentActivity || 'ระบบกำลังส่งข้อมูลไปยังกลุ่ม Facebook';
             updateBotPersonality('POSTING');
             liveBadge.style.display = 'inline-flex';
             progress.style.display = 'block';

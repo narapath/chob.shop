@@ -21,9 +21,15 @@ function generateLocalCategory(title) {
 router.get('/', async (req, res) => {
     try {
         if (!supabase) return res.status(500).json({ error: 'Supabase is not configured yet.' });
-        const { page, limit, category, search } = req.query;
+        const { page, limit, category, search, lite } = req.query;
+        const isLite = lite === 'true';
 
-        let query = supabase.from('products').select('*', { count: 'exact' }).order('date', { ascending: false });
+        // Use targeted selection for lite mode to reduce payload
+        const selector = isLite
+            ? 'id, title, price, original_price, image, category, date, affiliate_url, facebook_post_id, twitter_post_id'
+            : '*';
+
+        let query = supabase.from('products').select(selector, { count: 'exact' }).order('date', { ascending: false });
 
         if (category && category !== 'all' && category !== 'ทั้งหมด') {
             query = query.eq('category', category);
@@ -74,7 +80,7 @@ router.get('/', async (req, res) => {
         const chunkSize = 800;
 
         while (true) {
-            let chunkQuery = supabase.from('products').select('*');
+            let chunkQuery = supabase.from('products').select(selector);
             if (category && category !== 'all' && category !== 'ทั้งหมด') chunkQuery = chunkQuery.eq('category', category);
             if (search) chunkQuery = chunkQuery.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
 

@@ -748,13 +748,13 @@ function injectBotController() {
                 position: fixed;
                 bottom: 10px;
                 right: 10px;
-                width: 280px;
-                min-width: 180px;
+                width: 250px;
+                min-width: 140px;
                 max-width: calc(100vw - 20px);
                 background: rgba(15, 23, 42, 0.98);
                 backdrop-filter: blur(20px);
                 border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 14px;
+                border-radius: 12px;
                 color: white;
                 z-index: 999999;
                 font-family: -apple-system, system-ui, sans-serif;
@@ -766,13 +766,13 @@ function injectBotController() {
             }
             #chobshop-bot-controller.minimized {
                 width: auto;
-                min-width: 150px;
-                height: 44px;
+                min-width: 120px;
+                height: 38px;
             }
             .widget-header {
-                padding: 10px 14px;
+                padding: 8px 12px;
                 font-weight: 800;
-                font-size: 11px;
+                font-size: 10px;
                 letter-spacing: 0.05em;
                 border-bottom: 1px solid rgba(255,255,255,0.1);
                 display: flex;
@@ -782,59 +782,67 @@ function injectBotController() {
                 background: rgba(255,255,255,0.03);
             }
             .widget-content {
-                padding: 12px;
+                padding: 8px;
                 display: flex;
                 flex-direction: column;
-                gap: 10px;
+                gap: 8px;
                 transition: all 0.3s;
             }
             #chobshop-bot-controller.minimized .widget-content {
                 display: none;
             }
             .widget-toggle {
-                width: 22px;
-                height: 22px;
+                width: 20px;
+                height: 20px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 border-radius: 5px;
                 background: rgba(255,255,255,0.1);
-                font-size: 14px;
+                font-size: 12px;
                 font-weight: bold;
             }
             .stat-box {
                 display: flex;
                 flex-direction: column;
                 gap: 4px;
-                background: rgba(255,255,255,0.05);
-                padding: 8px;
-                border-radius: 10px;
+                background: rgba(255,255,255,0.04);
+                padding: 6px;
+                border-radius: 8px;
             }
             .stat-line {
                 display: flex;
                 justify-content: space-between;
-                font-size: 11px;
+                font-size: 10px;
                 white-space: nowrap;
             }
             .widget-log {
-                height: 80px;
+                height: 60px;
                 overflow-y: auto;
                 background: rgba(0,0,0,0.4);
-                border-radius: 8px;
-                padding: 6px;
+                border-radius: 6px;
+                padding: 5px;
                 font-size: 9px;
                 color: #34d399;
                 font-family: 'Cascadia Code', 'Consolas', monospace;
                 border: 1px solid rgba(255,255,255,0.05);
             }
+            .stat-line.activity {
+                border-top: 1px solid rgba(255,255,255,0.05);
+                padding-top: 4px;
+                margin-top: 2px;
+                color: #818cf8;
+                font-weight: 600;
+                display: none; /* Hidden by default when not posting */
+            }
             #widget-action-btn {
-                padding: 10px;
+                padding: 8px;
                 background: linear-gradient(135deg, #6366f1, #4f46e5);
                 border: none;
-                border-radius: 10px;
+                border-radius: 8px;
                 color: white;
                 font-weight: 700;
-                font-size: 12px;
+                font-size: 11px;
                 cursor: pointer;
                 box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
             }
@@ -843,14 +851,16 @@ function injectBotController() {
                 box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
             }
             
-            @media (max-width: 320px) {
+            @media (max-width: 350px) {
                 #chobshop-bot-controller {
-                    width: calc(100vw - 16px);
-                    right: 8px;
-                    bottom: 8px;
+                    width: 180px;
+                    right: 5px;
+                    bottom: 5px;
                 }
-                .widget-header { font-size: 10px; padding: 8px 10px; }
-                .stat-line { font-size: 10px; }
+                .widget-header { font-size: 9px; padding: 6px 10px; }
+                .stat-line { font-size: 9px; }
+                .widget-log { height: 45px; }
+                #widget-action-btn { font-size: 10px; padding: 6px; }
             }
         `;
         document.head.appendChild(style);
@@ -872,6 +882,9 @@ function injectBotController() {
                 <div class="stat-line">
                     <span style="color: #94a3b8;">POSTS:</span> 
                     <span id="widget-count" style="font-weight: 800;">0</span>
+                </div>
+                <div class="stat-line activity" id="widget-activity-container">
+                    <span id="widget-activity">รอดำเนินการ...</span>
                 </div>
             </div>
             <div id="widget-log-container" class="widget-log"></div>
@@ -910,13 +923,26 @@ function injectBotController() {
 function updateBotController(state) {
     const s = document.getElementById('widget-status');
     const c = document.getElementById('widget-count');
+    const a = document.getElementById('widget-activity');
+    const acon = document.getElementById('widget-activity-container');
     const b = document.getElementById('widget-action-btn');
     const l = document.getElementById('widget-log-container');
+
     if (s) {
         s.innerText = state.isRunning ? 'ACTIVE' : 'OFFLINE';
         s.style.color = state.isRunning ? '#10b981' : '#94a3b8';
     }
     if (c) c.innerText = state.postCount || 0;
+
+    if (a && acon) {
+        if (state.isPosting && state.currentActivity) {
+            a.innerText = state.currentActivity;
+            acon.style.display = 'flex';
+        } else {
+            acon.style.display = 'none';
+        }
+    }
+
     if (b) {
         b.innerText = state.isRunning ? 'STOP AUTO' : 'START AUTO';
         if (state.isRunning) b.classList.add('active');
@@ -928,7 +954,7 @@ function updateBotController(state) {
 async function findJustNowPostLink(targetText) {
     const nowMarkers = [
         "Just now", "जब अभी", "เมื่อสักครู่", "ตอนนี้", "1m", "1 นาที", "1 min", "1 min.", "0m", "0 นาที", "1น.", "1 น.",
-        "Just Now", "JUST NOW", "a few seconds ago", "ไม่กี่วินาทีที่ผ่านมา", "เพิ่งลง", "เมื่อครู่นี้"
+        "Just Now", "JUST NOW", "a few seconds ago", "ไม่กี่วินาทีที่ผ่านมา", "เพิ่งลง", "เมื่อครู่นี้", "9 นาที"
     ];
     const pendingMarkers = [
         "รอการอนุมัติ", "Submitted for review", "pending approval", "waiting for admin",
@@ -937,52 +963,71 @@ async function findJustNowPostLink(targetText) {
         "กำลังรอการอนุมัติ", "รออนุมัติ"
     ];
 
-    // Clean and prepare title chunks for fuzzy matching
-    // We take a longer snippet but sanitize it more carefully
-    const cleanTitle = targetText ? targetText.substring(0, 60).replace(/[^\w\s\u0E00-\u0E7F]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase() : "";
-    const titleChunks = cleanTitle.split(' ').filter(word => word.length > 2); // Keep shorter words for better matching
+    // Helper to strip Unicode Bold/Italic formatting for better matching
+    // Mathematical Alphanumeric Symbols range: U+1D400 to U+1D7FF
+    const stripFormatting = (str) => {
+        return str.replace(/[\u{1D400}-\u{1D7FF}]/gu, (char) => {
+            const cp = char.codePointAt(0);
+            // Bold sans-serif a-z (1d5ee - 1d607) -> a-z (97 - 122)
+            if (cp >= 0x1D5EE && cp <= 0x1D607) return String.fromCodePoint(cp - 0x1D5EE + 97);
+            // Bold sans-serif A-Z (1d5d4 - 1d5ed) -> A-Z (65 - 90)
+            if (cp >= 0x1D5D4 && cp <= 0x1D5ED) return String.fromCodePoint(cp - 0x1D5D4 + 65);
+            // Add more ranges if needed, or just return space to avoid breaking chunks
+            return " ";
+        });
+    };
 
-    console.log('[ChobShop] 🔍 Searching for verification. Chunks:', titleChunks);
+    const rawTitle = targetText ? targetText.substring(0, 100) : "";
+    const normalizedTitle = stripFormatting(rawTitle).toLowerCase();
 
-    for (let i = 0; i < 25; i++) { // Increase to 25s for slower network environments
+    // Clean remaining punctuation but KEEP Thai characters and Alphanumeric
+    const cleanTitle = normalizedTitle.replace(/[^\w\s\u0E00-\u0E7F]/g, ' ').replace(/\s+/g, ' ').trim();
+    const titleChunks = cleanTitle.split(' ').filter(word => word.length >= 2);
+
+    console.log('[ChobShop] 🔍 Verification start. Target:', cleanTitle);
+    console.log('[ChobShop] Chunks for matching:', titleChunks);
+
+    for (let i = 0; i < 30; i++) { // Increase to 30s
         await new Promise(r => setTimeout(r, 1000));
 
-        // 1. Toast / Notification Detection (Fastest)
-        // FB often shows a toast: "Your post was successful. View Post"
+        // 1. Toast / Notification Detection
         const allLinks = Array.from(document.querySelectorAll('a'));
         for (const a of allLinks) {
             const text = (a.innerText || "").toLowerCase();
             const href = a.href || "";
             if ((text.includes('ดูโพสต์') || text.includes('view post') || text.includes('view your post')) &&
                 (href.includes('/posts/') || href.includes('permalink') || href.includes('/groups/'))) {
-                console.log('[ChobShop] 🎯 Found post link via SUCCESS TOAST/LINK:', href);
+                console.log('[ChobShop] 🎯 Found link via SUCCESS TOAST:', href);
                 return { status: 'PUBLISHED', url: href };
             }
         }
 
-        // 2. Pending keywords in page body
+        // 2. Pending keywords
         const pageText = document.body.innerText.toLowerCase();
         if (pendingMarkers.some(m => pageText.includes(m.toLowerCase()))) {
-            console.log('[ChobShop] ⏳ Post verified as: PENDING_APPROVAL');
+            console.log('[ChobShop] ⏳ Post verified as: PENDING');
             return { status: 'PENDING', url: null };
         }
 
         // 3. Container-based Search
-        // Expand selectors to include more generic FB container classes
-        const postContainers = Array.from(document.querySelectorAll('[role="article"], .x1y1aw1k, [data-testid="post_container"], .x1n2onr6.x1ja2u2z'));
+        const postContainers = Array.from(document.querySelectorAll('[role="article"], .x1y1aw1k, [data-testid="post_container"], .x1n2onr6.x1ja2u2z, .x78zum5.x1n2onr6.xh8yej3'));
 
         for (const container of postContainers) {
             const cText = (container.innerText || "").toLowerCase();
+            const normalizedCText = stripFormatting(cText);
 
-            // Fuzzy Match: Check if at least 2 relevant words OR 50% of chunks exist in this container
-            const matchCount = titleChunks.filter(word => cText.includes(word)).length;
-            const threshold = Math.min(titleChunks.length, 2);
+            // Fuzzy Match
+            let matchCount = 0;
+            if (titleChunks.length > 0) {
+                matchCount = titleChunks.filter(word => normalizedCText.includes(word)).length;
+            }
 
-            // If we have very few title chunks, we need at least one good match
+            // At least 50% of chunks or 2 significant words must match
+            const threshold = Math.max(1, Math.min(titleChunks.length, 2));
             const isMatch = titleChunks.length > 0 ? (matchCount >= threshold) : true;
+
             if (!isMatch) continue;
 
-            // Search for "now" marker links in this specific container
             const links = Array.from(container.querySelectorAll('a'));
             for (const a of links) {
                 const hr = a.href || "";
@@ -997,46 +1042,33 @@ async function findJustNowPostLink(targetText) {
                 const combined = text + "|" + label + "|" + title;
 
                 if (nowMarkers.some(m => combined.includes(m.toLowerCase()))) {
-                    console.log('[ChobShop] ✅ Post verified: PUBLISHED (Container) -', hr);
-                    // Standardize the URL (remove query params unless it's a legacy permalink)
-                    let cleanUrl = hr;
-                    try {
-                        const urlObj = new URL(hr);
-                        if (hr.includes('/posts/')) {
-                            cleanUrl = urlObj.origin + urlObj.pathname;
-                        }
-                    } catch (e) { }
-                    return { status: 'PUBLISHED', url: cleanUrl };
+                    console.log('[ChobShop] ✅ Verified via Container Match:', hr);
+                    return { status: 'PUBLISHED', url: hr };
                 }
             }
         }
 
-        // Strategy B: Current URL if it's our post (Redirect case)
+        // Strategy B: Current URL check
         const currentUrl = window.location.href;
-        const reflectsPost = currentUrl.includes('/posts/') || currentUrl.includes('/permalink') || currentUrl.includes('/groups/');
-        if (reflectsPost && titleChunks.length > 0 && titleChunks.every(w => pageText.includes(w))) {
-            console.log('[ChobShop] ✅ Post verified: PUBLISHED (URL Match) -', currentUrl);
+        if ((currentUrl.includes('/posts/') || currentUrl.includes('/permalink')) && titleChunks.every(w => pageText.includes(w))) {
             return { status: 'PUBLISHED', url: currentUrl };
         }
     }
 
-    // FINAL FALLBACK: If we've waited 25 seconds and we're sure something was posted, 
-    // try to grab the very first "just now" link we find anywhere in the feed, 
-    // assuming it's ours (since we just posted it).
-    console.log('[ChobShop] ⚠️ Exact match failed, trying broad fallback...');
+    // FINAL FALLBACK
     const nowLinks = Array.from(document.querySelectorAll('a')).filter(a => {
         const hr = a.href || "";
         const label = (a.getAttribute('aria-label') || "").toLowerCase();
         const text = (a.innerText || "").toLowerCase();
-        return (hr.includes('/posts/') || hr.includes('permalink')) && nowMarkers.some(m => (text + label).includes(m.toLowerCase()));
+        const isPost = (hr.includes('/posts/') || hr.includes('permalink') || (hr.includes('/groups/') && hr.includes('/permalink/')));
+        return isPost && nowMarkers.some(m => (text + label).includes(m.toLowerCase()));
     });
 
     if (nowLinks.length > 0) {
-        const fallbackUrl = nowLinks[0].href;
-        console.log('[ChobShop] 🎯 Fallback success: Found latest post link -', fallbackUrl);
-        return { status: 'PUBLISHED', url: fallbackUrl };
+        console.log('[ChobShop] 🎯 Fallback Success:', nowLinks[0].href);
+        return { status: 'PUBLISHED', url: nowLinks[0].href };
     }
 
-    console.warn('[ChobShop] ❌ Verification timed out');
+    console.warn('[ChobShop] ❌ Verification timeout');
     return { status: 'FAILED', url: null };
 }

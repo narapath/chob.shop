@@ -6,6 +6,18 @@ let lastFetchedCount = 0;
 let currentFilter = 'all';
 let historyCache = [];
 
+// Isometric Office Layout Coordinates (%)
+const OFFICE_ZONES = {
+    SALES_ZONE: { top: 20, left: 10 },
+    AUTOMATION_BAY: { top: 20, left: 70 },
+    TEAM_SYNC: { top: 50, left: 40 },
+    BREAK_ROOM: { top: 70, left: 10 },
+    ADMIN_LAB: { top: 70, left: 70 }
+};
+
+// Track current positions for smooth wandering
+const botPositions = {};
+
 document.addEventListener('DOMContentLoaded', () => {
     startPolling();
     addConsoleLog('🚀 Chob.Shop Bot Dashboard started');
@@ -27,20 +39,27 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function fetchBots() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
     try {
-        const response = await fetch('/api/bots');
+        const response = await fetch('/api/bots', { signal: controller.signal });
+        clearTimeout(timeoutId);
         const data = await response.json();
 
         if (data.success) {
-            // Sort bots by name (Bot 1, Bot 2, Bot 3...)
             bots = data.bots.sort((a, b) => a.bot_name.localeCompare(b.bot_name, undefined, { numeric: true, sensitivity: 'base' }));
             renderOffice();
             updateGlobalStats();
             updateBotTabs();
         }
     } catch (err) {
-        console.error('Fetch bots error:', err);
-        addConsoleLog('❌ Error connecting to API: ' + err.message);
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+            console.warn('Fetch bots timed out');
+        } else {
+            console.error('Fetch bots error:', err);
+            addConsoleLog('❌ Error connecting to API: ' + err.message);
+        }
     }
 }
 
@@ -92,7 +111,6 @@ function renderOffice() {
         const safeId = bot.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
         const isOffline = (Date.now() - new Date(bot.last_heartbeat).getTime()) > 120000;
         const isPosting = bot.stats.isPosting || bot.status === 'POSTING';
-        const cardClass = isOffline ? 'offline' : (isPosting ? 'posting' : (bot.status === 'ACTIVE' ? 'active' : 'idle'));
 
         let statusText = isOffline ? 'OFFLINE' : (bot.status || 'IDLE');
         if (isPosting) statusText = '⚡ POSTING...';
@@ -100,129 +118,83 @@ function renderOffice() {
         else if (bot.status === 'IDLE') statusText = '💤 IDLE';
 
         const currentActivity = bot.stats.activity || '';
-        const avatar = getBotAvatar(bot.bot_name);
         const nextRunTime = bot.stats.next_run;
         const nextRunDisplay = isPosting ? 'BUSY' : formatNextRun(nextRunTime);
 
+        // Determine Goal Zone
+        let goalZone = 'BREAK_ROOM';
+        if (isPosting) goalZone = 'AUTOMATION_BAY';
+        else if (bot.status === 'ACTIVE') goalZone = 'SALES_ZONE';
+        else if (bot.bot_name.includes('Master')) goalZone = 'ADMIN_LAB';
+
+        // Update/Calculate Position
+        if (!botPositions[safeId]) {
+            const zone = OFFICE_ZONES[goalZone];
+            botPositions[safeId] = {
+                top: zone.top + (Math.random() * 10 - 5),
+                left: zone.left + (Math.random() * 10 - 5)
+            };
+        } else {
+            const zone = OFFICE_ZONES[goalZone];
+            // Slow nudge towards goal or random wander
+            if (Math.random() > 0.8) {
+                botPositions[safeId].top = zone.top + (Math.random() * 12 - 6);
+                botPositions[safeId].left = zone.left + (Math.random() * 12 - 6);
+            }
+        }
+        const pos = botPositions[safeId];
+
         let card = document.getElementById(`bot-card-${safeId}`);
+        let charDiv = document.getElementById(`char-container-${safeId}`);
 
         if (!card) {
             // Initial render
             card = document.createElement('div');
             card.id = `bot-card-${safeId}`;
-            card.className = `bot-card ${cardClass}`;
-
-            const currentInterval = window.userSelectionCache[bot.bot_name] !== undefined
-                ? window.userSelectionCache[bot.bot_name]
-                : (bot.stats.interval || 15);
-
-            const botSprite = getBotSprite(bot.bot_name);
-            const animClass = isOffline ? 'sleeping' : (isPosting ? 'working' : (bot.status === 'ACTIVE' ? 'walking' : ''));
-
-            card.innerHTML = `
-                <button class="delete-bot-btn" onclick="deleteBot('${bot.bot_name}')" title="Delete Bot">🗑️</button>
-                
-                <!-- Bot Character Display -->
-                <div class="bot-character-container ${isOffline ? 'sleeping' : ''}" id="char-container-${safeId}">
-                    <div class="workstation-floor"></div>
-                    <img src="${botSprite}" class="bot-sprite ${animClass}" id="sprite-${safeId}">
-                </div>
-
-                <div class="bot-name">${bot.bot_name}</div>
-                <div class="bot-status-tag" id="status-tag-${safeId}">${statusText}</div>
-                
-                <div class="bot-activity" id="activity-${safeId}" style="text-align:center; font-size: 8px; color: var(--pixel-green); margin-bottom: 10px; font-family: 'Press Start 2P'; height: 12px; overflow:hidden;">${currentActivity}</div>
-
-                <div class="bot-ping-indicator" style="background: rgba(0,0,0,0.4); font-family: 'Press Start 2P'; font-size: 6px;">
-                    <span class="ping-dot ${getPingClass(bot.stats.ping)}" id="ping-dot-${safeId}"></span>
-                    <span class="ping-val" id="ping-val-${safeId}">${bot.stats.ping || 0} ms</span>
-                </div>
-                <div class="bot-stats-list" style="border: 2px solid var(--pixel-border); background: rgba(0,0,0,0.2);">
-                    <div class="stat-row">
-                        <span class="label">POSTS</span>
-                        <span class="val" id="posts-${safeId}">${bot.stats.postCount || 0}</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="label">NEXT</span>
-                        <span class="val countdown" id="next-${safeId}" data-time="${nextRunTime || ''}">${nextRunDisplay}</span>
-                    </div>
-                </div>
-                <div class="bot-controls">
-                    <div class="control-group">
-                        <select class="interval-select" id="interval-${safeId}" onchange="window.userSelectionCache['${bot.bot_name}'] = this.value">
-                            <option value="5" ${currentInterval == 5 ? 'selected' : ''}>5 min</option>
-                            <option value="10" ${currentInterval == 10 ? 'selected' : ''}>10 min</option>
-                            <option value="15" ${currentInterval == 15 ? 'selected' : ''}>15 min</option>
-                            <option value="20" ${currentInterval == 20 ? 'selected' : ''}>20 min</option>
-                            <option value="30" ${currentInterval == 30 ? 'selected' : ''}>30 min</option>
-                            <option value="60" ${currentInterval == 60 ? 'selected' : ''}>60 min</option>
-                        </select>
-                        <button class="ctrl-btn apply" onclick="handleCommand('${bot.bot_name}', 'SET_INTERVAL')" id="btn-apply-${safeId}">⚙️</button>
-                    </div>
-                    <div class="control-actions" id="actions-${safeId}" style="display:flex; gap:8px;">
-                        ${bot.status === 'ACTIVE' || isPosting
-                    ? `<button class="ctrl-btn stop" onclick="handleCommand('${bot.bot_name}', 'STOP')">STOP</button>`
-                    : `<button class="ctrl-btn start" onclick="handleCommand('${bot.bot_name}', 'START')">START</button>`
-                }
-                    </div>
-                </div>
-            `;
+            card.className = `bot-card`;
             office.appendChild(card);
-        } else {
-            // Surgical Update
-            // Update Sprite & Animation
-            const spriteEl = document.getElementById(`sprite-${safeId}`);
-            if (spriteEl) {
-                const animClass = isOffline ? '' : (isPosting ? 'working' : (bot.status === 'ACTIVE' ? 'walking' : ''));
-                // Remove all possible animation classes
-                spriteEl.classList.remove('working', 'walking');
-                if (animClass) spriteEl.classList.add(animClass);
-            }
 
-            const containerEl = document.getElementById(`char-container-${safeId}`);
-            if (containerEl) {
-                if (isOffline) containerEl.classList.add('sleeping');
-                else containerEl.classList.remove('sleeping');
-            }
-
-            const tagEl = document.getElementById(`status-tag-${safeId}`);
-            if (tagEl) tagEl.textContent = statusText;
-
-            const activityEl = document.getElementById(`activity-${safeId}`);
-            if (activityEl) activityEl.textContent = currentActivity;
-
-            const pingDot = document.getElementById(`ping-dot-${safeId}`);
-            if (pingDot) pingDot.className = `ping-dot ${getPingClass(bot.stats.ping)}`;
-
-            const pingVal = document.getElementById(`ping-val-${safeId}`);
-            if (pingVal) pingVal.textContent = `${bot.stats.ping || 0} ms`;
-
-            const postsEl = document.getElementById(`posts-${safeId}`);
-            if (postsEl) postsEl.textContent = bot.stats.postCount || 0;
-
-            const nextEl = document.getElementById(`next-${safeId}`);
-            if (nextEl) {
-                nextEl.setAttribute('data-time', nextRunTime || '');
-                nextEl.textContent = nextRunDisplay;
-            }
-
-            const hbEl = document.getElementById(`hb-${safeId}`);
-            if (hbEl) hbEl.textContent = formatTime(bot.last_heartbeat);
-
-            // Update Start/Stop buttons only if not busy
-            const actionsEl = document.getElementById(`actions-${safeId}`);
-            if (actionsEl) {
-                const currentBtn = actionsEl.querySelector('.ctrl-btn');
-                const shouldBeStop = bot.status === 'ACTIVE' || isPosting;
-                const isStop = currentBtn && currentBtn.classList.contains('stop');
-
-                if (shouldBeStop !== isStop) {
-                    actionsEl.innerHTML = shouldBeStop
-                        ? `<button class="ctrl-btn stop" onclick="handleCommand('${bot.bot_name}', 'STOP')">STOP</button>`
-                        : `<button class="ctrl-btn start" onclick="handleCommand('${bot.bot_name}', 'START')">START</button>`;
-                }
-            }
+            charDiv = document.createElement('div');
+            charDiv.id = `char-container-${safeId}`;
+            charDiv.className = `bot-character-container`;
+            office.appendChild(charDiv);
         }
+
+        // Update Position
+        card.style.top = `${pos.top}%`;
+        card.style.left = `${pos.left}%`;
+        charDiv.style.top = `${pos.top}%`;
+        charDiv.style.left = `${pos.left}%`;
+
+        // Inner UI (Floating Bubble)
+        card.innerHTML = `
+            <button class="delete-bot-btn" onclick="deleteBot('${bot.bot_name}')" title="Delete Bot">🗑️</button>
+            <div class="bot-name" style="font-family:'Press Start 2P'; font-size:9px; color:var(--pixel-green); margin-bottom:5px;">${bot.bot_name}</div>
+            <div class="bot-status-tag" style="font-size:8px;">${statusText}</div>
+            <div class="bot-activity" style="font-size:7px; color:var(--pixel-green); height:10px; overflow:hidden;">${currentActivity}</div>
+            <div class="bot-stats-list" style="border:1px solid var(--pixel-border); background:rgba(0,0,0,0.3); padding:5px; margin-top:5px;">
+                <div class="stat-row" style="border:none; padding:1px 0;">
+                    <span class="label" style="font-size:7px;">POSTS</span>
+                    <span class="val" style="font-size:8px;">${bot.stats.postCount || 0}</span>
+                </div>
+                <div class="stat-row" style="border:none; padding:1px 0;">
+                    <span class="label" style="font-size:7px;">NEXT</span>
+                    <span class="val" style="font-size:8px;">${nextRunDisplay}</span>
+                </div>
+            </div>
+            <div class="control-actions" id="actions-${safeId}" style="display:flex; gap:5px; margin-top:5px;">
+                ${bot.status === 'ACTIVE' || isPosting
+                ? `<button class="ctrl-btn stop" onclick="handleCommand('${bot.bot_name}', 'STOP')" style="padding:2px 5px; font-size:7px;">STOP</button>`
+                : `<button class="ctrl-btn start" onclick="handleCommand('${bot.bot_name}', 'START')" style="padding:2px 5px; font-size:7px;">START</button>`
+            }
+            </div>
+        `;
+
+        // Update Sprite
+        const botSprite = getBotSprite(bot.bot_name);
+        const animClass = isOffline ? 'sleeping' : (isPosting ? 'working' : (bot.status === 'ACTIVE' ? 'walking' : ''));
+        charDiv.className = `bot-character-container ${isOffline ? 'sleeping' : ''}`;
+        charDiv.innerHTML = `<img src="${botSprite}" class="bot-sprite ${animClass}" style="width:64px; height:64px;">`;
     });
 
     // Remove cards for bots that are no longer in the list
@@ -251,8 +223,11 @@ function updateGlobalStats() {
 }
 
 async function fetchHistory() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
     try {
-        const response = await fetch('/api/bots/history?limit=30');
+        const response = await fetch('/api/bots/history?limit=30', { signal: controller.signal });
+        clearTimeout(timeoutId);
         const data = await response.json();
 
         if (data.success) {
@@ -264,7 +239,10 @@ async function fetchHistory() {
             list.innerHTML = `<div class="history-empty"><span class="empty-icon">⚠️</span><span>${data.error || 'Unknown Error'}</span></div>`;
         }
     } catch (err) {
-        console.error('Fetch history error:', err);
+        clearTimeout(timeoutId);
+        if (err.name !== 'AbortError') {
+            console.error('Fetch history error:', err);
+        }
     }
 }
 
@@ -465,8 +443,8 @@ function addConsoleLog(msg) {
 }
 
 function startPolling() {
-    setInterval(fetchBots, 2000);
-    setInterval(fetchHistory, 3000);
+    setInterval(fetchBots, 5000);    // Was 2000ms - reduced DB pressure
+    setInterval(fetchHistory, 10000); // Was 3000ms - history changes slowly
 }
 
 function getPingClass(ping) {

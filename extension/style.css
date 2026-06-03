@@ -86,6 +86,29 @@ header {
     box-shadow: 0 0 8px #10b981;
 }
 
+.status-dot.syncing {
+    animation: sync-pulse 1.5s infinite ease-in-out;
+    background-color: var(--accent-light) !important;
+    box-shadow: 0 0 12px var(--accent-light) !important;
+}
+
+@keyframes sync-pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.4;
+        transform: scale(1.4);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 /* Search container compact */
 .search-container {
     padding: 12px;
@@ -416,6 +439,8 @@ footer {
     border-radius: var(--radius);
     padding: 20px;
     width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .overlay-content h3 {
@@ -669,13 +694,15 @@ footer {
 #productsView,
 #groupsView,
 #autoView,
-#scraperView {
+#scraperView,
+#historyView {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
     height: 100%;
+    position: relative;
 }
 
 #productsView.hidden,
@@ -701,7 +728,17 @@ footer {
     padding: 10px 12px;
     gap: 12px;
     min-height: 0;
-    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.auto-panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+.auto-panel::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
 }
 
 .hero-dashboard {
@@ -929,8 +966,8 @@ footer {
 }
 
 .hero-dashboard {
-    padding: 30px 12px 10px;
-    /* Increased top padding for speech bubble */
+    padding: 45px 12px 15px;
+    /* Increased top padding for speech bubble space */
     text-align: center;
     background: radial-gradient(circle at top, rgba(99, 102, 241, 0.12) 0%, transparent 80%);
     border-radius: var(--radius-lg);
@@ -942,7 +979,7 @@ footer {
 .bot-status-ring {
     width: 48px;
     height: 48px;
-    margin: 12px auto 8px;
+    margin: 8px auto 8px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1184,12 +1221,13 @@ footer {
 }
 
 .auto-log-section {
-    flex: 1;
+    flex-shrink: 0;
+    /* Don't force growth, let it fit */
     display: flex;
     flex-direction: column;
     gap: 6px;
     margin-top: 4px;
-    min-height: 0;
+    min-height: 120px;
     overflow: hidden;
 }
 
@@ -1205,3 +1243,240 @@ footer {
 }
 
 /* Premium Log Entries style below */
+
+@media (max-width: 330px) {
+    header {
+        padding: 8px 12px;
+    }
+
+    .logo {
+        font-size: 14px;
+    }
+
+    .tab-btn {
+        font-size: 9px;
+        padding: 6px 2px;
+        min-width: 50px;
+    }
+
+    .auto-panel {
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .hero-status-text {
+        font-size: 14px;
+    }
+
+    .modern-stat-value {
+        font-size: 14px;
+    }
+
+    .modern-stat-label {
+        font-size: 7.5px;
+    }
+
+    .auto-btn-text {
+        font-size: 12px;
+    }
+
+    .auto-start-btn,
+    .auto-stop-btn {
+        padding: 10px;
+    }
+}
+
+@media (max-height: 500px) {
+    header {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+
+    .logo {
+        font-size: 13px;
+    }
+
+    .header-actions {
+        gap: 8px;
+    }
+
+    .search-container {
+        padding: 6px;
+    }
+
+    .tabs {
+        padding-bottom: 6px;
+        gap: 2px;
+    }
+
+    .tab-btn {
+        padding: 4px 2px;
+        font-size: 8.5px;
+        min-width: 45px;
+        border-radius: 6px;
+    }
+
+    .hero-dashboard {
+        padding: 4px 8px;
+        /* Flat layout */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        text-align: left;
+        min-height: 32px;
+        margin-bottom: 6px;
+    }
+
+    .bot-status-ring,
+    .bot-speech,
+    .hero-subtext {
+        display: none !important;
+        /* Force hide decorative elements */
+    }
+
+    .hero-status-text {
+        font-size: 13px;
+        margin: 0;
+        line-height: 1;
+        white-space: nowrap;
+        flex: 1;
+    }
+
+    .live-badge {
+        position: static !important;
+        margin: 0 !important;
+        transform: scale(0.85);
+    }
+
+    .modern-grid {
+        margin-bottom: 4px;
+        gap: 4px;
+        grid-template-columns: repeat(3, 1fr);
+        /* Force equal thirds */
+    }
+
+    .modern-stat {
+        height: 48px;
+        padding: 4px 2px;
+        border-radius: 8px;
+    }
+
+    .modern-stat-value {
+        font-size: 14px;
+    }
+
+    .modern-stat-label {
+        font-size: 8px;
+    }
+
+    .auto-interval {
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .auto-interval label {
+        font-size: 10px;
+    }
+
+    .auto-interval select {
+        padding: 5px 20px 5px 8px;
+        font-size: 11px;
+    }
+
+    .auto-start-btn,
+    .auto-stop-btn {
+        padding: 6px;
+        font-size: 12px;
+        border-radius: 6px;
+    }
+
+    .auto-log-section {
+        min-height: 60px;
+    }
+
+    footer {
+        display: none !important;
+    }
+}
+
+/* Landscape compact mode (very short but wide) */
+@media (max-height: 380px) {
+    .auto-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .hero-dashboard {
+        grid-column: 1 / -1;
+    }
+
+    .modern-grid {
+        grid-column: 1 / 2;
+        grid-template-columns: repeat(3, 1fr);
+        margin-bottom: 0;
+    }
+
+    .auto-controls {
+        grid-column: 2 / 3;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .auto-log-section {
+        display: none;
+    }
+
+    /* Hide logs on ultra-short to show controls */
+}
+
+/* Responsive Adjustments for Small Heights */
+@media (max-height: 550px) {
+    .hero-dashboard {
+        padding: 40px 12px 10px;
+        /* Still keep enough space for bubble on small screens */
+    }
+
+    .bot-status-ring {
+        width: 32px;
+        height: 32px;
+        margin: 4px auto 4px;
+    }
+
+    #botIcon {
+        font-size: 16px;
+    }
+
+    .hero-status-text {
+        font-size: 14px;
+    }
+
+    .hero-subtext {
+        font-size: 10px;
+    }
+
+    .bot-speech {
+        top: -30px;
+        padding: 2px 8px;
+    }
+
+    .bot-speech.show {
+        top: -34px;
+    }
+
+    .modern-stat {
+        height: 52px;
+        padding: 4px;
+    }
+
+    .modern-stat-value {
+        font-size: 14px;
+    }
+
+    .modern-stat-label {
+        font-size: 8px;
+    }
+}

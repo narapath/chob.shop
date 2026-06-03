@@ -94,9 +94,21 @@
                 </div>
             </header>
 
-            <main id="botOffice" class="bot-office">
-                <!-- Bot characters will be rendered here -->
-                <div class="loading-pixel">SCANNING FOR BOTS...</div>
+            <main class="office-simulation-area">
+                <div class="iso-stage" id="isoStage">
+                    <!-- Floor Tiles -->
+                    <div class="iso-floor"></div>
+
+                    <!-- Office Zones (Waypoints) -->
+                    <div class="office-zone sales-zone" data-label="SALES_ZONE" style="top: 20%; left: 10%;"></div>
+                    <div class="office-zone tech-zone" data-label="AUTOMATION_BAY" style="top: 20%; right: 10%;"></div>
+                    <div class="office-zone meeting-zone" data-label="TEAM_SYNC" style="top: 50%; left: 40%;"></div>
+                    <div class="office-zone break-zone" data-label="BREAK_ROOM" style="bottom: 15%; left: 10%;"></div>
+                    <div class="office-zone admin-zone" data-label="ADMIN_LAB" style="bottom: 15%; right: 10%;"></div>
+
+                    <!-- Characters and Floating Bubbles injected here -->
+                    <div id="botOffice" class="bot-office-sprites"></div>
+                </div>
             </main>
 
             <section class="history-section">
