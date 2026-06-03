@@ -52,8 +52,10 @@ async function fetchBots() {
 
             // Only log Found bots if count changed or first time
             if (bots.length !== oldBots.length || oldBots.length === 0) {
+                const onlineCount = bots.filter(b => (Date.now() - new Date(b.last_heartbeat).getTime()) < 120000).length;
+                const offlineCount = bots.length - onlineCount;
                 console.log('Fetched bots:', bots);
-                addConsoleLog(`📡 Sync: Found ${bots.length} bot(s) in database`);
+                addConsoleLog(`📡 Sync: Found ${bots.length} bot(s) — ${onlineCount} online, ${offlineCount} offline`);
             }
 
             renderOffice();
@@ -135,14 +137,14 @@ function renderOffice() {
                     <div class="bot-avatar-circle">${avatar}</div>
                     <div class="bot-info">
                         <span class="name">${bot.bot_name}</span>
-                        <span class="status-pill ${isOffline ? '' : (isPosting ? 'posting' : 'active')}">${statusText}</span>
+                        <span class="status-pill ${isOffline ? 'offline' : (isPosting ? 'posting' : 'active')}">${statusText}</span>
                     </div>
                 </div>
                 <button class="btn-icon" onclick="deleteBot('${bot.bot_name}')" title="Remove Bot">🗑️</button>
             </div>
             
             <div class="card-activity-line" title="${currentActivity}">
-                ${isPosting ? '⚡ ' : ''}${currentActivity}
+                ${isOffline ? '💤 ' : (isPosting ? '⚡ ' : '')}${currentActivity}
             </div>
             
             <div class="card-stats-mini">
@@ -162,7 +164,7 @@ function renderOffice() {
             </div>
             
             <div class="card-controls">
-                ${bot.status === 'ACTIVE' || isPosting
+                ${!isOffline && (bot.status === 'ACTIVE' || isPosting)
                 ? `<button class="btn-card stop" onclick="handleCommand('${bot.bot_name}', 'STOP')">⏸️ STOP</button>`
                 : `<button class="btn-card start" onclick="handleCommand('${bot.bot_name}', 'START')">▶️ START</button>`
             }
