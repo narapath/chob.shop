@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS extension_bots (
   status TEXT DEFAULT 'idle',
   last_heartbeat TIMESTAMPTZ DEFAULT NOW(),
   stats JSONB DEFAULT '{}',
+  command JSONB DEFAULT '{}',
   version TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

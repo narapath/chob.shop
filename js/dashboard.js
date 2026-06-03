@@ -75,6 +75,10 @@ function renderOffice() {
             ? window.userSelectionCache[bot.bot_name]
             : (bot.stats.interval || 15);
 
+        // Only update innerHTML if not interacting with dropdown
+        const activeEl = document.activeElement;
+        const isInteracting = activeEl && (activeEl.id === `interval-${safeId}` || activeEl.closest(`#bot-card-${safeId}`));
+
         // Surgical Update Logic
         card.innerHTML = `
                 <button class="delete-bot-btn" onclick="deleteBot('${bot.bot_name}')" title="Delete Bot">🗑️</button>
