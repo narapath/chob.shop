@@ -929,7 +929,8 @@ footer {
 }
 
 .hero-dashboard {
-    padding: 10px 12px;
+    padding: 30px 12px 10px;
+    /* Increased top padding for speech bubble */
     text-align: center;
     background: radial-gradient(circle at top, rgba(99, 102, 241, 0.12) 0%, transparent 80%);
     border-radius: var(--radius-lg);
@@ -973,7 +974,7 @@ footer {
 
 .bot-speech {
     position: absolute;
-    top: -42px;
+    top: -38px;
     left: 50%;
     transform: translateX(-50%);
     background: #fff;
@@ -981,8 +982,11 @@ footer {
     padding: 4px 10px;
     border-radius: 10px;
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 800;
     white-space: nowrap;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     z-index: 10;
     opacity: 0;
@@ -992,7 +996,7 @@ footer {
 
 .bot-speech.show {
     opacity: 1;
-    top: -46px;
+    top: -42px;
 }
 
 .bot-speech::after {
@@ -1083,8 +1087,15 @@ footer {
 }
 
 #statCurrentGroup {
-    font-size: 11px;
-    /* Smaller font for long group names */
+    font-size: 10px;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.1;
+    max-height: 2.2em;
 }
 
 .modern-stat-label {
