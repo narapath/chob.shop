@@ -340,7 +340,12 @@ function initEventListeners() {
         const botName = document.getElementById('botName').value.trim();
 
         // Normalize API Endpoint: trim and remove trailing slashes
-        const normalizedApi = api.replace(/\/+$/, '');
+        let normalizedApi = api.replace(/\/+$/, '');
+
+        // Ensure protocol exists
+        if (normalizedApi && !normalizedApi.startsWith('http')) {
+            normalizedApi = 'https://' + normalizedApi;
+        }
 
         chrome.storage.local.set({ apiEndpoint: normalizedApi, botName: botName }, () => {
             chrome.storage.sync.set({ captionTemplate: template }, () => {

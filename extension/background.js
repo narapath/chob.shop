@@ -425,6 +425,12 @@ async function sendHeartbeat() {
 
         if (response.ok) {
             const data = await response.json();
+            // Save heartbeat status for popup UI
+            await chrome.storage.local.set({
+                lastHeartbeat: Date.now(),
+                lastPing: lastPing
+            });
+
             logQueue = []; // Clear queue on success
 
             // Process Commands from Remote
