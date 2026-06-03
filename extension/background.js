@@ -101,6 +101,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         updateInterval(request.intervalMinutes).then(sendResponse);
         return true;
     }
+
+    if (request.type === 'RESTRICTION_DETECTED') {
+        console.error('🚨 [Background] Restriction detected from content script!');
+        stopAutoPost().then(() => {
+            addLog(`❌ ${request.message}`, 'ERROR', 'RESTRICTION_DETECTED');
+        });
+        return true;
+    }
 });
 
 async function startAutoPost(intervalMinutes) {
@@ -212,105 +220,108 @@ async function executeAutoPost() {
             throw new Error('ไม่พบข้อมูลกลุ่มหรือสินค้า (โปรดเปิด Popup เพื่อซิงค์ข้อมูล)');
         }
 
-        // --- NEW: Loop for 2 Groups per Round ---
-        for (let burstIdx = 0; burstIdx < 2; burstIdx++) {
-            const group = fbGroups[autoPostState.groupIndex % fbGroups.length];
-            const product = products[Math.floor(Math.random() * products.length)];
+        // --- Execute Single Post ---
+        const group = fbGroups[autoPostState.groupIndex % fbGroups.length];
+        const product = products[Math.floor(Math.random() * products.length)];
 
-            addLog(`🚀 [${burstIdx + 1}/2] เริ่มโพสต์กลุ่ม: "${group.name}"`, 'INFO', 'BURST_START');
+        addLog(`🚀 เริ่มโพสต์กลุ่ม: "${group.name}"`, 'INFO', 'POST_START');
 
-            // 4. Generate Caption
-            const boldTitle = toUnicodeBold(product.title);
-            const currentTemplate = template || '{{title}} ✨\n{{desc}}\n\n💰 งบประมาณ: {{price}}.-\n📍 พิกัดช้อปตรงนี้เลยครับ 👇\n{{link}}';
-            const baseLink = (product.affiliateUrl && product.affiliateUrl.length > 5) ? product.affiliateUrl : `https://chob.shop/?productId=${product.id}`;
+        // 4. Generate Caption
+        const boldTitle = toUnicodeBold(product.title);
+        const currentTemplate = template || '{{title}} ✨\n{{desc}}\n\n💰 งบประมาณ: {{price}}.-\n📍 พิกัดช้อปตรงนี้เลยครับ 👇\n{{link}}';
+        const baseLink = (product.affiliateUrl && product.affiliateUrl.length > 5) ? product.affiliateUrl : `https://chob.shop/?productId=${product.id}`;
 
-            let caption = currentTemplate
-                .replace(/{{title}}/g, boldTitle)
-                .replace(/{{price}}/g, parseFloat(product.price || 0).toLocaleString())
-                .replace(/{{link}}/g, baseLink + '\n')
-                .replace(/{{desc}}/g, product.description || '')
-                .replace(/{{tags}}/g, '');
-            caption = caption.replace(/\n{3,}/g, '\n\n').trim();
+        let caption = currentTemplate
+            .replace(/{{title}}/g, boldTitle)
+            .replace(/{{price}}/g, parseFloat(product.price || 0).toLocaleString())
+            .replace(/{{link}}/g, baseLink + '\n')
+            .replace(/{{desc}}/g, product.description || '')
+            .replace(/{{tags}}/g, '');
+        caption = caption.replace(/\n{3,}/g, '\n\n').trim();
 
-            // 5. Navigate
-            autoPostState.currentActivity = `NAVIGATING TO GROUP ${burstIdx + 1}/2`;
-            await chrome.storage.local.set({ autoPostState });
+        // 5. Navigate
+        autoPostState.currentActivity = `NAVIGATING TO GROUP`;
+        await chrome.storage.local.set({ autoPostState });
 
-            const tabs = await chrome.tabs.query({ url: "*://*.facebook.com/*" });
-            let tabId;
-            if (tabs.length > 0) {
-                tabId = tabs[0].id;
-                await chrome.tabs.update(tabId, { url: group.url, active: true });
-            } else {
-                const newTab = await chrome.tabs.create({ url: group.url });
-                tabId = newTab.id;
-            }
-
-            await new Promise(r => setTimeout(r, 12000)); // FB Load wait
-
-            // 6.5 Prepare Image
-            autoPostState.currentActivity = `PREPARING IMAGE ${burstIdx + 1}/2`;
-            await chrome.storage.local.set({ autoPostState });
-
-            let finalImageUrl = product.image;
-            if (product.image && !product.image.startsWith('data:')) {
-                try {
-                    const imgUrl = product.image.startsWith('//') ? 'https:' + product.image : product.image;
-                    const base64Result = await fetchImageAsBase64(imgUrl);
-                    if (base64Result) finalImageUrl = base64Result;
-                } catch (e) { console.error('Img error:', e); }
-            }
-
-            // 7. Send fill command
-            let postLink = null;
-            let postStatus = 'FAILED';
-            try {
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Content script timeout')), 60000)
-                );
-                const response = await Promise.race([
-                    chrome.tabs.sendMessage(tabId, { action: 'FILL_POST', data: { caption, imageUrl: finalImageUrl } }),
-                    timeoutPromise
-                ]);
-
-                const result = response ? response.postLink : { status: 'FAILED', url: null };
-                postLink = result.url;
-                postStatus = result.status || 'FAILED';
-            } catch (msgErr) {
-                console.error('[AutoPost] Messaging error:', msgErr.message);
-                addLog('⚠️ การติดต่อหน้าเว็บล้มเหลว: ' + msgErr.message, 'WARN', 'MSG_FAIL');
-            }
-
-            // 8. Update stats
-            autoPostState.postCount += 1;
-            autoPostState.lastPostTime = Date.now();
-            autoPostState.groupIndex = (autoPostState.groupIndex || 0) + 1;
-            if (autoPostState.groupIndex >= fbGroups.length) autoPostState.groupIndex = 0;
-
-            const timeStr = new Date().toLocaleTimeString('th-TH');
-            let statusIcon = '✅', statusText = 'โพสต์สำเร็จ';
-            if (postStatus === 'PENDING') { statusIcon = '⏳'; statusText = 'รออนุมัติ'; }
-            else if (!postLink) { statusIcon = '❌'; statusText = 'ไม่พบลิงก์'; }
-
-            addLog(`${statusIcon} ${timeStr} | ${statusText} | "${group.name}"`, postStatus === 'FAILED' ? 'ERROR' : 'SUCCESS', 'POST_FINISHED', {
-                group: group.name, product: product.title, link: postLink, status: postStatus
-            });
-
-            // Save history
-            const { postHistory = [] } = await chrome.storage.local.get('postHistory');
-            const updatedHistory = [{
-                id: Date.now(), timestamp: new Date().toISOString(), groupName: group.name,
-                productTitle: product.title, link: postLink, status: postStatus,
-                image: finalImageUrl
-            }, ...postHistory].slice(0, 50);
-            await chrome.storage.local.set({ postHistory: updatedHistory, autoPostState }); // Save intermediate state
-
-            // Delay between burst posts (60s)
-            if (burstIdx < 1) {
-                addLog(`🕒 กำลังรอ 60 วินาทีก่อนโพสต์กลุ่มถัดไป...`, 'INFO', 'BURST_WAIT');
-                await new Promise(r => setTimeout(r, 60000));
-            }
+        const tabs = await chrome.tabs.query({ url: "*://*.facebook.com/*" });
+        let tabId;
+        if (tabs.length > 0) {
+            tabId = tabs[0].id;
+            await chrome.tabs.update(tabId, { url: group.url, active: true });
+        } else {
+            const newTab = await chrome.tabs.create({ url: group.url });
+            tabId = newTab.id;
         }
+
+        await new Promise(r => setTimeout(r, 12000)); // FB Load wait
+
+        // 6.5 Prepare Image
+        autoPostState.currentActivity = `PREPARING IMAGE`;
+        await chrome.storage.local.set({ autoPostState });
+
+        let finalImageUrl = product.image;
+        if (product.image && !product.image.startsWith('data:')) {
+            try {
+                const imgUrl = product.image.startsWith('//') ? 'https:' + product.image : product.image;
+                const base64Result = await fetchImageAsBase64(imgUrl);
+                if (base64Result) finalImageUrl = base64Result;
+            } catch (e) { console.error('Img error:', e); }
+        }
+
+        // 7. Send fill command
+        let postLink = null;
+        let postStatus = 'FAILED';
+        try {
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Content script timeout')), 60000)
+            );
+            const response = await Promise.race([
+                chrome.tabs.sendMessage(tabId, { action: 'FILL_POST', data: { caption, imageUrl: finalImageUrl } }),
+                timeoutPromise
+            ]);
+
+            const result = response ? response.postLink : { status: 'FAILED', url: null };
+
+            // --- EMERGENCY BREAK: If restricted, stop everything immediately ---
+            if (result && result.status === 'RESTRICTED') {
+                console.error('[AutoPost] 🚨 Account is RESTRICTED. Stopping bot.');
+                await stopAutoPost(); // This will set isRunning to false
+                addLog('❌ บอทหยุดทำงานทันทีเนื่องจากบัญชีถูกระงับการโพสต์ (Spam Protection)', 'ERROR', 'RESTRICTION_STOP');
+                return;
+            }
+
+            postLink = result ? result.url : null;
+            postStatus = result ? (result.status || 'FAILED') : 'FAILED';
+        } catch (msgErr) {
+            console.error('[AutoPost] Messaging error:', msgErr.message);
+            addLog('⚠️ การติดต่อหน้าเว็บล้มเหลว: ' + msgErr.message, 'WARN', 'MSG_FAIL');
+        }
+
+        // 8. Update stats
+        autoPostState.postCount += 1;
+        autoPostState.lastPostTime = Date.now();
+        autoPostState.groupIndex = (autoPostState.groupIndex || 0) + 1;
+        if (autoPostState.groupIndex >= fbGroups.length) autoPostState.groupIndex = 0;
+
+        const timeStr = new Date().toLocaleTimeString('th-TH');
+        let statusIcon = '✅', statusText = 'โพสต์สำเร็จ';
+        if (postStatus === 'PENDING') { statusIcon = '⏳'; statusText = 'รออนุมัติ'; }
+        else if (!postLink) { statusIcon = '❌'; statusText = 'ไม่พบลิงก์'; }
+
+        addLog(`${statusIcon} ${timeStr} | ${statusText} | "${group.name}"`, postStatus === 'FAILED' ? 'ERROR' : 'SUCCESS', 'POST_FINISHED', {
+            group: group.name, product: product.title, link: postLink, status: postStatus
+        });
+
+        // Save history
+        const { postHistory = [] } = await chrome.storage.local.get('postHistory');
+        const updatedHistory = [{
+            id: Date.now(), timestamp: new Date().toISOString(), groupName: group.name,
+            productTitle: product.title, link: postLink, status: postStatus,
+            image: finalImageUrl
+        }, ...postHistory].slice(0, 50);
+        await chrome.storage.local.set({ postHistory: updatedHistory, autoPostState }); // Save intermediate state
+
+        // --- End Single Post ---
 
     } catch (err) {
         console.error('[AutoPost] Global Error:', err);

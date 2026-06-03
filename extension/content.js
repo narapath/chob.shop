@@ -212,12 +212,65 @@ function updateStatus(msg, persistent = false, timeout = 3000) {
     }
 }
 
+// Check if Facebook has restricted the account (Spam protection)
+function checkFacebookRestricted() {
+    const restrictionKeywords = [
+        "เราได้จำกัดจำนวนการโพสต์",
+        "จำกัดจำนวนการโพสต์",
+        "ป้องกันการสแปมในชุมชน",
+        "ลองใหม่อีกครั้งในภายหลัง",
+        "เรียนรู้เพิ่มเติม",
+        "temporarily restricted",
+        "Community Standards on spam"
+    ];
+
+    // 1. Text Search (Body & Dialogs)
+    const bodyText = document.body.innerText || "";
+    const dialogs = Array.from(document.querySelectorAll('div[role="dialog"], div[aria-modal="true"]'));
+    const dialogText = dialogs.map(d => d.innerText).join(" ");
+
+    let restricted = restrictionKeywords.some(kw => bodyText.includes(kw) || dialogText.includes(kw));
+
+    // 2. Extra check: Look for elements with role="alert" or red text colors
+    if (!restricted) {
+        const potentialAlerts = document.querySelectorAll('[role="alert"], span, div');
+        for (const el of potentialAlerts) {
+            if (el.innerText && restrictionKeywords.some(kw => el.innerText.includes(kw))) {
+                restricted = true;
+                break;
+            }
+        }
+    }
+
+    if (restricted) {
+        console.error('[ChobShop] 🚨 Account restriction detected via scanner!');
+        // Force local widget stop as immediate feedback
+        const stopBtn = document.getElementById('widget-action-btn');
+        if (stopBtn && stopBtn.classList.contains('active')) {
+            console.log('[ChobShop] 🛑 Triggering local stop via widget button');
+            stopBtn.click();
+        }
+        return true;
+    }
+    return false;
+}
+
 async function fillFacebookPost(caption, imageUrl) {
     // --- Execution Lock ---
     if (window._chobShopPostLocked) {
         console.warn('[ChobShop] 🛑 Injection already in progress, skipping duplicate call.');
         return;
     }
+
+    // 0. Primary Safety Check before any interaction
+    if (checkFacebookRestricted()) {
+        chrome.runtime.sendMessage({
+            type: 'RESTRICTION_DETECTED',
+            message: 'ตรวจพบการจำกัดโพสต์ตั้งแต่เริ่ม (Spam Restricted)'
+        });
+        return { status: 'RESTRICTED', error: 'DETECTED_ON_START' };
+    }
+
     window._chobShopPostLocked = true;
 
     try {
@@ -592,6 +645,15 @@ async function fillFacebookPost(caption, imageUrl) {
             if (removeLabels.some(l => label.includes(l.toLowerCase())) && btn.offsetWidth < 50) btn.click();
         });
 
+        // --- Check for restrictions before clicking Submit ---
+        if (checkFacebookRestricted()) {
+            chrome.runtime.sendMessage({
+                type: 'RESTRICTION_DETECTED',
+                message: 'ตรวจพบการจำกัดโพสต์จาก Facebook (Spam Protection)'
+            });
+            throw new Error('ตรวจพบการจำกัดโพสต์ (Spam Protection) บอทหยุดทำงานเพื่อความปลอดภัย');
+        }
+
         // --- Auto Submit ---
         updateStatus('🔘 กำลังกดโพสต์...');
         for (let attempt = 0; attempt < 3; attempt++) {
@@ -648,6 +710,16 @@ async function fillFacebookPost(caption, imageUrl) {
                     if (submitted) break;
                     console.log(`[ChobShop] 🖱️ Attempting submit with strategy ${strategy.name}...`);
                     await strategy.fn(bestBtn);
+
+                    // --- STRICT CHECK: Immediately look for red restriction text after click ---
+                    await new Promise(r => setTimeout(r, 1600)); // Increased wait for FB shadow-rendering
+                    if (checkFacebookRestricted()) {
+                        chrome.runtime.sendMessage({
+                            type: 'RESTRICTION_DETECTED',
+                            message: 'ตรวจพบการจำกัดโพสต์ทันทีหลังกดส่ง บอทหยุดทำงานเพื่อความปลอดภัย'
+                        });
+                        return { status: 'RESTRICTED', error: 'DETECTED_AFTER_CLICK' };
+                    }
 
                     // Wait for dialog to disappear (sign of success)
                     for (let j = 0; j < 5; j++) {
