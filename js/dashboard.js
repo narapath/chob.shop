@@ -1,8 +1,10 @@
 // Dashboard logic for CHOB.SHOP BOT OFFICE
-// Periodic polling every 5 seconds
+// Real-time polling with per-bot post history
 
 let bots = [];
 let lastFetchedCount = 0;
+let currentFilter = 'all';
+let historyCache = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     startPolling();
@@ -11,7 +13,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial fetch
     fetchBots();
-    fetchLogs();
+    fetchHistory();
+
+    // Tab click handler (event delegation)
+    document.getElementById('historyTabs').addEventListener('click', (e) => {
+        const btn = e.target.closest('.tab-btn');
+        if (!btn) return;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderHistory(historyCache);
+    });
 });
 
 async function fetchBots() {
@@ -24,11 +36,42 @@ async function fetchBots() {
             bots = data.bots.sort((a, b) => a.bot_name.localeCompare(b.bot_name, undefined, { numeric: true, sensitivity: 'base' }));
             renderOffice();
             updateGlobalStats();
+            updateBotTabs();
         }
     } catch (err) {
         console.error('Fetch bots error:', err);
         addConsoleLog('❌ Error connecting to API: ' + err.message);
     }
+}
+
+function updateBotTabs() {
+    const tabBar = document.getElementById('historyTabs');
+    const existingNames = Array.from(tabBar.querySelectorAll('.tab-btn[data-filter]:not([data-filter="all"])')).map(b => b.dataset.filter);
+    const botNames = bots.map(b => b.bot_name);
+
+    // Add missing tabs
+    botNames.forEach(name => {
+        if (!existingNames.includes(name)) {
+            const btn = document.createElement('button');
+            btn.className = 'tab-btn';
+            btn.dataset.filter = name;
+            btn.textContent = `${getBotAvatar(name)} ${name}`;
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = name;
+                renderHistory(historyCache);
+            });
+            tabBar.appendChild(btn);
+        }
+    });
+
+    // Remove tabs for bots that no longer exist
+    tabBar.querySelectorAll('.tab-btn[data-filter]:not([data-filter="all"])').forEach(btn => {
+        if (!botNames.includes(btn.dataset.filter)) {
+            btn.remove();
+        }
+    });
 }
 
 function renderOffice() {
@@ -79,7 +122,6 @@ function renderOffice() {
         const activeEl = document.activeElement;
         const isInteracting = activeEl && (activeEl.id === `interval-${safeId}` || activeEl.closest(`#bot-card-${safeId}`));
 
-        // Surgical Update Logic
         card.innerHTML = `
                 <button class="delete-bot-btn" onclick="deleteBot('${bot.bot_name}')" title="Delete Bot">🗑️</button>
                 <div class="bot-avatar">${avatar}</div>
@@ -142,8 +184,6 @@ function renderOffice() {
         }
     });
 
-    // Handle initial sorting on the DOM if needed (they are appended in order of the sorted 'bots' array)
-
     // Logging changes
     if (bots.length !== lastFetchedCount) {
         const diff = bots.length - lastFetchedCount;
@@ -160,62 +200,76 @@ function updateGlobalStats() {
     document.getElementById('totalPosts').textContent = totalPosts;
 }
 
-async function fetchLogs() {
+async function fetchHistory() {
     try {
-        const response = await fetch('/api/bots/logs?limit=15');
+        const response = await fetch('/api/bots/history?limit=30');
         const data = await response.json();
 
         if (data.success) {
-            renderLogs(data.logs);
+            historyCache = data.history;
+            renderHistory(data.history);
         } else {
-            console.error('API Error:', data.error);
+            console.error('History API Error:', data.error);
             const list = document.getElementById('workHistory');
-            list.innerHTML = `<div class="history-empty">⚠️ LOGS UNAVAILABLE: ${data.error || 'Unknown Error'}</div>`;
+            list.innerHTML = `<div class="history-empty"><span class="empty-icon">⚠️</span><span>${data.error || 'Unknown Error'}</span></div>`;
         }
     } catch (err) {
-        console.error('Fetch logs error:', err);
-        const list = document.getElementById('workHistory');
-        list.innerHTML = '<div class="history-empty">⚠️ LOGS UNAVAILABLE</div>';
+        console.error('Fetch history error:', err);
     }
 }
 
-function renderLogs(logs) {
+function renderHistory(history) {
     const list = document.getElementById('workHistory');
-    if (!logs || logs.length === 0) {
-        list.innerHTML = '<div class="history-empty">NO RECENT HISTORY...</div>';
+
+    // Apply filter
+    let filtered = history;
+    if (currentFilter !== 'all') {
+        filtered = history.filter(h => h.bot_name === currentFilter);
+    }
+
+    if (!filtered || filtered.length === 0) {
+        list.innerHTML = `<div class="history-empty"><span class="empty-icon">${currentFilter === 'all' ? '📡' : '🔍'}</span><span>${currentFilter === 'all' ? 'ยังไม่มีประวัติการโพสต์...' : `ไม่พบประวัติสำหรับ ${currentFilter}`}</span></div>`;
         return;
     }
 
     list.innerHTML = '';
-    logs.forEach(log => {
+    filtered.forEach(entry => {
         const row = document.createElement('div');
-        row.className = `history-item ${log.status.toLowerCase()}`;
+        const statusClass = entry.status === 'FAILED' ? 'failed' : (entry.status === 'PENDING' ? 'pending' : 'success');
+        row.className = `history-card ${statusClass}`;
 
-        const time = new Date(log.created_at).toLocaleTimeString('th-TH');
-        const details = typeof log.details === 'string' ? JSON.parse(log.details) : (log.details || {});
+        const time = new Date(entry.timestamp).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+        const date = new Date(entry.timestamp).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+        const avatar = getBotAvatar(entry.bot_name || '');
 
-        let mediaHtml = '';
-        if (details.image) {
-            mediaHtml = `<div class="history-media"><img src="${details.image}" alt="Post Image" onclick="window.open('${details.image}', '_blank')"></div>`;
-        }
+        // Status badge
+        let statusBadge = '';
+        if (entry.status === 'FAILED') statusBadge = '<span class="status-badge failed">❌ ล้มเหลว</span>';
+        else if (entry.status === 'PENDING') statusBadge = '<span class="status-badge pending">⏳ รออนุมัติ</span>';
+        else statusBadge = '<span class="status-badge success">✅ สำเร็จ</span>';
 
-        const linkHtml = details.link ? `
-            <a href="${details.link}" target="_blank" class="history-link" title="Open Facebook Post">
-                🔗 VIEW POST
-            </a>
-        ` : '';
+        // Thumbnail
+        const thumbHtml = entry.image ? `<div class="history-thumb"><img src="${entry.image}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : '';
+
+        // Link button
+        const linkHtml = entry.link ? `<a href="${entry.link}" target="_blank" class="view-post-btn" title="ดูโพสต์บน Facebook">🔗 ดูโพสต์</a>` : '<span class="no-link">—</span>';
 
         row.innerHTML = `
-            ${mediaHtml}
-            <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <span class="history-time">[${time}]</span>
-                    <span class="history-bot">${log.bot_name}</span>
-                    <span class="history-action">${log.action}</span>
+            ${thumbHtml}
+            <div class="history-card-body">
+                <div class="history-card-top">
+                    <span class="history-bot-tag">${avatar} ${entry.bot_name || 'Unknown'}</span>
+                    ${statusBadge}
+                    <span class="history-datetime">${date} ${time}</span>
                 </div>
-                <span class="history-msg">${log.message}</span>
+                <div class="history-card-content">
+                    <div class="history-product-title">${entry.productTitle || 'ไม่ระบุสินค้า'}</div>
+                    <div class="history-group-name">📌 ${entry.groupName || 'ไม่ระบุกลุ่ม'}</div>
+                </div>
             </div>
-            ${linkHtml}
+            <div class="history-card-action">
+                ${linkHtml}
+            </div>
         `;
         list.appendChild(row);
     });
@@ -262,7 +316,7 @@ async function handleCommand(botName, action) {
     // Get admin token for authentication
     let token = localStorage.getItem('vibe_admin_token');
 
-    // Fallback to default community token if not found (helps if user bypassed admin login)
+    // Fallback to default community token if not found
     if (!token) {
         console.warn('⚠️ No admin token found in localStorage, using default fallback.');
         token = 'vibe_secret_token_12345';
@@ -351,9 +405,8 @@ function addConsoleLog(msg) {
 }
 
 function startPolling() {
-    // True real-time feel (1 second polling)
-    setInterval(fetchBots, 1000);
-    setInterval(fetchLogs, 1000);
+    setInterval(fetchBots, 2000);
+    setInterval(fetchHistory, 3000);
 }
 
 function getPingClass(ping) {

@@ -336,23 +336,7 @@ const handleHeartbeat = async (req, res) => {
     const currentBot = data[0];
     const pendingCommand = currentBot?.command || {};
 
-    // --- Sync Logs to extension_logs table ---
-    if (new_logs && Array.isArray(new_logs) && new_logs.length > 0) {
-      try {
-        const logEntries = new_logs.map(log => ({
-          bot_name,
-          status: log.status || 'INFO',
-          action: log.action || 'LOG',
-          message: log.message || log,
-          details: log.details || {},
-          created_at: log.timestamp || new Date().toISOString()
-        }));
-        await db.from('extension_logs').insert(logEntries);
-      } catch (logErr) {
-        console.error('⚠️ [Heartbeat] Failed to sync logs:', logErr.message);
-        // Don't fail the heartbeat if logging fails
-      }
-    }
+    // Logs are now embedded in stats.history — no insert to extension_logs needed
 
     // Clear command only if it was acknowledged by the bot
     if (ack_command_ts && pendingCommand.timestamp && ack_command_ts === pendingCommand.timestamp) {
@@ -430,25 +414,36 @@ app.get('/api/bots', async (req, res) => {
   }
 });
 
-// GET Bot Logs (Public for the dashboard)
-app.get('/api/bots/logs', async (req, res) => {
+// GET Bot Post History (from stats.history embedded in extension_bots)
+app.get('/api/bots/history', async (req, res) => {
   try {
     const db = supabaseAdmin || supabase;
-    const { bot_name, limit = 50 } = req.query;
+    const { bot_name, limit = 30 } = req.query;
 
-    let query = db.from('extension_logs').select('*').order('created_at', { ascending: false }).limit(parseInt(limit));
-
+    let query = db.from('extension_bots').select('bot_name, stats');
     if (bot_name) {
       query = query.eq('bot_name', bot_name);
     }
 
     const { data, error } = await query;
-
     if (error) throw error;
-    res.json({ success: true, logs: data || [] });
+
+    // Merge all bots' history, tag with bot_name, sort by time
+    let allHistory = [];
+    (data || []).forEach(bot => {
+      const history = bot.stats?.history || [];
+      history.forEach(entry => {
+        allHistory.push({ ...entry, bot_name: bot.bot_name });
+      });
+    });
+
+    allHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    allHistory = allHistory.slice(0, parseInt(limit));
+
+    res.json({ success: true, history: allHistory });
   } catch (err) {
-    console.error('Fetch logs error:', err);
-    res.status(500).json({ success: false, error: err.message, logs: [] });
+    console.error('Fetch history error:', err);
+    res.status(500).json({ success: false, error: err.message, history: [] });
   }
 });
 

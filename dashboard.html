@@ -101,10 +101,17 @@
 
             <section class="history-section">
                 <div class="section-header">
-                    <h2>📜 WORK HISTORY (ALL BOTS)</h2>
+                    <h2>📜 POST HISTORY</h2>
+                    <div class="history-tabs" id="historyTabs">
+                        <button class="tab-btn active" data-filter="all">🌐 ทั้งหมด</button>
+                        <!-- Bot tabs will be injected dynamically -->
+                    </div>
                 </div>
                 <div id="workHistory" class="history-list">
-                    <div class="history-empty">WAITING FOR LOGS...</div>
+                    <div class="history-empty">
+                        <span class="empty-icon">📡</span>
+                        <span>กำลังรอข้อมูลจากบอท...</span>
+                    </div>
                 </div>
             </section>
 

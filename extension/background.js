@@ -371,6 +371,7 @@ async function sendHeartbeat() {
     const { botName, apiEndpoint } = await chrome.storage.local.get(['botName', 'apiEndpoint']);
     const { autoPostState } = await chrome.storage.local.get('autoPostState');
     const { lastCommandTs } = await chrome.storage.local.get('lastCommandTs');
+    const { postHistory = [] } = await chrome.storage.local.get('postHistory');
 
     if (!apiEndpoint) return;
 
@@ -387,7 +388,8 @@ async function sendHeartbeat() {
         interval: autoPostState?.intervalMinutes || 15,
         isPosting: autoPostState?.isPosting || false,
         activity: autoPostState?.currentActivity || 'IDLE',
-        next_run: (await chrome.alarms.get(ALARM_NAME))?.scheduledTime || null
+        next_run: (await chrome.alarms.get(ALARM_NAME))?.scheduledTime || null,
+        history: postHistory.slice(0, 10) // Send last 10 entries to server
     };
 
     const payload = {
