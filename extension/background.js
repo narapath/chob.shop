@@ -133,7 +133,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             currentActivity: '🆕 ระบบถูกรีเซ็ตแล้ว'
         };
         chrome.storage.local.set({ autoPostState: initialState }, () => {
-            chrome.alarms.clearAll();
+            setupAlarms(); // Re-create alarms (v. important!)
             sendResponse({ success: true });
         });
         return true;
@@ -159,6 +159,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (request.action === 'SEND_HEARTBEAT') {
         console.log('💓 [Manual] Heartbeat request received from popup');
+        setupAlarms(); // Ensure alarms are re-initialized on manual sync
         sendHeartbeat().then(() => sendResponse({ success: true }));
         return true;
     }
