@@ -254,10 +254,14 @@ function initEventListeners() {
         const btn = document.getElementById('manualSyncBtn');
         btn.innerHTML = '⌛';
         chrome.runtime.sendMessage({ action: 'SEND_HEARTBEAT' }, (res) => {
-            setTimeout(() => {
-                btn.innerHTML = '🔄';
+            btn.innerHTML = '🔄';
+            if (res && res.success) {
                 showToast('💓 ซิงค์ข้อมูลสำเร็จ!');
-            }, 800);
+            } else {
+                showToast('❌ ซิงค์ไม่สำเร็จ: ' + (res?.error || 'Unknown error'), 'error');
+                console.error('Heartbeat failed:', res?.error);
+            }
+            refreshDiagnostics();
         });
     });
 

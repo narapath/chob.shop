@@ -159,8 +159,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (request.action === 'SEND_HEARTBEAT') {
         console.log('💓 [Manual] Heartbeat request received from popup');
-        setupAlarms(); // Ensure alarms are re-initialized on manual sync
-        sendHeartbeat().then(() => sendResponse({ success: true }));
+        setupAlarms(); // Re-init alarms
+        sendHeartbeat()
+            .then(res => sendResponse({ success: true, serverResponse: res }))
+            .catch(err => sendResponse({ success: false, error: err.message }));
         return true;
     }
 
@@ -487,7 +489,12 @@ async function sendHeartbeat() {
     const { lastCommandTs } = await chrome.storage.local.get('lastCommandTs');
     const { postHistory = [] } = await chrome.storage.local.get('postHistory');
 
-    if (!apiEndpoint) return;
+    if (!apiEndpoint) {
+        console.warn('⚠️ [Heartbeat] Skip: apiEndpoint is empty');
+        return;
+    }
+
+    console.log(`💓 [Heartbeat] Attempting sync to: ${apiEndpoint} (Bot: ${botName || 'Unnamed'})`);
 
     // Determine Status
     let status = 'IDLE';
