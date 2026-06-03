@@ -77,18 +77,58 @@ async function migrateTemplate() {
     });
 }
 
+// Configure alarms with self-healing
 function setupAlarms() {
+    console.log('🔄 Initializing Alarms...');
     chrome.alarms.clearAll(() => {
+        // Heartbeat every minute - UNCONDITIONALLY
+        chrome.alarms.create(HEARTBEAT_ALARM, { periodInMinutes: 1 });
+
         chrome.storage.local.get('autoPostState', (res) => {
             if (res.autoPostState && res.autoPostState.isRunning) {
                 const mins = res.autoPostState.intervalMinutes || 10;
                 chrome.alarms.create(ALARM_NAME, { delayInMinutes: mins });
+                console.log(`🤖 Auto-post alarm restored (${mins}m)`);
             }
         });
-        // Heartbeat every minute
-        chrome.alarms.create(HEARTBEAT_ALARM, { periodInMinutes: 1 });
+
+        // Immediate heartbeat on setup
+        sendHeartbeat();
     });
 }
+
+// Watchdog: Ensure heartbeat alarm exists every 5 minutes if it somehow dies
+chrome.alarms.create('WATCHDOG', { periodInMinutes: 5 });
+
+// Check if dashboard is open every 30s to force connection
+chrome.alarms.create('DASHBOARD_WATCHER', { periodInMinutes: 0.5 });
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+    if (alarm.name === ALARM_NAME) {
+        await executeAutoPost();
+    } else if (alarm.name === HEARTBEAT_ALARM) {
+        await sendHeartbeat();
+    } else if (alarm.name === 'WATCHDOG') {
+        const hbAlarm = await chrome.alarms.get(HEARTBEAT_ALARM);
+        if (!hbAlarm) {
+            console.warn('⚠️ Heartbeat alarm lost! Re-initializing...');
+            setupAlarms();
+        }
+    } else if (alarm.name === 'DASHBOARD_WATCHER') {
+        chrome.tabs.query({ url: "*://chob.shop/dashboard*" }, (tabs) => {
+            if (tabs && tabs.length > 0) {
+                console.log('👀 Dashboard is open, forcing heartbeat...');
+                sendHeartbeat();
+            }
+        });
+    }
+});
+
+// Listen for browser startup
+chrome.runtime.onStartup.addListener(() => {
+    console.log('🚀 Browser started, initializing ChobShop...');
+    setupAlarms();
+});
 
 // Receive messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
