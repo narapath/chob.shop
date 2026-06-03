@@ -1,25 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&family=Prompt:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&family=Prompt:wght@300;400;600&display=swap');
 
 :root {
-    /* Premium Palette - Deep Indigo & Neon Gradients */
-    --bg-main: #0a0a12;
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-shimmer: rgba(255, 255, 255, 0.1);
+    /* Pixel Art Palette */
+    --bg-main: #1a1a2e;
+    --pixel-border: #4a4e69;
+    --pixel-panel: #22223b;
+    --pixel-accent: #9b5de5;
+    --pixel-green: #00f5d4;
+    --pixel-pink: #fee440;
+    --pixel-red: #f15bb5;
 
-    --accent-blue: #3b82f6;
-    --accent-purple: #8b5cf6;
-    --accent-pink: #ec4899;
-    --accent-green: #10b981;
-    --accent-yellow: #f59e0b;
-    --accent-red: #ef4444;
-
-    --text-primary: #f8fafc;
+    --text-primary: #ffffff;
     --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --text-pixel: #00f5d4;
 
-    --shadow-premium: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-snappy: all 0.1s steps(4);
 }
 
 * {
@@ -34,9 +29,11 @@ body {
     font-family: 'Inter', 'Prompt', sans-serif;
     min-height: 100vh;
     background-image:
-        radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 40%),
-        radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.1) 0%, transparent 40%);
+        linear-gradient(rgba(0, 0, 0, 0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.3) 1px, transparent 1px);
+    background-size: 32px 32px;
     background-attachment: fixed;
+    image-rendering: pixelated;
 }
 
 .dashboard-container {
@@ -88,14 +85,10 @@ header.admin-header {
 }
 
 .logo-pixel h1 {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-size: 1.8rem;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.2rem;
+    color: var(--pixel-green);
+    text-shadow: 4px 4px 0px #000;
 }
 
 .history-media {
@@ -157,16 +150,122 @@ header.admin-header {
     margin-bottom: 40px;
 }
 
+/* Bot Workstation Card */
 .bot-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    border-radius: 24px;
-    padding: 25px;
+    background: var(--pixel-panel);
+    border: 4px solid var(--pixel-border);
+    image-rendering: pixelated;
+    padding: 20px;
     position: relative;
-    transition: var(--transition-smooth);
-    box-shadow: var(--shadow-premium);
+    border-radius: 0px;
+    /* Pixel art use square corners */
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.5);
+    transition: var(--transition-snappy);
     overflow: hidden;
+    height: 380px;
+    display: flex;
+    flex-direction: column;
+}
+
+.bot-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.6);
+}
+
+.workstation-floor {
+    position: absolute;
+    bottom: 20%;
+    left: 10%;
+    width: 80%;
+    height: 15%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+.bot-character-container {
+    height: 120px;
+    position: relative;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    overflow: hidden;
+}
+
+.bot-sprite {
+    height: 64px;
+    width: 64px;
+    image-rendering: pixelated;
+    object-fit: contain;
+    z-index: 2;
+    transition: transform 0.5s steps(4);
+}
+
+/* Walking Animation */
+@keyframes walk {
+    0% {
+        transform: translateX(-40px);
+    }
+
+    50% {
+        transform: translateX(40px);
+    }
+
+    100% {
+        transform: translateX(-40px);
+    }
+}
+
+.bot-sprite.walking {
+    animation: walk 4s infinite linear;
+}
+
+/* Working Animation */
+@keyframes work-bounce {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.bot-sprite.working {
+    animation: work-bounce 0.5s infinite steps(2);
+}
+
+/* Sleeping Animation */
+@keyframes zzz {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translate(5px, -5px);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(10px, -10px);
+    }
+}
+
+.bot-character-container.sleeping::after {
+    content: 'Z';
+    position: absolute;
+    top: 20px;
+    right: 30%;
+    font-family: 'Press Start 2P';
+    font-size: 10px;
+    color: #fff;
+    animation: zzz 2s infinite;
 }
 
 .bot-card::before {
@@ -331,10 +430,13 @@ header.admin-header {
 }
 
 .ctrl-btn.start {
-    background: linear-gradient(135deg, var(--accent-green) 0%, #059669 100%);
-    color: #fff;
+    background: #00f5d4;
+    color: #000;
     flex: 1;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.4);
+    border: 3px solid #000;
+    font-family: 'Press Start 2P';
+    font-size: 10px;
 }
 
 .ctrl-btn.start:hover {
@@ -343,10 +445,13 @@ header.admin-header {
 }
 
 .ctrl-btn.stop {
-    background: linear-gradient(135deg, var(--accent-red) 0%, #dc2626 100%);
+    background: #f15bb5;
     color: #fff;
     flex: 1;
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.4);
+    border: 3px solid #000;
+    font-family: 'Press Start 2P';
+    font-size: 10px;
 }
 
 .ctrl-btn.stop:hover {
@@ -612,6 +717,7 @@ header.admin-header {
     color: var(--text-primary);
     display: -webkit-box;
     -webkit-line-clamp: 1;
+    line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

@@ -116,30 +116,35 @@ function renderOffice() {
                 ? window.userSelectionCache[bot.bot_name]
                 : (bot.stats.interval || 15);
 
+            const botSprite = getBotSprite(bot.bot_name);
+            const animClass = isOffline ? 'sleeping' : (isPosting ? 'working' : (bot.status === 'ACTIVE' ? 'walking' : ''));
+
             card.innerHTML = `
                 <button class="delete-bot-btn" onclick="deleteBot('${bot.bot_name}')" title="Delete Bot">🗑️</button>
-                <div class="bot-avatar">${avatar}</div>
+                
+                <!-- Bot Character Display -->
+                <div class="bot-character-container ${isOffline ? 'sleeping' : ''}" id="char-container-${safeId}">
+                    <div class="workstation-floor"></div>
+                    <img src="${botSprite}" class="bot-sprite ${animClass}" id="sprite-${safeId}">
+                </div>
+
                 <div class="bot-name">${bot.bot_name}</div>
                 <div class="bot-status-tag" id="status-tag-${safeId}">${statusText}</div>
                 
-                <div class="bot-activity" id="activity-${safeId}" style="text-align:center; font-size: 10px; color: var(--accent-blue); margin-bottom: 10px; font-weight:bold; height: 15px;">${currentActivity}</div>
+                <div class="bot-activity" id="activity-${safeId}" style="text-align:center; font-size: 8px; color: var(--pixel-green); margin-bottom: 10px; font-family: 'Press Start 2P'; height: 12px; overflow:hidden;">${currentActivity}</div>
 
-                <div class="bot-ping-indicator">
+                <div class="bot-ping-indicator" style="background: rgba(0,0,0,0.4); font-family: 'Press Start 2P'; font-size: 6px;">
                     <span class="ping-dot ${getPingClass(bot.stats.ping)}" id="ping-dot-${safeId}"></span>
                     <span class="ping-val" id="ping-val-${safeId}">${bot.stats.ping || 0} ms</span>
                 </div>
-                <div class="bot-stats-list">
+                <div class="bot-stats-list" style="border: 2px solid var(--pixel-border); background: rgba(0,0,0,0.2);">
                     <div class="stat-row">
                         <span class="label">POSTS</span>
                         <span class="val" id="posts-${safeId}">${bot.stats.postCount || 0}</span>
                     </div>
                     <div class="stat-row">
-                        <span class="label">NEXT RUN</span>
+                        <span class="label">NEXT</span>
                         <span class="val countdown" id="next-${safeId}" data-time="${nextRunTime || ''}">${nextRunDisplay}</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="label">LAST HB</span>
-                        <span class="val" id="hb-${safeId}">${formatTime(bot.last_heartbeat)}</span>
                     </div>
                 </div>
                 <div class="bot-controls">
@@ -165,7 +170,20 @@ function renderOffice() {
             office.appendChild(card);
         } else {
             // Surgical Update
-            card.className = `bot-card ${cardClass}`;
+            // Update Sprite & Animation
+            const spriteEl = document.getElementById(`sprite-${safeId}`);
+            if (spriteEl) {
+                const animClass = isOffline ? '' : (isPosting ? 'working' : (bot.status === 'ACTIVE' ? 'walking' : ''));
+                // Remove all possible animation classes
+                spriteEl.classList.remove('working', 'walking');
+                if (animClass) spriteEl.classList.add(animClass);
+            }
+
+            const containerEl = document.getElementById(`char-container-${safeId}`);
+            if (containerEl) {
+                if (isOffline) containerEl.classList.add('sleeping');
+                else containerEl.classList.remove('sleeping');
+            }
 
             const tagEl = document.getElementById(`status-tag-${safeId}`);
             if (tagEl) tagEl.textContent = statusText;
@@ -305,6 +323,16 @@ function renderHistory(history) {
         `;
         list.appendChild(row);
     });
+}
+
+function getBotSprite(name) {
+    const n = name.toLowerCase();
+    if (n.includes('bot 1') || n.includes('robot')) return '/assets/pixel_art/bot.png';
+    if (n.includes('bot 2') || n.includes('cat')) return '/assets/pixel_art/cat.png';
+    if (n.includes('bot 6') || n.includes('dino')) return '/assets/pixel_art/dino.png';
+
+    // Default fallback: Generate a data URI for a pixelated emoji if needed or just use default bot
+    return '/assets/pixel_art/bot.png';
 }
 
 function getBotAvatar(name) {
