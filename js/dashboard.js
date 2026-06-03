@@ -121,9 +121,8 @@ function renderOffice() {
         const avatar = getBotAvatar(bot.bot_name);
 
         let statusText = isOffline ? 'OFFLINE' : (isPosting ? 'POSTING' : (bot.status || 'IDLE'));
-
-        const currentActivity = bot.stats.activity || (isOffline ? 'Disconnected' : 'Waiting for next task...');
-        const nextRunDisplay = (isPosting && !isOffline) ? 'BUSY' : formatNextRun(bot.stats.next_run);
+        const currentActivity = isOffline ? 'Disconnected' : (bot.stats.activity || 'Waiting for next task...');
+        const nextRunDisplay = isOffline ? 'OFFLINE' : (isPosting ? 'BUSY' : formatNextRun(bot.stats.next_run));
 
         // --- 1. Render Command Card ---
         const card = document.createElement('div');
