@@ -828,6 +828,48 @@ function toggleAutoPost() {
     }
 }
 
+const CUTE_PHRASES = {
+    IDLE: ["สวัสดีครับ พร้อมช่วยแล้ว! 💤", "มีอะไรให้บอทช่วยไหมครับ? ✨", "รอคำสั่งอยู่นะครับผม! 🤖", "วันนี้อากาศดีจังเลยครับ 🌤️"],
+    ACTIVE: ["กำลังเฝ้านาฬิกาให้ครับ ⏱️", "เตรียมตุนแรงไว้โพสต์ครับ! 📡", "ทุกอย่างเรียบร้อยดีครับ 🌟", "ใกล้ถึงเวลาโพสต์แล้วนา... ⏰"],
+    POSTING: ["กำลังปรุงโพสต์รสเด็ด... 🍳", "ส่งของไปกระจายข่าวแล้ว! 📢", "รอสักครู่นะ กำลังทำหน้าที่! ⚡", "โพสต์นี้ต้องปังแน่นอน! 🎨"]
+};
+
+let lastSpeechTime = 0;
+function updateBotPersonality(status) {
+    const speechEl = document.getElementById('botSpeech');
+    const iconEl = document.getElementById('botIcon');
+    if (!speechEl || !iconEl) return;
+
+    // Change phrase every 10 seconds or when status changes
+    const now = Date.now();
+    if (now - lastSpeechTime > 10000 || !speechEl.classList.contains('show')) {
+        const phrases = CUTE_PHRASES[status] || CUTE_PHRASES.IDLE;
+        const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+        speechEl.innerText = randomPhrase;
+        speechEl.classList.add('show');
+        lastSpeechTime = now;
+
+        // Hide speech after 6 seconds to breathe
+        setTimeout(() => {
+            if (Date.now() - lastSpeechTime >= 6000) {
+                speechEl.classList.remove('show');
+            }
+        }, 6000);
+    }
+
+    // Update Icon Based on Status
+    if (status === 'POSTING') {
+        iconEl.innerText = '⚡';
+        iconEl.style.transform = 'scale(1.2)';
+    } else if (status === 'ACTIVE') {
+        iconEl.innerText = '🛰️';
+        iconEl.style.transform = 'scale(1)';
+    } else {
+        iconEl.innerText = '😴';
+        iconEl.style.transform = 'scale(1)';
+    }
+}
+
 function refreshAutoStatus() {
     chrome.runtime.sendMessage({ action: 'GET_AUTO_STATUS' }, (response) => {
         if (chrome.runtime.lastError) {
@@ -866,7 +908,7 @@ function refreshAutoStatus() {
             statusTextLarge.textContent = 'กำลังโพสต์...';
             statusTextLarge.classList.add('status-posting');
             subtext.textContent = 'ระบบกำลังส่งข้อมูลไปยังกลุ่ม Facebook';
-            botIcon.textContent = '🚀';
+            updateBotPersonality('POSTING');
             liveBadge.style.display = 'inline-flex';
             progress.style.display = 'block';
         } else if (isRunning) {
@@ -874,13 +916,13 @@ function refreshAutoStatus() {
             statusTextLarge.textContent = 'ระบบกำลังทำงาน';
             statusTextLarge.classList.add('status-active');
             subtext.textContent = 'เตรียมความพร้อมสำหรับโพสต์ถัดไป';
-            botIcon.textContent = '🟢';
+            updateBotPersonality('ACTIVE');
             liveBadge.style.display = 'inline-flex';
         } else {
             statusTextLarge.textContent = 'หยุดทำงาน';
             statusTextLarge.classList.add('status-idle');
             subtext.textContent = 'กดเริ่มเพื่อเริ่มระบบโพสต์ออโต้';
-            botIcon.textContent = '🤖';
+            updateBotPersonality('IDLE');
         }
 
         // Toggle Button
