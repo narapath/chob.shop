@@ -97,42 +97,82 @@ function updateBotTabs() {
 
 function renderOffice() {
     const office = document.getElementById('botOffice');
+    const commandGrid = document.getElementById('commandCards');
 
     if (bots.length === 0) {
-        console.log('No bots to render');
+        commandGrid.innerHTML = '<div class="loading-state"><span>NO BOTS ONLINE...</span></div>';
         office.innerHTML = '<div class="loading-pixel">NO BOTS ONLINE...</div>';
         return;
     }
-    console.log('Rendering', bots.length, 'bots');
 
-    // Cache user selections to not lose them
-    if (!window.userSelectionCache) window.userSelectionCache = {};
-
-    // Remove "NO BOTS ONLINE" if it exists
-    if (office.querySelector('.loading-pixel')) office.innerHTML = '';
+    commandGrid.innerHTML = ''; // Clear loading state
 
     bots.forEach(bot => {
-        console.log('Processing bot:', bot.bot_name);
         const safeId = bot.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
-        const isOffline = (Date.now() - new Date(bot.last_heartbeat).getTime()) > 120000;
+        const lastHeartbeat = new Date(bot.last_heartbeat).getTime();
+        const isOffline = (Date.now() - lastHeartbeat) > 120000;
         const isPosting = bot.stats.isPosting || bot.status === 'POSTING';
+        const avatar = getBotAvatar(bot.bot_name);
 
         let statusText = isOffline ? 'OFFLINE' : (bot.status || 'IDLE');
-        if (isPosting) statusText = '⚡ POSTING...';
-        else if (bot.status === 'ACTIVE') statusText = '📡 ACTIVE';
-        else if (bot.status === 'IDLE') statusText = '💤 IDLE';
+        if (isPosting) statusText = 'POSTING';
 
-        const currentActivity = bot.stats.activity || '';
-        const nextRunTime = bot.stats.next_run;
-        const nextRunDisplay = isPosting ? 'BUSY' : formatNextRun(nextRunTime);
+        const currentActivity = bot.stats.activity || 'Waiting for next task...';
+        const nextRunDisplay = isPosting ? 'BUSY' : formatNextRun(bot.stats.next_run);
 
-        // Determine Goal Zone
+        // --- 1. Render Command Card ---
+        const card = document.createElement('div');
+        card.className = `bot-command-card animate-fade-in ${isOffline ? 'offline' : ''}`;
+        card.id = `cmd-card-${safeId}`;
+
+        card.innerHTML = `
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="bot-avatar-circle">${avatar}</div>
+                    <div class="bot-info">
+                        <span class="name">${bot.bot_name}</span>
+                        <span class="status-pill ${isOffline ? '' : (isPosting ? 'posting' : 'active')}">${statusText}</span>
+                    </div>
+                </div>
+                <button class="btn-icon" onclick="deleteBot('${bot.bot_name}')" title="Remove Bot">🗑️</button>
+            </div>
+            
+            <div class="card-activity-line" title="${currentActivity}">
+                ${isPosting ? '⚡ ' : ''}${currentActivity}
+            </div>
+            
+            <div class="card-stats-mini">
+                <div class="stat">
+                    <span class="label">INTERVAL</span>
+                    <select id="interval-${safeId}" class="stat-select">
+                        <option value="15" ${bot.stats.interval === 15 ? 'selected' : ''}>15m</option>
+                        <option value="30" ${bot.stats.interval === 30 ? 'selected' : ''}>30m</option>
+                        <option value="60" ${bot.stats.interval === 60 ? 'selected' : ''}>1h</option>
+                        <option value="120" ${bot.stats.interval === 120 ? 'selected' : ''}>2h</option>
+                    </select>
+                </div>
+                <div class="stat">
+                    <span class="label">NEXT RUN</span>
+                    <span class="val">${nextRunDisplay}</span>
+                </div>
+            </div>
+            
+            <div class="card-controls">
+                ${bot.status === 'ACTIVE' || isPosting
+                ? `<button class="btn-card stop" onclick="handleCommand('${bot.bot_name}', 'STOP')">⏸️ STOP</button>`
+                : `<button class="btn-card start" onclick="handleCommand('${bot.bot_name}', 'START')">▶️ START</button>`
+            }
+                <button class="btn-card" onclick="handleCommand('${bot.bot_name}', 'START', true)" style="background:rgba(255,255,255,0.05); color:#fff;">🔄 RESET</button>
+            </div>
+        `;
+        commandGrid.appendChild(card);
+
+        // --- 2. Render Isometric Sprite ---
         let goalZone = 'BREAK_ROOM';
         if (isPosting) goalZone = 'AUTOMATION_BAY';
         else if (bot.status === 'ACTIVE') goalZone = 'SALES_ZONE';
         else if (bot.bot_name.includes('Master')) goalZone = 'ADMIN_LAB';
 
-        // Update/Calculate Position
         if (!botPositions[safeId]) {
             const zone = OFFICE_ZONES[goalZone];
             botPositions[safeId] = {
@@ -141,7 +181,6 @@ function renderOffice() {
             };
         } else {
             const zone = OFFICE_ZONES[goalZone];
-            // Slow nudge towards goal or random wander
             if (Math.random() > 0.8) {
                 botPositions[safeId].top = zone.top + (Math.random() * 12 - 6);
                 botPositions[safeId].left = zone.left + (Math.random() * 12 - 6);
@@ -149,72 +188,33 @@ function renderOffice() {
         }
         const pos = botPositions[safeId];
 
-        let card = document.getElementById(`bot-card-${safeId}`);
         let charDiv = document.getElementById(`char-container-${safeId}`);
-
-        if (!card) {
-            // Initial render
-            card = document.createElement('div');
-            card.id = `bot-card-${safeId}`;
-            card.className = `bot-card`;
-            office.appendChild(card);
-
+        if (!charDiv) {
             charDiv = document.createElement('div');
             charDiv.id = `char-container-${safeId}`;
             charDiv.className = `bot-character-container`;
             office.appendChild(charDiv);
         }
 
-        // Update Position
-        card.style.top = `${pos.top}%`;
-        card.style.left = `${pos.left}%`;
         charDiv.style.top = `${pos.top}%`;
         charDiv.style.left = `${pos.left}%`;
 
-        // Inner UI (Floating Bubble)
-        card.innerHTML = `
-            <button class="delete-bot-btn" onclick="deleteBot('${bot.bot_name}')" title="Delete Bot">🗑️</button>
-            <div class="bot-name" style="font-family:'Press Start 2P'; font-size:9px; color:var(--pixel-green); margin-bottom:5px;">${bot.bot_name}</div>
-            <div class="bot-status-tag" style="font-size:8px;">${statusText}</div>
-            <div class="bot-activity" style="font-size:7px; color:var(--pixel-green); height:10px; overflow:hidden;">${currentActivity}</div>
-            <div class="bot-stats-list" style="border:1px solid var(--pixel-border); background:rgba(0,0,0,0.3); padding:5px; margin-top:5px;">
-                <div class="stat-row" style="border:none; padding:1px 0;">
-                    <span class="label" style="font-size:7px;">POSTS</span>
-                    <span class="val" style="font-size:8px;">${bot.stats.postCount || 0}</span>
-                </div>
-                <div class="stat-row" style="border:none; padding:1px 0;">
-                    <span class="label" style="font-size:7px;">NEXT</span>
-                    <span class="val" style="font-size:8px;">${nextRunDisplay}</span>
-                </div>
-            </div>
-            <div class="control-actions" id="actions-${safeId}" style="display:flex; gap:5px; margin-top:5px;">
-                ${bot.status === 'ACTIVE' || isPosting
-                ? `<button class="ctrl-btn stop" onclick="handleCommand('${bot.bot_name}', 'STOP')" style="padding:2px 5px; font-size:7px;">STOP</button>`
-                : `<button class="ctrl-btn start" onclick="handleCommand('${bot.bot_name}', 'START')" style="padding:2px 5px; font-size:7px;">START</button>`
-            }
-            </div>
-        `;
-
-        // Update Sprite
         const botSprite = getBotSprite(bot.bot_name);
         const animClass = isOffline ? 'sleeping' : (isPosting ? 'working' : (bot.status === 'ACTIVE' ? 'walking' : ''));
         charDiv.className = `bot-character-container ${isOffline ? 'sleeping' : ''}`;
         charDiv.innerHTML = `<img src="${botSprite}" class="bot-sprite ${animClass}" style="width:64px; height:64px;">`;
     });
 
-    // Remove cards for bots that are no longer in the list
+    // Cleanup orphaned sprites
     const currentSafeIds = bots.map(b => b.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''));
-    Array.from(office.querySelectorAll('.bot-card')).forEach(card => {
-        const cardId = card.id.replace('bot-card-', '');
-        if (!currentSafeIds.includes(cardId)) {
-            office.removeChild(card);
-        }
+    Array.from(office.querySelectorAll('.bot-character-container')).forEach(char => {
+        const cid = char.id.replace('char-container-', '');
+        if (!currentSafeIds.includes(cid)) office.removeChild(char);
     });
 
-    // Logging changes
     if (bots.length !== lastFetchedCount) {
         const diff = bots.length - lastFetchedCount;
-        if (diff > 0) addConsoleLog(`✨ ${diff} new bot(s) appeared in the office!`);
+        if (diff > 0) addConsoleLog(`✨ ${diff} new bot(s) appeared in the command center!`);
         lastFetchedCount = bots.length;
     }
 }
@@ -352,24 +352,24 @@ setInterval(() => {
     });
 }, 1000);
 
-async function handleCommand(botName, action) {
-    const intervalSelect = document.getElementById(`interval-${botName}`);
+async function handleCommand(botName, action, isReset = false) {
+    if (isReset) action = 'RESET';
+
+    const safeId = botName.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+    const intervalSelect = document.getElementById(`interval-${safeId}`);
     const interval = intervalSelect ? parseInt(intervalSelect.value) : 15;
 
     // Get admin token for authentication
     let token = localStorage.getItem('vibe_admin_token');
+    if (!token) token = 'vibe_secret_token_12345';
 
-    // Fallback to default community token if not found
-    if (!token) {
-        console.warn('⚠️ No admin token found in localStorage, using default fallback.');
-        token = 'vibe_secret_token_12345';
-    }
+    const card = document.getElementById(`cmd-card-${safeId}`);
+    const btn = card ? card.querySelector(`.btn-card.${action.toLowerCase()}`) : null;
 
-    const safeId = botName.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
-    const btn = document.querySelector(`#bot-card-${safeId} .ctrl-btn.${action.toLowerCase()}`) || document.getElementById(`btn-apply-${safeId}`);
     if (btn) {
         btn.disabled = true;
         btn.style.opacity = '0.5';
+        btn.dataset.oldText = btn.innerText;
         btn.innerHTML = '⌛...';
     }
 
@@ -406,6 +406,7 @@ async function handleCommand(botName, action) {
         if (btn) {
             btn.disabled = false;
             btn.style.opacity = '1';
+            btn.innerText = btn.dataset.oldText || action;
         }
     }
 }
@@ -450,6 +451,15 @@ function addConsoleLog(msg) {
 function startPolling() {
     setInterval(fetchBots, 5000);    // Was 2000ms - reduced DB pressure
     setInterval(fetchHistory, 10000); // Was 3000ms - history changes slowly
+}
+
+async function handleAllBots(action) {
+    if (!confirm(`Are you sure you want to ${action} ALL bots?`)) return;
+    addConsoleLog(`🌐 Global: Triggering ${action} for all bots...`);
+
+    for (const bot of bots) {
+        await handleCommand(bot.bot_name, action);
+    }
 }
 
 function getPingClass(ping) {

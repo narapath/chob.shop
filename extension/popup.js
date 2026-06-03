@@ -243,6 +243,12 @@ function initEventListeners() {
 
     // Auto Toggle Button
     document.getElementById('autoToggleBtn').addEventListener('click', toggleAutoPost);
+    document.getElementById('resetAutoBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        resetAutoPost();
+    });
+
+    document.getElementById('autoInterval').addEventListener('change', updateAutoInterval);
 
     // Group Management
     document.getElementById('recheckGroupsBtn')?.addEventListener('click', recheckAllGroups);
@@ -813,6 +819,17 @@ async function postToCurrentGroup(id) {
     });
 }
 
+function resetAutoPost() {
+    if (confirm('คุณต้องการรีเซ็ตสถานะระบบออโต้ใช่หรือไม่? (ระบบจะหยุดทำงานและล้างสถานะที่ค้างอยู่)')) {
+        chrome.runtime.sendMessage({ action: 'RESET_AUTO_STATE' }, (res) => {
+            if (res && res.success) {
+                showToast('🔄 รีเซ็ตสถานะสำเร็จ!');
+                setTimeout(refreshAutoStatus, 200);
+            }
+        });
+    }
+}
+
 // Convert text to Unicode Bold Sans-Serif (Works for Latin Characters)
 function toUnicodeBold(text) {
     const boldMap = {
@@ -849,9 +866,14 @@ function toggleAutoPost() {
 
     if (isCurrentlyRunning) {
         // Stop
+        btn.disabled = true;
+        btn.innerHTML = '<span class="auto-btn-icon">⌛</span><span class="auto-btn-text">กำลังหยุด...</span>';
+
         chrome.runtime.sendMessage({ action: 'STOP_AUTO_POST' }, (res) => {
+            btn.disabled = false;
             if (chrome.runtime.lastError) {
                 alert('Stop Error: ' + chrome.runtime.lastError.message);
+                refreshAutoStatus();
                 return;
             }
             showToast('⏸️ หยุดออโต้โพสต์แล้ว');
@@ -861,16 +883,20 @@ function toggleAutoPost() {
         // Pre-flight check: Ensure groups exist
         if (!groups || groups.length === 0) {
             alert('⚠️ กรุณาเพิ่มกลุ่ม Facebook ก่อนเริ่มออโต้โพสต์ (ในแท็บ "กลุ่มของฉัน")');
-            // Switch to groups tab for them
             document.querySelector('.tab-btn[data-tab="groups"]').click();
             return;
         }
 
         // Start
         const interval = parseInt(document.getElementById('autoInterval').value);
+        btn.disabled = true;
+        btn.innerHTML = '<span class="auto-btn-icon">⌛</span><span class="auto-btn-text">กำลังเริ่ม...</span>';
+
         chrome.runtime.sendMessage({ action: 'START_AUTO_POST', intervalMinutes: interval }, (res) => {
+            btn.disabled = false;
             if (chrome.runtime.lastError) {
                 alert('Start Error: ' + chrome.runtime.lastError.message);
+                refreshAutoStatus();
                 return;
             }
             if (res && res.success) {
@@ -881,9 +907,19 @@ function toggleAutoPost() {
                 console.warn('[AutoPost] Unknown response from background:', res);
                 showToast('⚠️ ระบบกำลังเริ่ม... กรุณารอสักครู่');
             }
-            setTimeout(refreshAutoStatus, 500);
+            setTimeout(refreshAutoStatus, 300);
         });
     }
+}
+
+function updateAutoInterval() {
+    const interval = parseInt(document.getElementById('autoInterval').value);
+    chrome.runtime.sendMessage({ action: 'UPDATE_INTERVAL', intervalMinutes: interval }, (res) => {
+        if (res && res.success) {
+            showToast(`⏱️ ปรับความถี่เป็น ${interval} นาทีแล้ว`);
+            refreshAutoStatus();
+        }
+    });
 }
 
 const CUTE_PHRASES = {
@@ -1045,37 +1081,44 @@ function updateCountdown(nextAlarmTime) {
 }
 
 function renderAutoLog(log) {
-    const list = document.getElementById('autoLogList');
-    const countEl = document.getElementById('logCount');
+    try {
+        const list = document.getElementById('autoLogList');
+        const countEl = document.getElementById('logCount');
+        if (!list || !countEl) return;
 
-    countEl.textContent = `${log.length} รายการ`;
+        countEl.textContent = `${log.length} รายการ`;
 
-    if (log.length === 0) {
-        list.innerHTML = '<div class="auto-log-empty">ยังไม่มีประวัติการโพสต์</div>';
-        return;
-    }
-
-    list.innerHTML = log.map(entry => {
-        const isError = entry.includes('❌');
-        const linkRegex = /(https?:\/\/[^\s]+)/g;
-        let mainContent = entry;
-        let actionHtml = '';
-
-        // Extract last link to be the action button
-        const links = entry.match(linkRegex);
-        if (links && links.length > 0) {
-            const lastLink = links[links.length - 1];
-            mainContent = entry.replace(lastLink, '').replace(/\s*\|\s*$/, '').trim();
-            actionHtml = `<a href="${lastLink}" target="_blank" class="log-action">ดูโพสต์</a>`;
+        if (log.length === 0) {
+            list.innerHTML = '<div class="auto-log-empty">ยังไม่มีบันทึกการทำงาน</div>';
+            return;
         }
 
-        return `
-            <div class="log-entry ${isError ? 'error' : ''}">
-                <div class="log-content">${mainContent}</div>
-                ${actionHtml}
-            </div>
-        `;
-    }).join('');
+        list.innerHTML = log.map(entry => {
+            if (typeof entry !== 'string') return '';
+            const isError = entry.includes('❌') || entry.includes('🚨');
+            const linkRegex = /(https?:\/\/[^\s]+)/g;
+            let mainContent = entry;
+            let actionHtml = '';
+
+            try {
+                const links = entry.match(linkRegex);
+                if (links && links.length > 0) {
+                    const lastLink = links[links.length - 1];
+                    mainContent = entry.replace(lastLink, '').replace(/\s*\|\s*$/, '').trim();
+                    actionHtml = `<a href="${lastLink}" target="_blank" class="log-action">ดูโพสต์</a>`;
+                }
+            } catch (e) { }
+
+            return `
+                <div class="log-entry ${isError ? 'error' : ''}">
+                    <div class="log-content">${mainContent}</div>
+                    ${actionHtml}
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error('renderAutoLog error:', err);
+    }
 }
 
 async function renderHistory() {

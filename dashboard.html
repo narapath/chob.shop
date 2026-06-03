@@ -76,47 +76,91 @@
             </div>
         </header>
 
-        <div class="dashboard-container" style="margin-top: var(--header-h); padding-top: 40px;">
-            <header>
-                <div class="logo-pixel">
-                    <span class="pixel-icon">🤖</span>
+        <header class="dashboard-header animate-fade-in">
+            <div class="logo-pixel">
+                <span class="pixel-icon">🤖</span>
+                <div class="title-group">
                     <h1>CHOB.SHOP BOT OFFICE</h1>
+                    <p class="subtitle">Live Operational Command Center</p>
                 </div>
-                <div class="header-stats">
-                    <div class="stat-box">
+            </div>
+            <div class="header-stats">
+                <div class="stat-box premium">
+                    <div class="stat-icon">🛰️</div>
+                    <div class="stat-content">
                         <span class="label">ACTIVE BOTS</span>
                         <span id="activeCount" class="value">0</span>
                     </div>
-                    <div class="stat-box">
+                </div>
+                <div class="stat-box premium">
+                    <div class="stat-icon">📢</div>
+                    <div class="stat-content">
                         <span class="label">TOTAL POSTS</span>
                         <span id="totalPosts" class="value">0</span>
                     </div>
                 </div>
-            </header>
+            </div>
+        </header>
 
-            <main class="office-simulation-area">
-                <div class="iso-stage" id="isoStage">
-                    <!-- Floor Tiles -->
-                    <div class="iso-floor"></div>
-
-                    <!-- Office Zones (Waypoints) -->
-                    <div class="office-zone sales-zone" data-label="SALES_ZONE" style="top: 20%; left: 10%;"></div>
-                    <div class="office-zone tech-zone" data-label="AUTOMATION_BAY" style="top: 20%; right: 10%;"></div>
-                    <div class="office-zone meeting-zone" data-label="TEAM_SYNC" style="top: 50%; left: 40%;"></div>
-                    <div class="office-zone break-zone" data-label="BREAK_ROOM" style="bottom: 15%; left: 10%;"></div>
-                    <div class="office-zone admin-zone" data-label="ADMIN_LAB" style="bottom: 15%; right: 10%;"></div>
-
-                    <!-- Characters and Floating Bubbles injected here -->
-                    <div id="botOffice" class="bot-office-sprites"></div>
-                </div>
-            </main>
-
-            <section class="history-section">
+        <div class="dashboard-grid">
+            <!-- LEFT: Bot Command Center -->
+            <section class="command-center-section">
                 <div class="section-header">
-                    <h2>📜 POST HISTORY</h2>
+                    <div class="title-with-icon">
+                        <span class="icon">🎮</span>
+                        <h2>COMMAND CENTER</h2>
+                    </div>
+                    <div class="global-actions">
+                        <button class="btn-outline btn-sm" onclick="handleAllBots('START')">▶️ Start All</button>
+                        <button class="btn-outline btn-sm" onclick="handleAllBots('STOP')">⏸️ Stop All</button>
+                    </div>
+                </div>
+                <div id="commandCards" class="command-cards-grid">
+                    <!-- Bot cards injected here by dashboard.js -->
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <span>กำลังเชื่อมต่อบอท...</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT: Live Office View -->
+            <section class="office-view-section">
+                <div class="section-header">
+                    <div class="title-with-icon">
+                        <span class="icon">👁️</span>
+                        <h2>LIVE OPS VIEW</h2>
+                    </div>
+                </div>
+                <main class="office-simulation-area">
+                    <div class="iso-stage" id="isoStage">
+                        <!-- Floor Tiles -->
+                        <div class="iso-floor"></div>
+                        <!-- Office Zones -->
+                        <div class="office-zone sales-zone" data-label="SALES_ZONE" style="top: 20%; left: 10%;"></div>
+                        <div class="office-zone tech-zone" data-label="AUTOMATION_BAY" style="top: 20%; right: 10%;">
+                        </div>
+                        <div class="office-zone meeting-zone" data-label="TEAM_SYNC" style="top: 50%; left: 40%;"></div>
+                        <div class="office-zone break-zone" data-label="BREAK_ROOM" style="bottom: 15%; left: 10%;">
+                        </div>
+                        <div class="office-zone admin-zone" data-label="ADMIN_LAB" style="bottom: 15%; right: 10%;">
+                        </div>
+                        <div id="botOffice" class="bot-office-sprites"></div>
+                    </div>
+                </main>
+            </section>
+        </div>
+
+        <div class="secondary-grid">
+            <!-- BOTTOM LEFT: History -->
+            <section class="history-section premium">
+                <div class="section-header">
+                    <div class="title-with-icon">
+                        <span class="icon">📜</span>
+                        <h2>POST HISTORY</h2>
+                    </div>
                     <div class="history-tabs" id="historyTabs">
                         <button class="tab-btn active" data-filter="all">🌐 ทั้งหมด</button>
-                        <!-- Bot tabs will be injected dynamically -->
                     </div>
                 </div>
                 <div id="workHistory" class="history-list">
@@ -127,21 +171,24 @@
                 </div>
             </section>
 
+            <!-- BOTTOM RIGHT: Console -->
             <section class="console-section">
-                <div class="console-window">
+                <div class="console-window premium">
                     <div class="console-header">
-                        <span class="dot red"></span>
-                        <span class="dot yellow"></span>
-                        <span class="dot green"></span>
-                        <span class="title">SYSTEM_CONSOLE.LOG</span>
+                        <div class="console-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <span class="title">SYSTEM_CORE.LOG</span>
                     </div>
                     <div id="consoleLog" class="console-content">
-                        [10:15:22] System initialized...
-                        [10:15:23] Waiting for heartbeats...
+                        [SYSTEM] Initializing command center...
                     </div>
                 </div>
             </section>
         </div>
+    </div>
     </div>
 
 

@@ -61,6 +61,7 @@ if (!window.ChobShopInitialized) {
         }
 
         if (request.action === 'FILL_POST') {
+            console.log('[ChobShop] Received FILL_POST request');
             const now = Date.now();
             const lastTime = window.ChobShopLastPostTime || 0;
             if (window.ChobShopProcessing || (now - lastTime < 10000)) {
@@ -71,38 +72,32 @@ if (!window.ChobShopInitialized) {
 
             window.ChobShopProcessing = true;
             window.ChobShopLastPostTime = now;
-            updateStatus('🚀 กำลังเตรียมการ...', true);
+            updateStatus('🚀 เริ่มต้นการโพสต์...', true);
 
             let caption = request.data.caption;
-
-            // --- String-level De-duplication Safety ---
-            if (caption && caption.length > 50) {
-                const halfway = Math.floor(caption.length / 2);
-                const firstHalf = caption.substring(0, halfway).trim();
-                const secondHalf = caption.substring(halfway).trim();
-                if (firstHalf === secondHalf || (secondHalf.startsWith(firstHalf) && firstHalf.length > 10)) {
-                    console.warn('[ChobShop] Duplicate string detected in payload! Auto-correcting...');
-                    caption = firstHalf;
-                }
-            }
+            console.log('[ChobShop] Caption received, length:', caption?.length);
 
             fillFacebookPost(caption, request.data.imageUrl)
                 .then((result) => {
+                    console.log('[ChobShop] fillFacebookPost result:', result);
                     if (result === undefined) return;
                     if (result && result.status === 'PENDING') {
                         updateStatus('⏳ ส่งแล้ว (รออนุมัติ)', false, 4000);
+                    } else if (result && result.status === 'RESTRICTED') {
+                        updateStatus('❌ บัญชีถูกระงับ (Spam)', false, 5000);
                     } else {
                         updateStatus('✅ โพสต์สำเร็จ!', false, 3000);
                     }
                     sendResponse({ success: true, postLink: result });
                 })
                 .catch(err => {
-                    console.error('Fill post error:', err);
+                    console.error('[ChobShop] fillFacebookPost error:', err);
                     updateStatus('❌ เกิดข้อผิดพลาด: ' + err.message, false, 5000);
                     sendResponse({ success: false, error: err.message });
                 })
                 .finally(() => {
                     window.ChobShopProcessing = false;
+                    console.log('[ChobShop] FILL_POST workflow finished');
                 });
             return true;
         }
@@ -396,7 +391,8 @@ async function fillFacebookPost(caption, imageUrl) {
         if (!opener) {
             const patternSelectors = [
                 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6',
-                'div.x1i10hfl[role="button"][tabindex="0"]'
+                'div.x1i10hfl[role="button"][tabindex="0"]',
+                'div.m9osqlyq.tuo8861h.p73jt76e.gvx77k9x' // Common FB container class
             ];
             for (const sel of patternSelectors) {
                 const elements = Array.from(document.querySelectorAll(sel));
@@ -408,6 +404,32 @@ async function fillFacebookPost(caption, imageUrl) {
                     opener = match.closest('div[role="button"]') || match;
                     console.log('[ChobShop] Opener found via Strategy 4 (class pattern)');
                     break;
+                }
+            }
+        }
+
+        // Strategy 5: Nuclear — Deep text search for exact matches
+        if (!opener) {
+            console.log('[ChobShop] Trying Strategy 5 (Nuclear Text Search)...');
+            const allElements = document.querySelectorAll('div, span, p');
+            for (const el of allElements) {
+                if (el.children.length > 3) continue; // Skip large containers
+                const text = (el.innerText || "").trim();
+                if (recognizedTexts.some(t => text === t) && isVisible(el)) {
+                    // Walk up to find a clickable container
+                    let current = el;
+                    for (let i = 0; i < 5; i++) {
+                        if (!current || current === document.body) break;
+                        const role = current.getAttribute('role');
+                        const cursor = window.getComputedStyle(current).cursor;
+                        if (role === 'button' || cursor === 'pointer' || current.getAttribute('tabindex') === '0') {
+                            opener = current;
+                            console.log('[ChobShop] Nuclear strategy found opener:', text);
+                            break;
+                        }
+                        current = current.parentElement;
+                    }
+                    if (opener) break;
                 }
             }
         }

@@ -6,6 +6,21 @@ const HEARTBEAT_ALARM = 'CHOBSHOP_HEARTBEAT';
 let logQueue = []; // Queue for syncing to server
 let lastPing = 0;   // Store last heartbeat duration
 
+console.log('[ChobShop] Background Service Worker Loaded');
+
+// Top-level error catcher to storage
+self.addEventListener('error', (event) => {
+    const errorMsg = `[TopLevelError] ${event.message} at ${event.filename}:${event.lineno}`;
+    chrome.storage.local.set({ backgroundError: errorMsg });
+    console.error(errorMsg);
+});
+
+// Listen for errors
+self.onerror = (message, source, lineno, colno, error) => {
+    console.error('[Background Error]', message, error);
+    addLog(`🚨 ระบบหลังบ้านพบข้อผิดพลาด: ${message}`, 'ERROR');
+};
+
 // Listen for alarm
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === ALARM_NAME) {
@@ -77,26 +92,60 @@ function setupAlarms() {
 
 // Receive messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    console.log('[ChobShop] Incoming message:', request.action);
+
     if (request.action === 'START_AUTO_POST') {
-        startAutoPost(request.intervalMinutes).then(sendResponse);
+        startAutoPost(request.intervalMinutes)
+            .then(() => sendResponse({ success: true }))
+            .catch(err => sendResponse({ success: false, error: err.message }));
         return true;
     }
     if (request.action === 'STOP_AUTO_POST') {
-        stopAutoPost().then(sendResponse);
+        stopAutoPost()
+            .then(() => sendResponse({ success: true }))
+            .catch(err => sendResponse({ success: false, error: err.message }));
         return true;
     }
     if (request.action === 'GET_AUTO_STATUS') {
-        chrome.storage.local.get('autoPostState', async (res) => {
-            const alarm = await chrome.alarms.get(ALARM_NAME);
-            sendResponse({
-                state: res.autoPostState,
-                nextAlarm: alarm ? alarm.scheduledTime : null
-            });
+        (async () => {
+            try {
+                const { autoPostState = {} } = await chrome.storage.local.get('autoPostState');
+                const alarm = await chrome.alarms.get(ALARM_NAME);
+                sendResponse({
+                    state: autoPostState,
+                    nextAlarm: alarm ? alarm.scheduledTime : null
+                });
+            } catch (err) {
+                sendResponse({ error: err.message });
+            }
+        })();
+        return true;
+    }
+    if (request.action === 'RESET_AUTO_STATE') {
+        const initialState = {
+            isRunning: false,
+            isPosting: false,
+            intervalMinutes: 10,
+            postCount: 0,
+            lastPostTime: 0,
+            log: [],
+            groupIndex: 0,
+            currentActivity: '🆕 ระบบถูกรีเซ็ตแล้ว'
+        };
+        chrome.storage.local.set({ autoPostState: initialState }, () => {
+            chrome.alarms.clearAll();
+            sendResponse({ success: true });
         });
         return true;
     }
     if (request.action === 'FORCE_POST_NOW') {
-        executeAutoPost().then(() => sendResponse({ success: true }));
+        executeAutoPost()
+            .then(() => sendResponse({ success: true }))
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        return true;
+    }
+    if (request.action === 'PING_BACKGROUND') {
+        sendResponse({ success: true, timestamp: Date.now() });
         return true;
     }
     if (request.action === 'SCRAPE_PRODUCT') {
@@ -123,23 +172,28 @@ async function startAutoPost(intervalMinutes) {
 
     const newState = {
         isRunning: true,
-        isPosting: false,
+        isPosting: false, // Default
         intervalMinutes: intervalMinutes || 10,
         postCount: autoPostState ? autoPostState.postCount : 0,
         lastPostTime: prevLastPostTime,
         log: autoPostState ? autoPostState.log : [],
-        groupIndex: autoPostState ? autoPostState.groupIndex : 0
+        groupIndex: autoPostState ? autoPostState.groupIndex : 0,
+        currentActivity: '🚀 กำลังเริ่มต้นระบบ...'
     };
-    await chrome.storage.local.set({ autoPostState: newState });
 
     // Check if we should post immediately or just schedule
     const now = Date.now();
     const timeSinceLastPost = now - prevLastPostTime;
-    const intervalMs = (intervalMinutes || 10) * 60 * 1000;
+    const intervalMs = (newState.intervalMinutes) * 60 * 1000;
 
     if (prevLastPostTime === 0 || timeSinceLastPost >= intervalMs) {
         // First time ever OR enough time has passed → post immediately
         console.log('[AutoPost] First start or interval elapsed, posting immediately.');
+        newState.isPosting = true;
+        newState.currentActivity = '⚙️ กำลังเตรียมระบบโพสต์ด่วน...';
+        await chrome.storage.local.set({ autoPostState: newState });
+        await addLog('▶️ ได้รับคำสั่งเริ่มงาน (Manual Start)', 'INFO');
+
         executeAutoPost();
         await chrome.alarms.create(ALARM_NAME, { delayInMinutes: newState.intervalMinutes });
     } else {
@@ -147,6 +201,11 @@ async function startAutoPost(intervalMinutes) {
         const remainingMs = intervalMs - timeSinceLastPost;
         const remainingMin = Math.max(1, Math.ceil(remainingMs / 60000));
         console.log(`[AutoPost] Recently posted ${Math.round(timeSinceLastPost / 1000)}s ago. Next post in ${remainingMin}min.`);
+
+        newState.isPosting = false;
+        newState.currentActivity = `⏳ รอรอบถัดไป (${remainingMin} นาที)`;
+        await chrome.storage.local.set({ autoPostState: newState });
+
         addLog(`⏳ โพสต์ล่าสุดเมื่อ ${Math.round(timeSinceLastPost / 60000)} นาทีก่อน — รอครั้งถัดไปใน ${remainingMin} นาที`);
         await chrome.alarms.create(ALARM_NAME, { delayInMinutes: remainingMin });
     }
@@ -163,7 +222,20 @@ async function stopAutoPost() {
         autoPostState.postCount = 0;   // Reset count on stop
         autoPostState.groupIndex = 0;  // Reset rotation on stop
         autoPostState.lastPostTime = 0; // Reset timer so next Start posts immediately
+        autoPostState.currentActivity = '🛑 หยุดการทำงาน';
         await chrome.storage.local.set({ autoPostState });
+    } else {
+        // Initialize as stopped state if doesn't exist
+        await chrome.storage.local.set({
+            autoPostState: {
+                isRunning: false,
+                isPosting: false,
+                lastPostTime: 0,
+                postCount: 0,
+                groupIndex: 0,
+                currentActivity: '🛑 หยุดการทำงาน'
+            }
+        });
     }
     await chrome.alarms.clear(ALARM_NAME);
     console.log('[AutoPost] Service stopped');
@@ -185,35 +257,42 @@ async function updateInterval(minutes) {
 
 async function executeAutoPost() {
     let { autoPostState } = await chrome.storage.local.get('autoPostState');
-    if (!autoPostState || !autoPostState.isRunning) return;
+    if (!autoPostState || !autoPostState.isRunning) {
+        console.warn('[AutoPost] Skip execution: state is null or isRunning is false');
+        return;
+    }
 
-    // --- Staleness / Hang Check (New) ---
-    // If we've been "posting" for more than 10 minutes, something crashed. Reset it.
+    addLog('🚀 ระบบกำลังเริ่มการโพสต์อัตโนมัติ...', 'INFO', 'POST_START');
+
+    // --- Staleness / Hang Check ---
     const now = Date.now();
     const timeSinceLast = now - (autoPostState.lastPostTime || 0);
-    const isStuck = autoPostState.isPosting && timeSinceLast > 10 * 60 * 1000;
+    const isStuck = autoPostState.isPosting && timeSinceLast > 3 * 60 * 1000; // Reduced to 3 minutes
 
     if (autoPostState.isPosting && !isStuck) {
         console.warn('[AutoPost] Already posting, skipping.');
+        addLog('⚠️ ข้ามรอบ (ระบบกำลังทำงานค้างอยู่)', 'WARN');
         return;
     }
 
     if (isStuck) {
         console.warn('[AutoPost] Detected hung posting state. Force resetting.');
+        addLog('⚠️ ตรวจพบระบบค้าง กำลังรีเซ็ต...', 'WARN');
         autoPostState.isPosting = false;
-        await chrome.storage.local.set({ autoPostState });
     }
 
     // --- Time Check to Prevent Doppelgangers ---
-    const minGap = (autoPostState.intervalMinutes || 10) * 60 * 1000 * 0.8; // 80% of interval
-    if (now - autoPostState.lastPostTime < minGap && autoPostState.lastPostTime > 0) {
-        console.info('[AutoPost] Fired too soon, skipping to preserve cadence.');
+    const minGap = (autoPostState.intervalMinutes || 10) * 60 * 1000 * 0.5;
+    if (autoPostState.lastPostTime > 0 && (now - autoPostState.lastPostTime < minGap)) {
+        console.info('[AutoPost] Fired too soon, skipping.');
+        addLog('⏳ เร็วเกินไป ข้ามรอบเพื่อรักษาจังหวะ', 'INFO');
         return;
     }
 
     autoPostState.isPosting = true;
-    autoPostState.currentActivity = '⚙️ กำลังเตรียมระบบ...';
-    await saveState();
+    autoPostState.currentActivity = '⚙️ กำลังเตรียมข้อมูล...';
+    await saveState(autoPostState);
+    addLog('📦 กำลังเตรียมสินค้าและกลุ่ม...', 'INFO');
 
     try {
         // 1. Get configurations
@@ -230,7 +309,7 @@ async function executeAutoPost() {
         const group = fbGroups[autoPostState.groupIndex % fbGroups.length];
         const product = products[Math.floor(Math.random() * products.length)];
 
-        addLog(`🚀 เริ่มโพสต์กลุ่ม: "${group.name}"`, 'INFO', 'POST_START');
+        addLog(`🎯 เลือกโพสต์: "${product.title.substring(0, 30)}..." ลงกลุ่ม "${group.name}"`, 'INFO');
 
         // 4. Generate Caption
         const boldTitle = toUnicodeBold(product.title);
@@ -246,24 +325,32 @@ async function executeAutoPost() {
         caption = caption.replace(/\n{3,}/g, '\n\n').trim();
 
         // 5. Navigate
-        autoPostState.currentActivity = `🌐 กำลังเปิดกลุ่ม: ${group.name}`;
-        await saveState();
-
         const tabs = await chrome.tabs.query({ url: "*://*.facebook.com/*" });
         let tabId;
         if (tabs.length > 0) {
             tabId = tabs[0].id;
+            autoPostState.currentActivity = `🌐 กำลังไปยังกลุ่ม: ${group.name}`;
+            await saveState(autoPostState);
             await chrome.tabs.update(tabId, { url: group.url, active: true });
         } else {
+            autoPostState.currentActivity = `🌐 กำลังเปิดกลุ่มใหม่: ${group.name}`;
+            await saveState(autoPostState);
             const newTab = await chrome.tabs.create({ url: group.url });
             tabId = newTab.id;
         }
 
-        await new Promise(r => setTimeout(r, 12000)); // FB Load wait
+        addLog(`🌐 กำลังโหลดหน้ากลุ่ม: ${group.name} (รอสักครู่...)`, 'INFO', 'NAVIGATING');
+
+        // Wait for page load with status updates
+        for (let s = 12; s > 0; s--) {
+            autoPostState.currentActivity = `⏳ รอตัวหน้าเว็บโหลด... (${s} วินาที)`;
+            await saveState(autoPostState);
+            await new Promise(r => setTimeout(r, 1000));
+        }
 
         // 6.5 Prepare Image
         autoPostState.currentActivity = `🖼️ กำลังเตรียมรูปภาพ...`;
-        await saveState();
+        await saveState(autoPostState);
 
         let finalImageUrl = product.image;
         if (product.image && !product.image.startsWith('data:')) {
@@ -282,16 +369,19 @@ async function executeAutoPost() {
                 setTimeout(() => reject(new Error('Content script timeout')), 60000)
             );
 
-            autoPostState.currentActivity = `✍️ กำลังพิมพ์รายละเอียด...`;
-            await saveState();
+            autoPostState.currentActivity = `📤 กำลังส่งข้อมูลไปยังหน้า Facebook...`;
+            await saveState(autoPostState);
+            addLog('📤 กำลังส่งข้อมูลและรูปภาพเข้าหน้าเว็บ Facebook...', 'INFO');
 
             const response = await Promise.race([
                 chrome.tabs.sendMessage(tabId, { action: 'FILL_POST', data: { caption, imageUrl: finalImageUrl } }),
                 timeoutPromise
             ]);
 
-            autoPostState.currentActivity = `🔍 กำลังตรวจสอบโพสต์...`;
-            await saveState();
+            if (!response) throw new Error('ไม่ได้รับการตอบกลับจากหน้าเว็บ');
+
+            autoPostState.currentActivity = `🔍 กำลังตรวจสอบผลการโพสต์...`;
+            await saveState(autoPostState);
 
             const result = response ? response.postLink : { status: 'FAILED', url: null };
 
@@ -357,14 +447,18 @@ async function scheduleNextAlarm(state) {
 }
 
 async function addLog(msg, type = 'INFO', action = 'LOG', details = {}) {
-    // Atomic-like update for logs to prevent race conditions
-    chrome.storage.local.get('autoPostState', async (res) => {
-        let state = res.autoPostState;
+    // CRITICAL FIX: Only modify the log array. Do NOT create default state 
+    // with isRunning:false — that was overwriting startAutoPost's state!
+    try {
+        const result = await chrome.storage.local.get('autoPostState');
+        const state = result.autoPostState;
         if (state) {
-            state.log = [msg, ...(state.log || [])].slice(0, 30); // Increased limit slightly
+            state.log = [msg, ...(state.log || [])].slice(0, 30);
             await chrome.storage.local.set({ autoPostState: state });
         }
-    });
+    } catch (err) {
+        console.error('[addLog] Error:', err);
+    }
 
     // Add to sync queue for server
     logQueue.push({
@@ -375,7 +469,7 @@ async function addLog(msg, type = 'INFO', action = 'LOG', details = {}) {
         timestamp: new Date().toISOString()
     });
 
-    if (action === 'POST_FINISHED' || type === 'ERROR') {
+    if (action === 'POST_FINISHED' || type === 'ERROR' || action === 'POST_START') {
         sendHeartbeat();
     }
 }
@@ -467,15 +561,19 @@ async function fetchImageAsBase64(imageUrl) {
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
         try {
             console.log(`[ImageFetch] Fetching image (attempt ${attempt + 1}):`, imageUrl);
+            addLog(`🖼️ กำลังดึงรูปภาพ (ครั้งที่ ${attempt + 1})...`, 'INFO');
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+
             const response = await fetch(imageUrl, {
                 headers: {
                     'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
-                    'Referer': 'https://shopee.co.th/',
-                    'Sec-Fetch-Dest': 'image',
-                    'Sec-Fetch-Mode': 'no-cors',
-                    'Sec-Fetch-Site': 'cross-site'
-                }
+                    'Referer': 'https://shopee.co.th/'
+                },
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const blob = await response.blob();
@@ -488,7 +586,6 @@ async function fetchImageAsBase64(imageUrl) {
             const buffer = await blob.arrayBuffer();
             const binary = new Uint8Array(buffer);
             let binaryString = '';
-            // Process in chunks to avoid call stack overflow on large images
             const chunkSize = 8192;
             for (let i = 0; i < binary.length; i += chunkSize) {
                 const chunk = binary.subarray(i, i + chunkSize);
@@ -496,9 +593,11 @@ async function fetchImageAsBase64(imageUrl) {
             }
             const base64 = `data:${blob.type};base64,` + btoa(binaryString);
             console.log(`[ImageFetch] Success! Base64 size: ${(base64.length / 1024).toFixed(1)}KB`);
+            addLog(`✅ ดึงรูปภาพสำเร็จ (${(base64.length / 1024).toFixed(1)}KB)`, 'INFO');
             return base64;
         } catch (err) {
             console.error(`[ImageFetch] Attempt ${attempt + 1} failed:`, err);
+            addLog(`⚠️ ดึงรูปภาพล้มเหลว (ครั้งที่ ${attempt + 1}): ${err.message}`, 'WARN');
             if (attempt < MAX_RETRIES) { await new Promise(r => setTimeout(r, 1000)); continue; }
             return null;
         }
@@ -561,8 +660,9 @@ async function scrapeProduct(url) {
     }
 }
 
-async function saveState() {
-    await chrome.storage.local.set({ autoPostState });
+async function saveState(state) {
+    if (!state) return;
+    await chrome.storage.local.set({ autoPostState: state });
 }
 
 function toUnicodeBold(text) {
