@@ -100,7 +100,6 @@ function renderOffice() {
         else if (bot.status === 'IDLE') statusText = '💤 IDLE';
 
         const currentActivity = bot.stats.activity || '';
-
         const avatar = getBotAvatar(bot.bot_name);
         const nextRunTime = bot.stats.next_run;
         const nextRunDisplay = isPosting ? 'BUSY' : formatNextRun(nextRunTime);
@@ -108,31 +107,26 @@ function renderOffice() {
         let card = document.getElementById(`bot-card-${safeId}`);
 
         if (!card) {
+            // Initial render
             card = document.createElement('div');
             card.id = `bot-card-${safeId}`;
-            office.appendChild(card);
-        }
-        card.className = `bot-card ${cardClass}`;
+            card.className = `bot-card ${cardClass}`;
 
-        const currentInterval = window.userSelectionCache[bot.bot_name] !== undefined
-            ? window.userSelectionCache[bot.bot_name]
-            : (bot.stats.interval || 15);
+            const currentInterval = window.userSelectionCache[bot.bot_name] !== undefined
+                ? window.userSelectionCache[bot.bot_name]
+                : (bot.stats.interval || 15);
 
-        // Only update innerHTML if not interacting with dropdown
-        const activeEl = document.activeElement;
-        const isInteracting = activeEl && (activeEl.id === `interval-${safeId}` || activeEl.closest(`#bot-card-${safeId}`));
-
-        card.innerHTML = `
+            card.innerHTML = `
                 <button class="delete-bot-btn" onclick="deleteBot('${bot.bot_name}')" title="Delete Bot">🗑️</button>
                 <div class="bot-avatar">${avatar}</div>
                 <div class="bot-name">${bot.bot_name}</div>
-                <div class="bot-status-tag">${statusText}</div>
+                <div class="bot-status-tag" id="status-tag-${safeId}">${statusText}</div>
                 
-                ${currentActivity ? `<div style="text-align:center; font-size: 10px; color: var(--accent-blue); margin-bottom: 10px; font-weight:bold;">${currentActivity}</div>` : ''}
+                <div class="bot-activity" id="activity-${safeId}" style="text-align:center; font-size: 10px; color: var(--accent-blue); margin-bottom: 10px; font-weight:bold; height: 15px;">${currentActivity}</div>
 
                 <div class="bot-ping-indicator">
-                    <span class="ping-dot ${getPingClass(bot.stats.ping)}"></span>
-                    <span class="ping-val">${bot.stats.ping || 0} ms</span>
+                    <span class="ping-dot ${getPingClass(bot.stats.ping)}" id="ping-dot-${safeId}"></span>
+                    <span class="ping-val" id="ping-val-${safeId}">${bot.stats.ping || 0} ms</span>
                 </div>
                 <div class="bot-stats-list">
                     <div class="stat-row">
@@ -145,7 +139,7 @@ function renderOffice() {
                     </div>
                     <div class="stat-row">
                         <span class="label">LAST HB</span>
-                        <span class="val">${formatTime(bot.last_heartbeat)}</span>
+                        <span class="val" id="hb-${safeId}">${formatTime(bot.last_heartbeat)}</span>
                     </div>
                 </div>
                 <div class="bot-controls">
@@ -154,24 +148,62 @@ function renderOffice() {
                             <option value="5" ${currentInterval == 5 ? 'selected' : ''}>5 min</option>
                             <option value="10" ${currentInterval == 10 ? 'selected' : ''}>10 min</option>
                             <option value="15" ${currentInterval == 15 ? 'selected' : ''}>15 min</option>
+                            <option value="20" ${currentInterval == 20 ? 'selected' : ''}>20 min</option>
                             <option value="30" ${currentInterval == 30 ? 'selected' : ''}>30 min</option>
                             <option value="60" ${currentInterval == 60 ? 'selected' : ''}>60 min</option>
                         </select>
                         <button class="ctrl-btn apply" onclick="handleCommand('${bot.bot_name}', 'SET_INTERVAL')" id="btn-apply-${safeId}">⚙️</button>
                     </div>
-                    <div class="control-actions" style="display:flex; gap:8px;">
+                    <div class="control-actions" id="actions-${safeId}" style="display:flex; gap:8px;">
                         ${bot.status === 'ACTIVE' || isPosting
-                ? `<button class="ctrl-btn stop" onclick="handleCommand('${bot.bot_name}', 'STOP')" id="btn-stop-${safeId}">STOP</button>`
-                : `<button class="ctrl-btn start" onclick="handleCommand('${bot.bot_name}', 'START')" id="btn-start-${safeId}">START</button>`
-            }
+                    ? `<button class="ctrl-btn stop" onclick="handleCommand('${bot.bot_name}', 'STOP')">STOP</button>`
+                    : `<button class="ctrl-btn start" onclick="handleCommand('${bot.bot_name}', 'START')">START</button>`
+                }
                     </div>
                 </div>
             `;
+            office.appendChild(card);
+        } else {
+            // Surgical Update
+            card.className = `bot-card ${cardClass}`;
 
-        // Restore focus if we were interacting
-        if (isInteracting && activeEl.id) {
-            const newEl = document.getElementById(activeEl.id);
-            if (newEl) newEl.focus();
+            const tagEl = document.getElementById(`status-tag-${safeId}`);
+            if (tagEl) tagEl.textContent = statusText;
+
+            const activityEl = document.getElementById(`activity-${safeId}`);
+            if (activityEl) activityEl.textContent = currentActivity;
+
+            const pingDot = document.getElementById(`ping-dot-${safeId}`);
+            if (pingDot) pingDot.className = `ping-dot ${getPingClass(bot.stats.ping)}`;
+
+            const pingVal = document.getElementById(`ping-val-${safeId}`);
+            if (pingVal) pingVal.textContent = `${bot.stats.ping || 0} ms`;
+
+            const postsEl = document.getElementById(`posts-${safeId}`);
+            if (postsEl) postsEl.textContent = bot.stats.postCount || 0;
+
+            const nextEl = document.getElementById(`next-${safeId}`);
+            if (nextEl) {
+                nextEl.setAttribute('data-time', nextRunTime || '');
+                nextEl.textContent = nextRunDisplay;
+            }
+
+            const hbEl = document.getElementById(`hb-${safeId}`);
+            if (hbEl) hbEl.textContent = formatTime(bot.last_heartbeat);
+
+            // Update Start/Stop buttons only if not busy
+            const actionsEl = document.getElementById(`actions-${safeId}`);
+            if (actionsEl) {
+                const currentBtn = actionsEl.querySelector('.ctrl-btn');
+                const shouldBeStop = bot.status === 'ACTIVE' || isPosting;
+                const isStop = currentBtn && currentBtn.classList.contains('stop');
+
+                if (shouldBeStop !== isStop) {
+                    actionsEl.innerHTML = shouldBeStop
+                        ? `<button class="ctrl-btn stop" onclick="handleCommand('${bot.bot_name}', 'STOP')">STOP</button>`
+                        : `<button class="ctrl-btn start" onclick="handleCommand('${bot.bot_name}', 'START')">START</button>`;
+                }
+            }
         }
     });
 
