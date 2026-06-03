@@ -39,7 +39,13 @@ if (chrome.sidePanel && chrome.sidePanel.setPanelOptions) {
     }).catch(err => console.error('[SidePanel] Config Error:', err));
 }
 
-// Open side panel on click
+// Enable one-click side panel (Chrome 116+)
+if (chrome.sidePanel && chrome.sidePanel.setPanelBehavior) {
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+        .catch((error) => console.error(error));
+}
+
+// Open side panel on click (Fallback for older versions)
 chrome.action.onClicked.addListener((tab) => {
     if (chrome.sidePanel && chrome.sidePanel.open) {
         chrome.sidePanel.open({ windowId: tab.windowId }).catch(err => {
