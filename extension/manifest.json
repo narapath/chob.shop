@@ -1,12 +1,12 @@
 {
     "manifest_version": 3,
     "name": "ChobShop FB Group Poster",
-    "version": "3.0",
+    "version": "4.0",
     "description": "ช่วยโพสต์สินค้าจาก ChobShop ลง Facebook Group ได้อย่างรวดเร็ว พร้อมระบบ Auto-Post",
     "icons": {
-        "16": "app-icon.png",
-        "48": "app-icon.png",
-        "128": "app-icon.png"
+        "16": "chob-v4.png",
+        "48": "chob-v4.png",
+        "128": "chob-v4.png"
     },
     "permissions": [
         "storage",
@@ -24,9 +24,9 @@
     "action": {
         "default_popup": "popup.html",
         "default_icon": {
-            "16": "app-icon.png",
-            "48": "app-icon.png",
-            "128": "app-icon.png"
+            "16": "chob-v4.png",
+            "48": "chob-v4.png",
+            "128": "chob-v4.png"
         }
     },
     "host_permissions": [
