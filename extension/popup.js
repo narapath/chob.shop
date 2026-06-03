@@ -325,7 +325,9 @@ function initEventListeners() {
                 alert(`❌ เชื่อมต่อล้มเหลว (HTTP ${res.status}): ${text.substring(0, 50)}...`);
             }
         } catch (e) {
-            alert('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้: ' + e.message);
+            console.error('[ChobShop] Test API Exception:', e);
+            alert('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้: ' + e.message +
+                '\n\n💡 คำแนะนำ: ตรวจสอบว่าใส่ API Endpoint ในเมนูตั้งค่าได้ถูกต้อง (เช่น http://localhost:3000) และเซิร์ฟเวอร์เปิดใช้งานอยู่');
         } finally {
             btn.innerText = originalText;
             btn.disabled = false;
@@ -337,11 +339,15 @@ function initEventListeners() {
         const template = document.getElementById('captionTemplate').value;
         const botName = document.getElementById('botName').value.trim();
 
-        chrome.storage.local.set({ apiEndpoint: api, botName: botName }, () => {
+        // Normalize API Endpoint: trim and remove trailing slashes
+        const normalizedApi = api.replace(/\/+$/, '');
+
+        chrome.storage.local.set({ apiEndpoint: normalizedApi, botName: botName }, () => {
             chrome.storage.sync.set({ captionTemplate: template }, () => {
-                settings.apiEndpoint = api;
+                settings.apiEndpoint = normalizedApi;
                 settings.captionTemplate = template;
                 settings.botName = botName;
+                document.getElementById('apiEndpoint').value = normalizedApi; // Update UI
                 document.getElementById('settingsView').classList.add('hidden');
                 fetchProducts();
 
@@ -553,7 +559,11 @@ async function syncGroupsFromServer() {
         }
     } catch (err) {
         console.error('Sync error:', err);
-        showToast('❌ ซิงค์ไม่สำเร็จ: ' + err.message);
+        const isNetworkError = err.message.toLowerCase().includes('network') || err.message.toLowerCase().includes('failed to fetch');
+        const errorMsg = isNetworkError
+            ? 'เครือข่ายขัดข้อง (Network Error) | โปรดตรวจสอบความถูกต้องของ API Endpoint ในเมนูตั้งค่า'
+            : err.message;
+        showToast('❌ ซิงค์ไม่สำเร็จ: ' + errorMsg);
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;

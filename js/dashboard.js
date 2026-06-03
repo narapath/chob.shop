@@ -48,6 +48,8 @@ async function fetchBots() {
 
         if (data.success) {
             bots = data.bots.sort((a, b) => a.bot_name.localeCompare(b.bot_name, undefined, { numeric: true, sensitivity: 'base' }));
+            console.log('Fetched bots:', bots);
+            addConsoleLog(`📡 Sync: Found ${bots.length} bot(s) in database`);
             renderOffice();
             updateGlobalStats();
             updateBotTabs();
@@ -97,9 +99,11 @@ function renderOffice() {
     const office = document.getElementById('botOffice');
 
     if (bots.length === 0) {
+        console.log('No bots to render');
         office.innerHTML = '<div class="loading-pixel">NO BOTS ONLINE...</div>';
         return;
     }
+    console.log('Rendering', bots.length, 'bots');
 
     // Cache user selections to not lose them
     if (!window.userSelectionCache) window.userSelectionCache = {};
@@ -108,6 +112,7 @@ function renderOffice() {
     if (office.querySelector('.loading-pixel')) office.innerHTML = '';
 
     bots.forEach(bot => {
+        console.log('Processing bot:', bot.bot_name);
         const safeId = bot.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
         const isOffline = (Date.now() - new Date(bot.last_heartbeat).getTime()) > 120000;
         const isPosting = bot.stats.isPosting || bot.status === 'POSTING';

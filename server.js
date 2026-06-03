@@ -290,9 +290,15 @@ const handleHeartbeat = async (req, res) => {
     ping: req.body.ping
   };
 
-  // Prevent JSONB bloat: Cap history to last 30 entries
+  // Prevent JSONB bloat: Cap history to last 30 entries and strip large images (base64)
   if (stats.history && Array.isArray(stats.history)) {
-    stats.history = stats.history.slice(0, 30);
+    stats.history = stats.history.slice(0, 30).map(entry => {
+      if (entry.image && entry.image.length > 1000) {
+        const { image, ...rest } = entry;
+        return rest;
+      }
+      return entry;
+    });
   }
 
   const browser_type = req.body.browser_type;
