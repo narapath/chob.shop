@@ -46,6 +46,18 @@ if (!window.ChobShopInitialized) {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (request.action === 'UPDATE_WIDGET_STATE') {
             updateBotController(request.state);
+            return false;
+        }
+
+        if (request.action === 'GET_MEMBERSHIP_STATUS') {
+            const status = checkMembership();
+            sendResponse({ status });
+            return false;
+        }
+
+        if (request.action === 'EXECUTE_JOIN_GROUP') {
+            executeJoinGroup().then(res => sendResponse(res));
+            return true;
         }
 
         if (request.action === 'FILL_POST') {
@@ -64,7 +76,6 @@ if (!window.ChobShopInitialized) {
             let caption = request.data.caption;
 
             // --- String-level De-duplication Safety ---
-            // If the string appears to be the same text repeated twice, we cut it in half.
             if (caption && caption.length > 50) {
                 const halfway = Math.floor(caption.length / 2);
                 const firstHalf = caption.substring(0, halfway).trim();
@@ -96,6 +107,58 @@ if (!window.ChobShopInitialized) {
             return true;
         }
     });
+
+    function checkMembership() {
+        const text = document.body.innerText;
+        const joinedMarkers = ["เข้าร่วมแล้ว", "Joined", "Member", "สมาชิกแล้ว"];
+        const joinMarkers = ["เข้าร่วมกลุ่ม", "Join Group", "Join group"];
+        const pendingMarkers = ["รอดำเนินการ", "Requested", "Pending Approval", "ส่งคำขอแล้ว"];
+
+        // Strategy 1: Check buttons directly
+        const buttons = Array.from(document.querySelectorAll('div[role="button"], span, a'));
+
+        let hasJoin = false;
+        let hasPending = false;
+        let hasJoined = false;
+
+        for (const btn of buttons) {
+            const btnText = (btn.innerText || btn.getAttribute('aria-label') || "").trim();
+            if (!btnText) continue;
+
+            if (joinedMarkers.some(m => btnText === m)) hasJoined = true;
+            if (joinMarkers.some(m => btnText === m)) hasJoin = true;
+            if (pendingMarkers.some(m => btnText === m)) hasPending = true;
+        }
+
+        if (hasJoined) return 'JOINED';
+        if (hasPending) return 'PENDING';
+        if (hasJoin) return 'NOT_JOINED';
+
+        // Fallback Strategy 2: Text matching if buttons aren't clear
+        if (joinedMarkers.some(m => text.includes(m))) return 'JOINED';
+        if (pendingMarkers.some(m => text.includes(m))) return 'PENDING';
+        if (joinMarkers.some(m => text.includes(m))) return 'NOT_JOINED';
+
+        return 'UNKNOWN';
+    }
+
+    async function executeJoinGroup() {
+        const joinMarkers = ["เข้าร่วมกลุ่ม", "Join Group", "Join group"];
+        const buttons = Array.from(document.querySelectorAll('div[role="button"], span, a'));
+
+        for (const btn of buttons) {
+            const btnText = (btn.innerText || btn.getAttribute('aria-label') || "").trim();
+            if (joinMarkers.some(m => btnText === m)) {
+                console.log('[ChobShop] Found Join button, clicking...');
+                updateStatus('➕ กำลังกดเข้าร่วมกลุ่ม...');
+                btn.click();
+                await new Promise(r => setTimeout(r, 2000));
+                return { success: true, status: checkMembership() };
+            }
+        }
+        return { success: false, error: 'Join button not found' };
+    }
+
 
     chrome.storage.onChanged.addListener((changes, area) => {
         if (area === 'local' && changes.autoPostState) {
@@ -804,29 +867,36 @@ function updateBotController(state) {
 }
 
 async function findJustNowPostLink(targetText) {
-    const nowMarkers = ["Just now", "เมื่อสักครู่", "1m", "1 นาที", "1 min", "1 min.", "ตอนนี้", "0m", "0 นาที", "1น."];
+    const nowMarkers = [
+        "Just now", "जब अभी", "เมื่อสักครู่", "ตอนนี้", "1m", "1 นาที", "1 min", "1 min.", "0m", "0 นาที", "1น.", "1 น.",
+        "Just Now", "JUST NOW", "a few seconds ago", "ไม่กี่วินาทีที่ผ่านมา", "เพิ่งลง", "เมื่อครู่นี้"
+    ];
     const pendingMarkers = [
         "รอการอนุมัติ", "Submitted for review", "pending approval", "waiting for admin",
         "รอผู้ดูแลอนุมัติ", "ส่งแล้วและกำลังรอการตรวจสอบ", "รอการตรวจสอบ", "admin must approve",
-        "post has been submitted", "approved before they're visible"
+        "post has been submitted", "approved before they're visible", "your post will be published after",
+        "กำลังรอการอนุมัติ", "รออนุมัติ"
     ];
 
     // Clean and prepare title chunks for fuzzy matching
-    const cleanTitle = targetText ? targetText.substring(0, 40).replace(/[^\w\s\u0E00-\u0E7F]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase() : "";
-    const titleChunks = cleanTitle.split(' ').filter(word => word.length > 3);
+    // We take a longer snippet but sanitize it more carefully
+    const cleanTitle = targetText ? targetText.substring(0, 60).replace(/[^\w\s\u0E00-\u0E7F]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase() : "";
+    const titleChunks = cleanTitle.split(' ').filter(word => word.length > 2); // Keep shorter words for better matching
 
     console.log('[ChobShop] 🔍 Searching for verification. Chunks:', titleChunks);
 
-    for (let i = 0; i < 20; i++) { // Increase to 20s
+    for (let i = 0; i < 25; i++) { // Increase to 25s for slower network environments
         await new Promise(r => setTimeout(r, 1000));
 
         // 1. Toast / Notification Detection (Fastest)
+        // FB often shows a toast: "Your post was successful. View Post"
         const allLinks = Array.from(document.querySelectorAll('a'));
         for (const a of allLinks) {
             const text = (a.innerText || "").toLowerCase();
             const href = a.href || "";
-            if ((text.includes('ดูโพสต์') || text.includes('view post')) && (href.includes('/posts/') || href.includes('permalink'))) {
-                console.log('[ChobShop] 🎯 Found post link via SUCCESS TOAST:', href);
+            if ((text.includes('ดูโพสต์') || text.includes('view post') || text.includes('view your post')) &&
+                (href.includes('/posts/') || href.includes('permalink') || href.includes('/groups/'))) {
+                console.log('[ChobShop] 🎯 Found post link via SUCCESS TOAST/LINK:', href);
                 return { status: 'PUBLISHED', url: href };
             }
         }
@@ -839,20 +909,27 @@ async function findJustNowPostLink(targetText) {
         }
 
         // 3. Container-based Search
-        const postContainers = Array.from(document.querySelectorAll('[role="article"], .x1y1aw1k, [data-testid="post_container"]'));
+        // Expand selectors to include more generic FB container classes
+        const postContainers = Array.from(document.querySelectorAll('[role="article"], .x1y1aw1k, [data-testid="post_container"], .x1n2onr6.x1ja2u2z'));
+
         for (const container of postContainers) {
             const cText = (container.innerText || "").toLowerCase();
 
-            // Fuzzy Match: Check if at least 2 relevant words from our title exist in this container
+            // Fuzzy Match: Check if at least 2 relevant words OR 50% of chunks exist in this container
             const matchCount = titleChunks.filter(word => cText.includes(word)).length;
             const threshold = Math.min(titleChunks.length, 2);
-            if (titleChunks.length > 0 && matchCount < threshold) continue;
+
+            // If we have very few title chunks, we need at least one good match
+            const isMatch = titleChunks.length > 0 ? (matchCount >= threshold) : true;
+            if (!isMatch) continue;
 
             // Search for "now" marker links in this specific container
             const links = Array.from(container.querySelectorAll('a'));
             for (const a of links) {
                 const hr = a.href || "";
-                const isPostLink = hr.includes('/posts/') || hr.includes('permalink.php') || hr.includes('/groups/') && hr.includes('/multi_') || hr.includes('/permalink/') || hr.includes('?id=');
+                const isPostLink = hr.includes('/posts/') || hr.includes('permalink.php') ||
+                    (hr.includes('/groups/') && (hr.includes('/multi_') || hr.includes('/permalink/'))) ||
+                    hr.includes('?id=');
                 if (!isPostLink) continue;
 
                 const label = (a.getAttribute('aria-label') || "").toLowerCase();
@@ -862,16 +939,43 @@ async function findJustNowPostLink(targetText) {
 
                 if (nowMarkers.some(m => combined.includes(m.toLowerCase()))) {
                     console.log('[ChobShop] ✅ Post verified: PUBLISHED (Container) -', hr);
-                    return { status: 'PUBLISHED', url: hr };
+                    // Standardize the URL (remove query params unless it's a legacy permalink)
+                    let cleanUrl = hr;
+                    try {
+                        const urlObj = new URL(hr);
+                        if (hr.includes('/posts/')) {
+                            cleanUrl = urlObj.origin + urlObj.pathname;
+                        }
+                    } catch (e) { }
+                    return { status: 'PUBLISHED', url: cleanUrl };
                 }
             }
         }
 
         // Strategy B: Current URL if it's our post (Redirect case)
         const currentUrl = window.location.href;
-        if ((currentUrl.includes('/posts/') || currentUrl.includes('/permalink')) && titleChunks.every(w => pageText.includes(w))) {
+        const reflectsPost = currentUrl.includes('/posts/') || currentUrl.includes('/permalink') || currentUrl.includes('/groups/');
+        if (reflectsPost && titleChunks.length > 0 && titleChunks.every(w => pageText.includes(w))) {
+            console.log('[ChobShop] ✅ Post verified: PUBLISHED (URL Match) -', currentUrl);
             return { status: 'PUBLISHED', url: currentUrl };
         }
+    }
+
+    // FINAL FALLBACK: If we've waited 25 seconds and we're sure something was posted, 
+    // try to grab the very first "just now" link we find anywhere in the feed, 
+    // assuming it's ours (since we just posted it).
+    console.log('[ChobShop] ⚠️ Exact match failed, trying broad fallback...');
+    const nowLinks = Array.from(document.querySelectorAll('a')).filter(a => {
+        const hr = a.href || "";
+        const label = (a.getAttribute('aria-label') || "").toLowerCase();
+        const text = (a.innerText || "").toLowerCase();
+        return (hr.includes('/posts/') || hr.includes('permalink')) && nowMarkers.some(m => (text + label).includes(m.toLowerCase()));
+    });
+
+    if (nowLinks.length > 0) {
+        const fallbackUrl = nowLinks[0].href;
+        console.log('[ChobShop] 🎯 Fallback success: Found latest post link -', fallbackUrl);
+        return { status: 'PUBLISHED', url: fallbackUrl };
     }
 
     console.warn('[ChobShop] ❌ Verification timed out');

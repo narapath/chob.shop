@@ -48,82 +48,79 @@ function renderOffice() {
     bots.forEach(bot => {
         const safeId = bot.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
         const isOffline = (Date.now() - new Date(bot.last_heartbeat).getTime()) > 120000;
-        const cardClass = isOffline ? 'offline' : (bot.status === 'active' ? 'active' : 'idle');
-        const statusText = isOffline ? 'OFFLINE' : (bot.status === 'active' ? 'WORKING' : 'ZzZ_IDLE');
-        const currentInterval = window.userSelectionCache[bot.bot_name] !== undefined
-            ? window.userSelectionCache[bot.bot_name]
-            : (bot.stats.interval || 15);
+        const isPosting = bot.stats.isPosting || bot.status === 'POSTING';
+        const cardClass = isOffline ? 'offline' : (isPosting ? 'posting' : (bot.status === 'ACTIVE' ? 'active' : 'idle'));
+
+        let statusText = isOffline ? 'OFFLINE' : (bot.status || 'IDLE');
+        if (isPosting) statusText = '⚡ POSTING...';
+        else if (bot.status === 'ACTIVE') statusText = '📡 ACTIVE';
+        else if (bot.status === 'IDLE') statusText = '💤 IDLE';
+
+        const currentActivity = bot.stats.activity || '';
+
         const avatar = getBotAvatar(bot.bot_name);
         const nextRunTime = bot.stats.next_run;
-        const nextRunDisplay = bot.stats.isPosting ? 'POSTING...' : formatNextRun(nextRunTime);
+        const nextRunDisplay = isPosting ? 'BUSY' : formatNextRun(nextRunTime);
 
         let card = document.getElementById(`bot-card-${safeId}`);
 
         if (!card) {
-            // Create new card if it doesn't exist
             card = document.createElement('div');
             card.id = `bot-card-${safeId}`;
-            card.className = `bot-card ${cardClass}`;
             office.appendChild(card);
-        } else {
-            // Update classes if changed
-            if (card.className !== `bot-card ${cardClass}`) {
-                card.className = `bot-card ${cardClass}`;
-            }
         }
+        card.className = `bot-card ${cardClass}`;
 
-        // Only update innerHTML if not interacting with dropdown
-        const activeEl = document.activeElement;
-        const isInteracting = activeEl && (activeEl.id === `interval-${safeId}` || activeEl.closest(`#bot-card-${safeId}`));
+        const currentInterval = window.userSelectionCache[bot.bot_name] !== undefined
+            ? window.userSelectionCache[bot.bot_name]
+            : (bot.stats.interval || 15);
 
         // Surgical Update Logic
         card.innerHTML = `
-            <button class="delete-bot-btn" onclick="deleteBot('${bot.bot_name}')" title="Delete Bot">🗑️</button>
-            <div class="bot-avatar">${avatar}</div>
-            <div class="bot-name">${bot.bot_name}</div>
-            <div class="bot-status-tag">${statusText}</div>
-            <div class="bot-ping-indicator">
-                <span class="ping-dot ${getPingClass(bot.stats.ping)}"></span>
-                <span class="ping-val">${bot.stats.ping || 0} ms</span>
-            </div>
-            <div class="bot-stats-list">
-                <div class="stat-row">
-                    <span class="label">POSTS:</span>
-                    <span class="val" id="posts-${safeId}">${bot.stats.postCount || 0}</span>
+                <button class="delete-bot-btn" onclick="deleteBot('${bot.bot_name}')" title="Delete Bot">🗑️</button>
+                <div class="bot-avatar">${avatar}</div>
+                <div class="bot-name">${bot.bot_name}</div>
+                <div class="bot-status-tag">${statusText}</div>
+                
+                ${currentActivity ? `<div style="text-align:center; font-size: 10px; color: var(--accent-blue); margin-bottom: 10px; font-weight:bold;">${currentActivity}</div>` : ''}
+
+                <div class="bot-ping-indicator">
+                    <span class="ping-dot ${getPingClass(bot.stats.ping)}"></span>
+                    <span class="ping-val">${bot.stats.ping || 0} ms</span>
                 </div>
-                <div class="stat-row">
-                    <span class="label">NEXT RUN:</span>
-                    <span class="val countdown" id="next-${safeId}" data-time="${nextRunTime || ''}">${nextRunDisplay}</span>
+                <div class="bot-stats-list">
+                    <div class="stat-row">
+                        <span class="label">POSTS</span>
+                        <span class="val" id="posts-${safeId}">${bot.stats.postCount || 0}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">NEXT RUN</span>
+                        <span class="val countdown" id="next-${safeId}" data-time="${nextRunTime || ''}">${nextRunDisplay}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">LAST HB</span>
+                        <span class="val">${formatTime(bot.last_heartbeat)}</span>
+                    </div>
                 </div>
-                <div class="stat-row">
-                    <span class="label">LAST:</span>
-                    <span class="val">${formatTime(bot.last_heartbeat)}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">VER:</span>
-                    <span class="val">${bot.version || '1.0'}</span>
-                </div>
-            </div>
-            <div class="bot-controls">
-                <div class="control-group">
-                    <select class="interval-select" id="interval-${safeId}" onchange="window.userSelectionCache['${bot.bot_name}'] = this.value">
-                        <option value="5" ${currentInterval == 5 ? 'selected' : ''}>5 min</option>
-                        <option value="10" ${currentInterval == 10 ? 'selected' : ''}>10 min</option>
-                        <option value="15" ${currentInterval == 15 ? 'selected' : ''}>15 min</option>
-                        <option value="30" ${currentInterval == 30 ? 'selected' : ''}>30 min</option>
-                        <option value="60" ${currentInterval == 60 ? 'selected' : ''}>60 min</option>
-                        <option value="120" ${currentInterval == 120 ? 'selected' : ''}>120 min</option>
-                    </select>
-                    <button class="ctrl-btn apply" onclick="handleCommand('${bot.bot_name}', 'SET_INTERVAL')">⚙️</button>
-                </div>
-                <div class="control-actions">
-                    ${bot.status === 'active'
-                ? `<button class="ctrl-btn stop" onclick="handleCommand('${bot.bot_name}', 'STOP')">STOP</button>`
-                : `<button class="ctrl-btn start" onclick="handleCommand('${bot.bot_name}', 'START')">START</button>`
+                <div class="bot-controls">
+                    <div class="control-group">
+                        <select class="interval-select" id="interval-${safeId}" onchange="window.userSelectionCache['${bot.bot_name}'] = this.value">
+                            <option value="5" ${currentInterval == 5 ? 'selected' : ''}>5 min</option>
+                            <option value="10" ${currentInterval == 10 ? 'selected' : ''}>10 min</option>
+                            <option value="15" ${currentInterval == 15 ? 'selected' : ''}>15 min</option>
+                            <option value="30" ${currentInterval == 30 ? 'selected' : ''}>30 min</option>
+                            <option value="60" ${currentInterval == 60 ? 'selected' : ''}>60 min</option>
+                        </select>
+                        <button class="ctrl-btn apply" onclick="handleCommand('${bot.bot_name}', 'SET_INTERVAL')" id="btn-apply-${safeId}">⚙️</button>
+                    </div>
+                    <div class="control-actions" style="display:flex; gap:8px;">
+                        ${bot.status === 'ACTIVE' || isPosting
+                ? `<button class="ctrl-btn stop" onclick="handleCommand('${bot.bot_name}', 'STOP')" id="btn-stop-${safeId}">STOP</button>`
+                : `<button class="ctrl-btn start" onclick="handleCommand('${bot.bot_name}', 'START')" id="btn-start-${safeId}">START</button>`
             }
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
 
         // Restore focus if we were interacting
         if (isInteracting && activeEl.id) {
@@ -191,8 +188,13 @@ function renderLogs(logs) {
         row.className = `history-item ${log.status.toLowerCase()}`;
 
         const time = new Date(log.created_at).toLocaleTimeString('th-TH');
-
         const details = typeof log.details === 'string' ? JSON.parse(log.details) : (log.details || {});
+
+        let mediaHtml = '';
+        if (details.image) {
+            mediaHtml = `<div class="history-media"><img src="${details.image}" alt="Post Image" onclick="window.open('${details.image}', '_blank')"></div>`;
+        }
+
         const linkHtml = details.link ? `
             <a href="${details.link}" target="_blank" class="history-link" title="Open Facebook Post">
                 🔗 VIEW POST
@@ -200,10 +202,15 @@ function renderLogs(logs) {
         ` : '';
 
         row.innerHTML = `
-            <span class="history-time">[${time}]</span>
-            <span class="history-bot">${log.bot_name}</span>
-            <span class="history-action">${log.action}</span>
-            <span class="history-msg">${log.message}</span>
+            ${mediaHtml}
+            <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span class="history-time">[${time}]</span>
+                    <span class="history-bot">${log.bot_name}</span>
+                    <span class="history-action">${log.action}</span>
+                </div>
+                <span class="history-msg">${log.message}</span>
+            </div>
             ${linkHtml}
         `;
         list.appendChild(row);
@@ -257,7 +264,13 @@ async function handleCommand(botName, action) {
         token = 'vibe_secret_token_12345';
     }
 
-    addConsoleLog(`🕹️ Sending ${action} to ${botName}...`);
+    const safeId = botName.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+    const btn = document.querySelector(`#bot-card-${safeId} .ctrl-btn.${action.toLowerCase()}`) || document.getElementById(`btn-apply-${safeId}`);
+    if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.innerHTML = '⌛...';
+    }
 
     try {
         const res = await fetch('/api/bots/command', {
@@ -273,8 +286,12 @@ async function handleCommand(botName, action) {
 
         if (res.ok && data.success) {
             addConsoleLog(`✅ Command ${action} queued for ${botName}`);
-            // Refresh quickly
-            setTimeout(fetchBots, 1000);
+            // Rapid polling for 5 seconds to catch the change
+            let count = 0;
+            const fastPoll = setInterval(() => {
+                fetchBots();
+                if (++count > 5) clearInterval(fastPoll);
+            }, 1000);
         } else {
             const errorMsg = (res.status === 401) ? 'Unauthorized (Please login at /admin.html)' : (data.error || 'Unknown error');
             addConsoleLog(`❌ Command failed: ${errorMsg}`);
@@ -284,6 +301,11 @@ async function handleCommand(botName, action) {
         }
     } catch (err) {
         addConsoleLog(`❌ Network error: ${err.message}`);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
     }
 }
 

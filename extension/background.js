@@ -11,6 +11,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === ALARM_NAME) {
         console.log('[AutoPost] Alarm fired, starting auto-post cycle...');
         await executeAutoPost();
+    } else if (alarm.name === HEARTBEAT_ALARM) {
+        await sendHeartbeat();
     }
 });
 
@@ -196,6 +198,7 @@ async function executeAutoPost() {
     }
 
     autoPostState.isPosting = true;
+    autoPostState.currentActivity = 'INITIALIZING';
     await chrome.storage.local.set({ autoPostState });
 
     try {
@@ -230,6 +233,9 @@ async function executeAutoPost() {
             caption = caption.replace(/\n{3,}/g, '\n\n').trim();
 
             // 5. Navigate
+            autoPostState.currentActivity = `NAVIGATING TO GROUP ${burstIdx + 1}/2`;
+            await chrome.storage.local.set({ autoPostState });
+
             const tabs = await chrome.tabs.query({ url: "*://*.facebook.com/*" });
             let tabId;
             if (tabs.length > 0) {
@@ -243,6 +249,9 @@ async function executeAutoPost() {
             await new Promise(r => setTimeout(r, 12000)); // FB Load wait
 
             // 6.5 Prepare Image
+            autoPostState.currentActivity = `PREPARING IMAGE ${burstIdx + 1}/2`;
+            await chrome.storage.local.set({ autoPostState });
+
             let finalImageUrl = product.image;
             if (product.image && !product.image.startsWith('data:')) {
                 try {
@@ -291,7 +300,8 @@ async function executeAutoPost() {
             const { postHistory = [] } = await chrome.storage.local.get('postHistory');
             const updatedHistory = [{
                 id: Date.now(), timestamp: new Date().toISOString(), groupName: group.name,
-                productTitle: product.title, link: postLink, status: postStatus
+                productTitle: product.title, link: postLink, status: postStatus,
+                image: finalImageUrl
             }, ...postHistory].slice(0, 50);
             await chrome.storage.local.set({ postHistory: updatedHistory, autoPostState }); // Save intermediate state
 
@@ -349,24 +359,33 @@ async function addLog(msg, type = 'INFO', action = 'LOG', details = {}) {
 async function sendHeartbeat() {
     const { botName, apiEndpoint } = await chrome.storage.local.get(['botName', 'apiEndpoint']);
     const { autoPostState } = await chrome.storage.local.get('autoPostState');
+    const { lastCommandTs } = await chrome.storage.local.get('lastCommandTs');
 
     if (!apiEndpoint) return;
 
-    // Heartbeat payload (Normalized to support both naming styles)
+    // Determine Status
+    let status = 'IDLE';
+    if (autoPostState?.isRunning) {
+        status = autoPostState.isPosting ? 'POSTING' : 'ACTIVE';
+    }
+
     const stats = {
         postCount: autoPostState?.postCount || 0,
         lastActive: new Date().toISOString(),
-        ping: lastPing
+        ping: lastPing,
+        interval: autoPostState?.intervalMinutes || 15,
+        isPosting: autoPostState?.isPosting || false,
+        activity: autoPostState?.currentActivity || 'IDLE',
+        next_run: (await chrome.alarms.get(ALARM_NAME))?.scheduledTime || null
     };
 
     const payload = {
         bot_name: botName || 'Unnamed Bot',
-        name: botName || 'Unnamed Bot', // Legacy fallback
-        status: autoPostState?.isRunning ? (autoPostState.isPosting ? 'POSTING' : 'ACTIVE') : 'IDLE',
+        status: status,
         stats: stats,
         new_logs: logQueue,
-        logs: logQueue, // Legacy fallback
-        version: '1.2.0'
+        ack_command_ts: lastCommandTs,
+        version: '1.3.0'
     };
 
     try {
@@ -377,8 +396,27 @@ async function sendHeartbeat() {
             body: JSON.stringify(payload)
         });
         lastPing = Date.now() - start;
+
         if (response.ok) {
+            const data = await response.json();
             logQueue = []; // Clear queue on success
+
+            // Process Commands from Remote
+            if (data.command && data.command.action && data.command.timestamp !== lastCommandTs) {
+                const cmd = data.command;
+                console.log('🕹️ [Remote] Executing command:', cmd.action);
+
+                if (cmd.action === 'START') {
+                    await startAutoPost(cmd.interval || 15);
+                } else if (cmd.action === 'STOP') {
+                    await stopAutoPost();
+                } else if (cmd.action === 'SET_INTERVAL') {
+                    await updateInterval(cmd.interval || 15);
+                }
+
+                // Save ack
+                await chrome.storage.local.set({ lastCommandTs: cmd.timestamp });
+            }
         }
     } catch (err) {
         console.warn('[Heartbeat] Failed to sync:', err.message);

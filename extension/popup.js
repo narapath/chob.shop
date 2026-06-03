@@ -236,17 +236,17 @@ function initEventListeners() {
     document.getElementById('autoToggleBtn').addEventListener('click', toggleAutoPost);
 
     // Group Management
-    document.getElementById('addGroupBtn').addEventListener('click', () => {
+    document.getElementById('recheckGroupsBtn')?.addEventListener('click', recheckAllGroups);
+    document.getElementById('syncGroupsBtn')?.addEventListener('click', syncGroupsFromServer);
+    document.getElementById('addGroupBtn')?.addEventListener('click', () => {
         const name = prompt('ชื่อกลุ่ม:');
         if (!name) return;
         const url = prompt('URL กลุ่ม (เช่น https://facebook.com/groups/xxx):');
         if (!url) return;
 
-        groups.push({ id: Date.now(), name, url });
+        groups.push({ id: Date.now(), name, url, membershipStatus: 'NOT_JOINED' });
         saveGroups();
     });
-
-    document.getElementById('syncGroupsBtn').addEventListener('click', syncGroupsFromServer);
 
     // Settings Toggle
     document.getElementById('settingsBtn').addEventListener('click', () => {
@@ -404,14 +404,58 @@ function renderGroups() {
         return;
     }
 
-    list.innerHTML = groups.map(g => `
-        <div class="group-item">
-            <span class="group-link" data-url="${g.url}" title="ไปยังกลุ่ม">👥 ${g.name}</span>
-            <div class="group-actions">
-                <span class="btn-del" data-id="${g.id}">🗑️</span>
+    // Inject membership styles if not exists
+    if (!document.getElementById('membership-styles')) {
+        const style = document.createElement('style');
+        style.id = 'membership-styles';
+        style.textContent = `
+            .group-status {
+                font-size: 9px;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-weight: 700;
+                margin-left: 8px;
+                text-transform: uppercase;
+            }
+            .status-JOINED { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 0.5px solid #10b981; }
+            .status-NOT_JOINED { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 0.5px solid #ef4444; }
+            .status-PENDING { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 0.5px solid #f59e0b; }
+            .status-UNKNOWN { background: rgba(148, 163, 184, 0.1); color: #94a3b8; border: 0.5px solid #94a3b8; }
+            .btn-recheck {
+                font-size: 10px;
+                background: var(--glass);
+                border: 1px solid var(--border);
+                color: var(--text-dim);
+                padding: 4px 8px;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+            .btn-recheck:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        `;
+        document.head.appendChild(style);
+    }
+
+    list.innerHTML = groups.map(g => {
+        const membershipStatus = g.membershipStatus || 'NOT_JOINED';
+        const statusLabel = {
+            'JOINED': '✅ เข้าแล้ว',
+            'NOT_JOINED': '❌ ยังไม่เข้า',
+            'PENDING': '⏳ รออนุมัติ'
+        }[membershipStatus] || '❌ ยังไม่เข้า';
+
+        return `
+            <div class="group-item" style="flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; flex: 1; min-width: 200px;">
+                    <span class="group-link" data-url="${g.url}" title="ไปยังกลุ่ม">👥 ${g.name}</span>
+                    <span class="group-status status-${g.membershipStatus || 'UNKNOWN'}">${statusLabel}</span>
+                </div>
+                <div class="group-actions">
+                    <span class="btn-del" data-id="${g.id}">🗑️</span>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     list.querySelectorAll('.group-link').forEach(link => {
         link.addEventListener('click', () => {
@@ -419,10 +463,8 @@ function renderGroups() {
             chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
                 if (tabs[0]) {
                     chrome.tabs.update(tabs[0].id, { url: url }, async () => {
-                        // After navigation, re-check tab status to refresh UI
-                        await new Promise(r => setTimeout(r, 500)); // Small buffer for nav
-                        await checkCurrentTab();
-                        renderProducts(); // Refresh buttons
+                        await new Promise(r => setTimeout(r, 1500)); // Wait for nav
+                        checkMembershipInTab(tabs[0].id, url);
                     });
                 }
             });
@@ -439,6 +481,7 @@ function renderGroups() {
     });
 }
 
+
 async function syncGroupsFromServer() {
     const btn = document.getElementById('syncGroupsBtn');
     const originalText = btn.innerHTML;
@@ -452,17 +495,13 @@ async function syncGroupsFromServer() {
         const data = await response.json();
 
         if (data.success && Array.isArray(data.groups)) {
-            // merge groups by ID
             const newGroups = data.groups.map(g => ({
                 id: g.id,
                 name: g.name,
-                url: g.url
+                url: g.url,
+                membershipStatus: 'NOT_JOINED'
             }));
 
-            // Replace existing groups or Merge? 
-            // The prompt said "ดึงข้อมูลไปยัง extension" (pull data to extension).
-            // Let's replace for now to stay in sync with server, or just add missing?
-            // Replaced is usually safer for "sync".
             groups = newGroups;
             saveGroups();
             showToast(`✅ ซิงค์สำเร็จ ${groups.length} กลุ่ม!`);
@@ -476,6 +515,123 @@ async function syncGroupsFromServer() {
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
+}
+
+
+async function recheckAllGroups() {
+    if (groups.length === 0) {
+        showToast('⚠️ กรุณาซิงค์กลุ่มก่อน');
+        return;
+    }
+
+    const btn = document.getElementById('recheckGroupsBtn');
+    if (!btn) return;
+
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '🔄 กำลังเช็ค...';
+    btn.disabled = true;
+
+    showToast('🚀 เริ่มตรวจสอบการเข้าร่วมกลุ่ม...');
+
+    try {
+        // Wrap query in Promise to await it properly
+        const tab = await new Promise(resolve => {
+            chrome.tabs.query({ active: true, lastFocusedWindow: true }, tabs => resolve(tabs[0]));
+        });
+
+        if (!tab) {
+            showToast('❌ ไม่พบแท็บที่เปิดอยู่');
+            return;
+        }
+
+        for (let i = 0; i < groups.length; i++) {
+            const g = groups[i];
+            btn.innerHTML = `🔄 (${i + 1}/${groups.length})`;
+
+            try {
+                await new Promise((resolve) => {
+                    chrome.tabs.update(tab.id, { url: g.url }, () => {
+                        // Wait for page to start loading and then wait a bit
+                        setTimeout(async () => {
+                            // Secondary check to ensure content script is ready
+                            let attempts = 0;
+                            const checkStatus = () => {
+                                chrome.tabs.sendMessage(tab.id, { action: 'GET_MEMBERSHIP_STATUS' }, async (res) => {
+                                    if (chrome.runtime.lastError) {
+                                        if (attempts < 5) {
+                                            attempts++;
+                                            setTimeout(checkStatus, 1000);
+                                        } else {
+                                            console.warn(`[Recheck] Timeout waiting for content script on ${g.name}`);
+                                            resolve();
+                                        }
+                                    } else {
+                                        await processStatusResponse(g, res);
+                                        resolve();
+                                    }
+                                });
+                            };
+                            checkStatus();
+                        }, 3000);
+                    });
+                });
+            } catch (e) {
+                console.error('Recheck error for group:', g.name, e);
+            }
+
+            // Save progress
+            saveGroups();
+            renderGroups();
+
+            // Small delay between groups
+            await new Promise(r => setTimeout(r, 800));
+        }
+
+        showToast('✅ ตรวจสอบกลุ่มเสร็จสิ้น!');
+    } catch (globalErr) {
+        console.error('Global Recheck Error:', globalErr);
+        showToast('❌ เกิดข้อผิดพลาดในการตรวจสอบ');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+async function processStatusResponse(group, response) {
+    if (response && response.status) {
+        group.membershipStatus = response.status;
+
+        // AUTO JOIN LOGIC
+        if (response.status === 'NOT_JOINED') {
+            console.log(`[ChobShop] Auto-joining group: ${group.name}`);
+            return new Promise((resolve) => {
+                chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+                    if (tabs[0]) {
+                        chrome.tabs.sendMessage(tabs[0].id, { action: 'EXECUTE_JOIN_GROUP' }, (res) => {
+                            if (res && res.success) {
+                                group.membershipStatus = res.status || 'PENDING';
+                                console.log(`[ChobShop] Join requested for: ${group.name}`);
+                            }
+                            resolve();
+                        });
+                    } else resolve();
+                });
+            });
+        }
+    }
+}
+
+async function checkMembershipInTab(tabId, url) {
+    const group = groups.find(g => g.url === url);
+    if (!group) return;
+
+    chrome.tabs.sendMessage(tabId, { action: 'GET_MEMBERSHIP_STATUS' }, (res) => {
+        if (res && res.status) {
+            group.membershipStatus = res.status;
+            saveGroups();
+            renderGroups();
+        }
+    });
 }
 
 // --- Rendering ---
@@ -567,11 +723,32 @@ async function postToCurrentGroup(id) {
                     showToast('⚠️ โปรด Refresh หน้า Facebook ก่อนใช้งานครั้งแรก');
                 } else if (response && response.success) {
                     const result = response.postLink || { status: 'FAILED' };
-                    if (result.status === 'PENDING') {
-                        showToast('⏳ ส่งแล้ว (รอผู้ดูแลอนุมัติ)');
-                    } else {
-                        showToast('✅ กรอกข้อมูลลงหน้าเว็บแล้ว!');
-                    }
+                    const imageUrl = scrapedImages.get(id) || p.image;
+
+                    // Save to history
+                    chrome.storage.local.get(['postHistory'], (data) => {
+                        const history = data.postHistory || [];
+                        const groupName = document.querySelector('.group-link.active')?.innerText?.replace('👥 ', '') || 'Current Group';
+
+                        const newEntry = {
+                            id: Date.now(),
+                            timestamp: new Date().toISOString(),
+                            groupName: groupName,
+                            productTitle: p.title,
+                            image: imageUrl,
+                            link: result.url || null,
+                            status: result.status || 'PUBLISHED'
+                        };
+
+                        chrome.storage.local.set({ postHistory: [newEntry, ...history].slice(0, 50) }, () => {
+                            if (result.status === 'PENDING') {
+                                showToast('⏳ ส่งแล้ว (รอผู้ดูแลอนุมัติ)');
+                            } else {
+                                showToast('✅ กรอกข้อมูลลงหน้าเว็บแล้ว!');
+                            }
+                            if (document.getElementById('historyView')) renderHistory();
+                        });
+                    });
                 }
             });
         }
