@@ -47,9 +47,15 @@ async function fetchBots() {
         const data = await response.json();
 
         if (data.success) {
+            const oldBots = [...bots];
             bots = data.bots.sort((a, b) => a.bot_name.localeCompare(b.bot_name, undefined, { numeric: true, sensitivity: 'base' }));
-            console.log('Fetched bots:', bots);
-            addConsoleLog(`📡 Sync: Found ${bots.length} bot(s) in database`);
+
+            // Only log Found bots if count changed or first time
+            if (bots.length !== oldBots.length || oldBots.length === 0) {
+                console.log('Fetched bots:', bots);
+                addConsoleLog(`📡 Sync: Found ${bots.length} bot(s) in database`);
+            }
+
             renderOffice();
             updateGlobalStats();
             updateBotTabs();
@@ -114,11 +120,10 @@ function renderOffice() {
         const isPosting = bot.stats.isPosting || bot.status === 'POSTING';
         const avatar = getBotAvatar(bot.bot_name);
 
-        let statusText = isOffline ? 'OFFLINE' : (bot.status || 'IDLE');
-        if (isPosting) statusText = 'POSTING';
+        let statusText = isOffline ? 'OFFLINE' : (isPosting ? 'POSTING' : (bot.status || 'IDLE'));
 
-        const currentActivity = bot.stats.activity || 'Waiting for next task...';
-        const nextRunDisplay = isPosting ? 'BUSY' : formatNextRun(bot.stats.next_run);
+        const currentActivity = bot.stats.activity || (isOffline ? 'Disconnected' : 'Waiting for next task...');
+        const nextRunDisplay = (isPosting && !isOffline) ? 'BUSY' : formatNextRun(bot.stats.next_run);
 
         // --- 1. Render Command Card ---
         const card = document.createElement('div');
@@ -214,7 +219,12 @@ function renderOffice() {
 
     if (bots.length !== lastFetchedCount) {
         const diff = bots.length - lastFetchedCount;
-        if (diff > 0) addConsoleLog(`✨ ${diff} new bot(s) appeared in the command center!`);
+        // Only log "new bots" if it's not the initial load (where we already show "Sync: Found X")
+        if (diff > 0 && lastFetchedCount !== 0) {
+            addConsoleLog(`✨ ${diff} new bot(s) appeared in the command center!`);
+        } else if (diff < 0) {
+            addConsoleLog(`🗑️ ${Math.abs(diff)} bot(s) removed from the command center.`);
+        }
         lastFetchedCount = bots.length;
     }
 }

@@ -278,8 +278,30 @@ app.put('/api/settings', requireAuth, async (req, res) => {
 
 // --- Bot Dashboard API ---
 
+// Periodic Cleanup for Stuck Bots (Every 5 minutes)
+const pruneStaleBots = async () => {
+  const db = supabaseAdmin || supabase;
+  if (!db) return;
+
+  const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+  // Update bots that are stuck in POSTING but haven't heartbeated for 5+ mins
+  const { data, error } = await db
+    .from('extension_bots')
+    .update({ status: 'IDLE' })
+    .match({ status: 'POSTING' })
+    .lt('last_heartbeat', fiveMinsAgo);
+
+  if (error) {
+    console.error('❌ [Watchdog] FAILED to prune stale bots:', error.message);
+  } else if (data && data.length > 0) {
+    console.log(`🧹 [Watchdog] Pruned ${data.length} stale POSTING bot(s)`);
+  }
+};
+
+setInterval(pruneStaleBots, 1 * 60 * 1000); // Check every minute
+
 // POST Bot Heartbeat (Public, for the extension)
-// Supports both legacy /api/heartbeat and new /api/bots/heartbeat
 const handleHeartbeat = async (req, res) => {
   // Normalize fields between legacy extension (name, logs) and current schema (bot_name, new_logs)
   let bot_name = (req.body.bot_name || req.body.name || "").trim();
@@ -321,6 +343,11 @@ const handleHeartbeat = async (req, res) => {
   }
 
   console.log(`🤖 [Heartbeat] Using ${supabaseAdmin ? 'supabaseAdmin' : 'supabase (fallback)'} client`);
+
+  // --- STUCK BOT WATCHDOG --- 
+  // If a bot is sending a heartbeat and its OLD state in DB was 'POSTING' but its last heartbeat was > 5mins ago
+  // and it is NOT sending a 'POST_FINISHED' or 'SUCCESS' right now, we should clear any stuck locks.
+  // Actually, we can just do a periodic cleanup of all bots.
 
   try {
     const { data, error } = await db
