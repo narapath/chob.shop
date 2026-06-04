@@ -64,8 +64,9 @@ const puppeteer = require('puppeteer');
                 const inputs = document.querySelectorAll('input[type="text"]');
                 for (const input of inputs) {
                     if (input.placeholder && input.placeholder.toLowerCase().includes('script')) {
-                        input.value = '';
+                        input.value = 'git pull';
                         input.dispatchEvent(new Event('input', { bubbles: true }));
+                        console.log("  Successfully entered 'git pull' in script field.");
                         return;
                     }
                 }

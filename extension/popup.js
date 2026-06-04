@@ -1358,3 +1358,24 @@ async function scrapeAndPreview(id, btnEl) {
         btnEl.disabled = false;
     }
 }
+function refreshDiagnostics() {
+    chrome.storage.local.get(['apiEndpoint', 'botName'], (res) => {
+        document.getElementById('diagEndpoint').textContent = res.apiEndpoint || '-';
+        document.getElementById('diagBotName').textContent = res.botName || '-';
+
+        chrome.storage.local.get(['lastHeartbeatTs', 'lastHeartbeatResult'], (h) => {
+            if (h.lastHeartbeatTs) {
+                const time = new Date(h.lastHeartbeatTs).toLocaleTimeString();
+                document.getElementById('diagLastSync').textContent = time;
+            } else {
+                document.getElementById('diagLastSync').textContent = '-';
+            }
+            document.getElementById('diagResult').textContent = h.lastHeartbeatResult || '-';
+        });
+    });
+}
+
+// Ensure diagnostics are refreshed when settings view is opened
+document.getElementById('settingsBtn').addEventListener('click', () => {
+    refreshDiagnostics();
+});
