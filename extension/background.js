@@ -71,9 +71,13 @@ chrome.action.onClicked.addListener((tab) => {
 });
 
 async function migrateTemplate() {
+    const oldTemplate = '{{title}} ✨\n{{desc}}\n\n💰 งบประมาณ: {{price}}.-\n📍 พิกัดช้อปตรงนี้เลยครับ 👇\n{{link}}';
+    const premiumTemplate = 'สวัสดีสมาชิกกลุ่ม {{group_name}} ✨\nมีของดีราคาโดนมาป้ายยาครับ! {{title}} \n{{desc}}\n\n💰 ราคาตอนนี้แค่: {{price}}.- (เช็คโปรฯ ในแอปเลย)\n📌 พิกัดร้านที่นี่ครับ 👇\n{{link}}\n\n{{hashtags}}';
+
     chrome.storage.sync.get(['captionTemplate'], (result) => {
-        if (!result.captionTemplate) {
-            chrome.storage.sync.set({ captionTemplate: '{{title}} ✨\n{{desc}}\n\n💰 งบประมาณ: {{price}}.-\n📍 พิกัดช้อปตรงนี้เลยครับ 👇\n{{link}}' });
+        if (!result.captionTemplate || result.captionTemplate === oldTemplate) {
+            console.log('[AutoPost] Upgrading to Premium Template...');
+            chrome.storage.sync.set({ captionTemplate: premiumTemplate });
         }
     });
 }
