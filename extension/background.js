@@ -140,6 +140,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             .then(() => sendResponse({ success: true }))
             .catch(err => sendResponse({ success: false, error: err.message }));
         return true;
+    } else if (request.action === 'FORCE_HEARTBEAT') {
+        // Trigger heartbeat immediately when dashboard sends a command
+        console.log('💓 [Background] Forced heartbeat received via Bridge');
+        sendHeartbeat();
+        sendResponse({ success: true });
+        return true;
     }
     if (request.action === 'STOP_AUTO_POST') {
         stopAutoPost()

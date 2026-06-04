@@ -47,6 +47,17 @@
             "js": [
                 "content.js"
             ]
+        },
+        {
+            "matches": [
+                "https://chob.shop/dashboard*",
+                "https://*.chob.shop/dashboard*",
+                "http://localhost:*/dashboard*"
+            ],
+            "js": [
+                "dashboard_bridge.js"
+            ],
+            "run_at": "document_start"
         }
     ]
 }

@@ -402,6 +402,9 @@ async function handleCommand(botName, action, isReset = false) {
         if (res.ok && data.success) {
             addConsoleLog(`✅ Command ${action} queued for ${botName}`);
 
+            // Trigger zero-delay sync via extension bridge (if installed)
+            window.postMessage({ type: 'CHOB_DASHBOARD_COMMAND', action, botName }, '*');
+
             // Set optimistic state
             pendingCommands[safeId] = action === 'START' ? 'STARTING...' : (action === 'STOP' ? 'STOPPING...' : 'SYNCING...');
             renderOffice(); // Re-render immediately to show optimistic state
