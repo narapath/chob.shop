@@ -524,13 +524,36 @@ async function addLog(msg, type = 'INFO', action = 'LOG', details = {}) {
 }
 
 async function sendHeartbeat() {
-    const { botName, apiEndpoint } = await chrome.storage.local.get(['botName', 'apiEndpoint']);
+    // 1. Read from local storage first
+    let { botName, apiEndpoint } = await chrome.storage.local.get(['botName', 'apiEndpoint']);
+
+    // 2. Fallback to sync storage if local is missing (self-healing migration for bots that haven't opened popup)
+    if (!apiEndpoint || !botName) {
+        const syncData = await chrome.storage.sync.get(['apiEndpoint', 'botName']);
+        if (!apiEndpoint && syncData.apiEndpoint) {
+            apiEndpoint = syncData.apiEndpoint;
+            chrome.storage.local.set({ apiEndpoint }); // Persist to local for next time
+            console.log('🔁 [Heartbeat] Migrated apiEndpoint from sync → local:', apiEndpoint);
+        }
+        if (!botName && syncData.botName) {
+            botName = syncData.botName;
+            chrome.storage.local.set({ botName });
+            console.log('🔁 [Heartbeat] Migrated botName from sync → local:', botName);
+        }
+    }
+
+    // 3. Use default endpoint if still missing (prevents bots from going silent)
+    if (!apiEndpoint) {
+        apiEndpoint = 'https://chob.shop';
+        console.log('🌐 [Heartbeat] Using default apiEndpoint:', apiEndpoint);
+    }
+
     const { autoPostState } = await chrome.storage.local.get('autoPostState');
     const { lastCommandTs } = await chrome.storage.local.get('lastCommandTs');
     const { postHistory = [] } = await chrome.storage.local.get('postHistory');
 
-    if (!apiEndpoint) {
-        console.warn('⚠️ [Heartbeat] Skip: apiEndpoint is empty');
+    if (!botName) {
+        console.warn('⚠️ [Heartbeat] Skip: botName is empty (ยังไม่ได้ตั้งชื่อบอท)');
         return;
     }
 
