@@ -5,6 +5,7 @@ const ALARM_NAME = 'CHOBSHOP_AUTO_POST';
 const HEARTBEAT_ALARM = 'CHOBSHOP_HEARTBEAT';
 let logQueue = []; // Queue for syncing to server
 let lastPing = 0;   // Store last heartbeat duration
+let isSyncing = false; // Prevent recursive heartbeats
 
 console.log('[ChobShop] Background Service Worker Loaded');
 
@@ -585,6 +586,9 @@ async function sendHeartbeat() {
         version: '1.3.0'
     };
 
+    if (isSyncing) return;
+    isSyncing = true;
+
     try {
         const start = Date.now();
         const response = await fetch(`${apiEndpoint}/api/bots/heartbeat`, {
@@ -599,7 +603,8 @@ async function sendHeartbeat() {
             // Save heartbeat status for popup UI
             await chrome.storage.local.set({
                 lastHeartbeat: Date.now(),
-                lastPing: lastPing
+                lastPing: lastPing,
+                lastHeartbeatResult: 'OK'
             });
 
             logQueue = []; // Clear queue on success
@@ -607,6 +612,10 @@ async function sendHeartbeat() {
             // Process Commands from Remote
             if (data.command && data.command.action && data.command.timestamp !== lastCommandTs) {
                 const cmd = data.command;
+
+                // Save ack IMMEDIATELY before executing to prevent recursion loop
+                await chrome.storage.local.set({ lastCommandTs: cmd.timestamp });
+
                 console.log('🕹️ [Remote] Executing command:', cmd.action);
 
                 if (cmd.action === 'START') {
@@ -615,14 +624,20 @@ async function sendHeartbeat() {
                     await stopAutoPost();
                 } else if (cmd.action === 'SET_INTERVAL') {
                     await updateInterval(cmd.interval || 15);
+                } else if (cmd.action === 'RESET') {
+                    // Handle manual reset from dashboard
+                    await chrome.storage.local.set({ lastCommandTs: cmd.timestamp });
+                    chrome.runtime.sendMessage({ action: 'RESET_AUTO_STATE' });
                 }
-
-                // Save ack
-                await chrome.storage.local.set({ lastCommandTs: cmd.timestamp });
             }
+        } else {
+            await chrome.storage.local.set({ lastHeartbeatResult: `HTTP ${response.status}` });
         }
     } catch (err) {
         console.warn('[Heartbeat] Failed to sync:', err.message);
+        await chrome.storage.local.set({ lastHeartbeatResult: err.message });
+    } finally {
+        isSyncing = false;
     }
 }
 
