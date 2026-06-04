@@ -310,10 +310,14 @@ function initEventListeners() {
     // Test API Button
     document.getElementById('testApi').addEventListener('click', async () => {
         const api = document.getElementById('apiEndpoint').value.trim();
-        const bName = document.getElementById('botName').value.trim() || 'Test Bot';
+        const bName = document.getElementById('botName').value.trim();
 
         if (!api) {
             alert('กรุณาใส่ API Endpoint');
+            return;
+        }
+        if (!bName) {
+            alert('กรุณาใส่ Bot Name ก่อนทดสอบ');
             return;
         }
 
@@ -322,14 +326,26 @@ function initEventListeners() {
         btn.innerText = '⌛...';
         btn.disabled = true;
 
+        // Auto-save settings to local storage so background service can pick them up
+        let normalizedApi = api.replace(/\/+$/, '');
+        if (normalizedApi && !normalizedApi.startsWith('http')) {
+            normalizedApi = 'https://' + normalizedApi;
+        }
+        chrome.storage.local.set({ apiEndpoint: normalizedApi, botName: bName });
+        settings.apiEndpoint = normalizedApi;
+        settings.botName = bName;
+        document.getElementById('apiEndpoint').value = normalizedApi;
+        console.log('[ChobShop] Auto-saved settings from test button:', { normalizedApi, bName });
+
         try {
-            console.log('[ChobShop] Testing connection to:', api);
-            const res = await fetch(`${api}/api/bots/heartbeat`, {
+            console.log('[ChobShop] Testing connection to:', normalizedApi);
+            const res = await fetch(`${normalizedApi}/api/bots/heartbeat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     bot_name: bName,
-                    status: 'test',
+                    status: 'IDLE',
+                    stats: { postCount: 0, lastActive: new Date().toISOString(), activity: 'ทดสอบการเชื่อมต่อ' },
                     version: '1.0'
                 })
             });
@@ -337,13 +353,17 @@ function initEventListeners() {
             if (res.ok) {
                 const data = await res.json();
                 if (data.success) {
-                    alert('✅ เชื่อมต่อสำเร็จ! ข้อมูลถูกส่งไปยังระบบแล้ว');
+                    // Also trigger a real heartbeat from background immediately
+                    chrome.runtime.sendMessage({ action: 'SEND_HEARTBEAT' });
+                    showToast('✅ เชื่อมต่อสำเร็จ! บันทึกการตั้งค่าแล้ว');
+                    // Refresh diagnostics
+                    setTimeout(refreshDiagnostics, 500);
                 } else {
                     alert('❌ เซิร์ฟเวอร์ตอบกลับแต่มีข้อผิดพลาด: ' + data.error);
                 }
             } else {
                 const text = await res.text();
-                alert(`❌ เชื่อมต่อล้มเหลว (HTTP ${res.status}): ${text.substring(0, 50)}...`);
+                alert(`❌ เชื่อมต่อล้มเหลว (HTTP ${res.status}): ${text.substring(0, 100)}`);
             }
         } catch (e) {
             console.error('[ChobShop] Test API Exception:', e);

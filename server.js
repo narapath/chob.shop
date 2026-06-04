@@ -305,7 +305,10 @@ setInterval(pruneStaleBots, 1 * 60 * 1000); // Check every minute
 const handleHeartbeat = async (req, res) => {
   // Normalize fields between legacy extension (name, logs) and current schema (bot_name, new_logs)
   let bot_name = (req.body.bot_name || req.body.name || "").trim();
-  const status = req.body.status;
+  // Normalize status: only allow known values (prevent 'test', 'undefined', etc. from being stored)
+  const VALID_STATUSES = ['IDLE', 'ACTIVE', 'POSTING', 'OFFLINE', 'ERROR'];
+  const rawStatus = (req.body.status || 'IDLE').toUpperCase();
+  const status = VALID_STATUSES.includes(rawStatus) ? rawStatus : 'IDLE';
   const stats = req.body.stats || {
     postCount: req.body.postCount,
     lastActive: req.body.lastActive,
