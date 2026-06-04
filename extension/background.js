@@ -377,7 +377,9 @@ async function executeAutoPost() {
             .replace(/{{price}}/g, parseFloat(product.price || 0).toLocaleString())
             .replace(/{{link}}/g, baseLink + '\n')
             .replace(/{{desc}}/g, product.description || '')
-            .replace(/{{tags}}/g, '');
+            .replace(/{{group_name}}/g, group.name || '')
+            .replace(/{{hashtags}}/g, '#ChobShop #ป้ายยา #ของดีบอกต่อ #Shopee #Lazada');
+
         caption = caption.replace(/\n{3,}/g, '\n\n').trim();
 
         // 5. Navigate
