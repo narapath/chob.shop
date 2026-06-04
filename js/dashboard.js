@@ -17,6 +17,7 @@ const OFFICE_ZONES = {
 
 // Track current positions for smooth wandering
 const botPositions = {};
+const pendingCommands = {}; // Track optimistic UI states
 
 document.addEventListener('DOMContentLoaded', () => {
     startPolling();
@@ -137,7 +138,9 @@ function renderOffice() {
                     <div class="bot-avatar-circle">${avatar}</div>
                     <div class="bot-info">
                         <span class="name">${bot.bot_name}</span>
-                        <span class="status-pill ${isOffline ? 'offline' : (isPosting ? 'posting' : 'active')}">${statusText}</span>
+                        <span class="status-pill ${isOffline ? 'offline' : (isPosting ? 'posting' : (pendingCommands[safeId] ? 'pending' : 'active'))}">
+                            ${pendingCommands[safeId] ? '⏳ ' + pendingCommands[safeId] : statusText}
+                        </span>
                     </div>
                 </div>
                 <button class="btn-icon" onclick="deleteBot('${bot.bot_name}')" title="Remove Bot">🗑️</button>
@@ -398,11 +401,22 @@ async function handleCommand(botName, action, isReset = false) {
 
         if (res.ok && data.success) {
             addConsoleLog(`✅ Command ${action} queued for ${botName}`);
-            // Rapid polling for 5 seconds to catch the change
+
+            // Set optimistic state
+            pendingCommands[safeId] = action === 'START' ? 'STARTING...' : (action === 'STOP' ? 'STOPPING...' : 'SYNCING...');
+            renderOffice(); // Re-render immediately to show optimistic state
+
+            // Clear optimistic state after 45 seconds (enough time for heartbeat)
+            setTimeout(() => {
+                delete pendingCommands[safeId];
+                renderOffice();
+            }, 45000);
+
+            // Rapid polling for 10 seconds to catch the change
             let count = 0;
             const fastPoll = setInterval(() => {
                 fetchBots();
-                if (++count > 5) clearInterval(fastPoll);
+                if (++count > 10) clearInterval(fastPoll);
             }, 1000);
         } else {
             const errorMsg = (res.status === 401) ? 'Unauthorized (Please login at /admin.html)' : (data.error || 'Unknown error');
