@@ -202,7 +202,7 @@ function renderOffice() {
         if (!charDiv) {
             charDiv = document.createElement('div');
             charDiv.id = `char-container-${safeId}`;
-            charDiv.className = `bot-character-container`;
+            charDiv.className = `bot-character bot-character-container`;
             office.appendChild(charDiv);
         }
 
@@ -213,7 +213,7 @@ function renderOffice() {
         const animClass = isOffline ? 'sleeping' : (isPosting ? 'working' : 'walking');
 
         // Update combined classes: posting status adds a glow
-        charDiv.className = `bot-character-container ${isOffline ? 'sleeping' : ''} ${isPosting ? 'posting' : ''}`;
+        charDiv.className = `bot-character bot-character-container ${isOffline ? 'sleeping' : ''} ${isPosting ? 'posting' : ''}`;
 
         charDiv.innerHTML = `
             <div class="bot-character-shadow"></div>
@@ -221,9 +221,9 @@ function renderOffice() {
         `;
     });
 
-    // Cleanup orphaned sprites
+    // Cleanup orphaned sprites (only for bot-character class)
     const currentSafeIds = bots.map(b => b.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''));
-    Array.from(office.querySelectorAll('.bot-character-container')).forEach(char => {
+    Array.from(office.querySelectorAll('.bot-character')).forEach(char => {
         const cid = char.id.replace('char-container-', '');
         if (!currentSafeIds.includes(cid)) office.removeChild(char);
     });
@@ -516,7 +516,7 @@ function renderDecorations() {
 
     props.forEach((p, i) => {
         const d = document.createElement('div');
-        d.className = 'bot-character-container';
+        d.className = 'bot-character-container office-prop';
         d.style.top = `${p.top}%`;
         d.style.left = `${p.left}%`;
         d.style.opacity = '0.7';
