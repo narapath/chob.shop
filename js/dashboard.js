@@ -150,7 +150,7 @@ function renderOffice() {
             <div class="card-stats-mini">
                 <div class="stat">
                     <span class="label">INTERVAL</span>
-                    <select id="interval-${safeId}" class="stat-select">
+                    <select id="interval-${safeId}" class="stat-select" onchange="handleCommand('${bot.bot_name}', 'SET_INTERVAL')">
                         <option value="15" ${bot.stats.interval === 15 ? 'selected' : ''}>15m</option>
                         <option value="30" ${bot.stats.interval === 30 ? 'selected' : ''}>30m</option>
                         <option value="60" ${bot.stats.interval === 60 ? 'selected' : ''}>1h</option>
