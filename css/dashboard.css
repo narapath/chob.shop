@@ -474,22 +474,23 @@ body {
 .office-simulation-area {
     width: 100%;
     height: 600px;
-    background: #0a0a0f;
+    background: radial-gradient(circle at center, #1a1a2e 0%, #030305 100%);
     border-radius: 24px;
     overflow: hidden;
     position: relative;
     border: 1px solid var(--glass-border);
-    box-shadow: inset 0 0 100px rgba(0, 0, 0, 1);
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8);
 }
 
 .iso-stage {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 2000px;
-    height: 2000px;
-    transform: translate(-50%, -50%) rotateX(60deg) rotateZ(-45deg);
+    width: 1600px;
+    height: 1600px;
+    transform: translate(-50%, -45%) rotateX(60deg) rotateZ(-45deg);
     transform-style: preserve-3d;
+    transition: transform 1s ease;
 }
 
 .iso-floor {
@@ -497,38 +498,80 @@ body {
     width: 100%;
     height: 100%;
     background-image:
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 100px 100px;
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 80px 80px;
     background-color: #0c0c14;
+    box-shadow: 0 0 60px rgba(0, 245, 212, 0.05);
 }
 
-.office-zone {
-    position: absolute;
-    width: 300px;
-    height: 300px;
-    border: 1px dashed rgba(255, 255, 255, 0.05);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.office-zone::after {
-    content: attr(data-label);
-    font-family: 'Press Start 2P';
-    font-size: 8px;
-    color: rgba(255, 255, 255, 0.2);
-    transform: rotateZ(45deg) rotateX(-60deg);
-}
-
-.bot-office-sprites {
+.iso-floor::after {
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 50%, rgba(255, 255, 255, 0.01) 100%);
     pointer-events: none;
-    transform-style: preserve-3d;
+}
+
+.office-zone {
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    border: 2px solid rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.01);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.5s ease;
+}
+
+.office-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid transparent;
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
+}
+
+/* Zone Specifics */
+.sales-zone {
+    border-color: rgba(0, 245, 212, 0.2);
+    background: radial-gradient(circle, rgba(0, 245, 212, 0.05) 0%, transparent 70%);
+}
+
+.tech-zone {
+    border-color: rgba(139, 92, 246, 0.2);
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+}
+
+.meeting-zone {
+    border-color: rgba(255, 214, 10, 0.2);
+    background: radial-gradient(circle, rgba(255, 214, 10, 0.05) 0%, transparent 70%);
+}
+
+.break-zone {
+    border-color: rgba(241, 91, 181, 0.2);
+    background: radial-gradient(circle, rgba(241, 91, 181, 0.05) 0%, transparent 70%);
+}
+
+.admin-zone {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+}
+
+.office-zone::after {
+    content: attr(data-label);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.2);
+    transform: rotateZ(45deg) rotateX(-60deg) translateY(-20px);
+    white-space: nowrap;
 }
 
 .bot-character-container {
@@ -537,13 +580,59 @@ body {
     height: 64px;
     transform: rotateZ(45deg) rotateX(-60deg);
     transform-origin: center bottom;
-    transition: left 4s cubic-bezier(0.4, 0, 0.2, 1), top 4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: left 3s cubic-bezier(0.4, 0, 0.2, 1), top 3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+}
+
+.bot-character-container.posting::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 20px;
+    background: rgba(241, 91, 181, 0.4);
+    filter: blur(10px);
+    transform: translate(-50%, -20%) rotateX(60deg);
+    border-radius: 50%;
+    animation: aura-pulse 1.5s infinite;
+}
+
+@keyframes aura-pulse {
+    0% {
+        transform: translate(-50%, -20%) rotateX(60deg) scale(1);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: translate(-50%, -20%) rotateX(60deg) scale(1.5);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: translate(-50%, -20%) rotateX(60deg) scale(1);
+        opacity: 0.4;
+    }
+}
+
+.bot-character-shadow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 40px;
+    height: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 50%;
+    transform: translateX(-50%) rotateX(60deg);
+    filter: blur(4px);
+    z-index: -1;
 }
 
 .bot-sprite {
     width: 64px;
     height: 64px;
     image-rendering: pixelated;
+    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.2));
 }
 
 /* History Section Aesthetic */

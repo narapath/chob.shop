@@ -179,18 +179,19 @@ function renderOffice() {
         // --- 2. Render Isometric Sprite ---
         let goalZone = 'BREAK_ROOM';
         if (isPosting) goalZone = 'AUTOMATION_BAY';
-        else if (bot.status === 'ACTIVE') goalZone = 'SALES_ZONE';
-        else if (bot.bot_name.includes('Master')) goalZone = 'ADMIN_LAB';
+        else if (bot.status === 'ACTIVE' || !isOffline) goalZone = 'SALES_ZONE';
+        if (bot.bot_name.toLowerCase().includes('master')) goalZone = 'ADMIN_LAB';
+
+        const zone = OFFICE_ZONES[goalZone] || OFFICE_ZONES.BREAK_ROOM;
 
         if (!botPositions[safeId]) {
-            const zone = OFFICE_ZONES[goalZone];
             botPositions[safeId] = {
                 top: zone.top + (Math.random() * 10 - 5),
                 left: zone.left + (Math.random() * 10 - 5)
             };
         } else {
-            const zone = OFFICE_ZONES[goalZone];
-            if (Math.random() > 0.8) {
+            // Smoothly wander within the zone
+            if (Math.random() > 0.7) {
                 botPositions[safeId].top = zone.top + (Math.random() * 12 - 6);
                 botPositions[safeId].left = zone.left + (Math.random() * 12 - 6);
             }
@@ -209,9 +210,15 @@ function renderOffice() {
         charDiv.style.left = `${pos.left}%`;
 
         const botSprite = getBotSprite(bot.bot_name);
-        const animClass = isOffline ? 'sleeping' : (isPosting ? 'working' : (bot.status === 'ACTIVE' ? 'walking' : ''));
-        charDiv.className = `bot-character-container ${isOffline ? 'sleeping' : ''}`;
-        charDiv.innerHTML = `<img src="${botSprite}" class="bot-sprite ${animClass}" style="width:64px; height:64px;">`;
+        const animClass = isOffline ? 'sleeping' : (isPosting ? 'working' : 'walking');
+
+        // Update combined classes: posting status adds a glow
+        charDiv.className = `bot-character-container ${isOffline ? 'sleeping' : ''} ${isPosting ? 'posting' : ''}`;
+
+        charDiv.innerHTML = `
+            <div class="bot-character-shadow"></div>
+            <img src="${botSprite}" class="bot-sprite ${animClass}" style="width:64px; height:64px;">
+        `;
     });
 
     // Cleanup orphaned sprites
@@ -220,6 +227,8 @@ function renderOffice() {
         const cid = char.id.replace('char-container-', '');
         if (!currentSafeIds.includes(cid)) office.removeChild(char);
     });
+
+    renderDecorations();
 
     if (bots.length !== lastFetchedCount) {
         const diff = bots.length - lastFetchedCount;
@@ -488,6 +497,32 @@ async function handleAllBots(action) {
     for (const bot of bots) {
         await handleCommand(bot.bot_name, action);
     }
+}
+
+function renderDecorations() {
+    const office = document.getElementById('botOffice');
+    if (document.getElementById('office-props')) return;
+
+    const propsContainer = document.createElement('div');
+    propsContainer.id = 'office-props';
+    propsContainer.className = 'bot-office-sprites';
+    office.appendChild(propsContainer);
+
+    const props = [
+        { icon: '🪴', top: 25, left: 15 }, { icon: '🪴', top: 25, left: 65 },
+        { icon: '🖥️', top: 35, left: 40 }, { icon: '🗄️', top: 75, left: 75 },
+        { icon: '🚰', top: 65, left: 15 }, { icon: '💻', top: 45, left: 45 }
+    ];
+
+    props.forEach((p, i) => {
+        const d = document.createElement('div');
+        d.className = 'bot-character-container';
+        d.style.top = `${p.top}%`;
+        d.style.left = `${p.left}%`;
+        d.style.opacity = '0.7';
+        d.innerHTML = `<span style="font-size:32px;">${p.icon}</span>`;
+        propsContainer.appendChild(d);
+    });
 }
 
 function getPingClass(ping) {
