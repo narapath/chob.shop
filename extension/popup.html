@@ -255,10 +255,19 @@
                 <div
                     style="color: #94a3b8; margin-bottom: 5px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 3px;">
                     DIAGNOSTICS</div>
-                <div>📡 Endpoint: <span id="diagEndpoint" style="color: #fff;">-</span></div>
-                <div>🤖 Bot Name: <span id="diagBotName" style="color: #fff;">-</span></div>
-                <div>💓 Last Sync: <span id="diagLastSync" style="color: #fff;">-</span></div>
-                <div>🔬 Result: <span id="diagResult" style="color: #fff;">-</span></div>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <div>📦 Version: <span id="diagVersion" style="color: #60a5fa; font-weight: bold;">1.4.0</span>
+                    </div>
+                    <div>📡 Endpoint: <span id="diagEndpoint" style="color: #fff;">-</span></div>
+                    <div>🤖 Bot Name: <span id="diagBotName" style="color: #fff;">-</span></div>
+                    <div>💓 Last Sync: <span id="diagLastSync" style="color: #fff;">-</span></div>
+                    <div>🔬 Result: <span id="diagResult" style="color: #fff;">-</span></div>
+                </div>
+                <div style="margin-top:8px;">
+                    <button id="clearDataBtn"
+                        style="background:rgba(239,68,68,0.2); color:#f87171; border:1px solid rgba(239,68,68,0.3); border-radius:4px; padding:3px 8px; cursor:pointer; font-size:9px;">🗑️
+                        Clear Local Data</button>
+                </div>
             </div>
         </div>
     </div>

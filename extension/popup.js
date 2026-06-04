@@ -1362,6 +1362,9 @@ function refreshDiagnostics() {
     chrome.storage.local.get(['apiEndpoint', 'botName'], (res) => {
         document.getElementById('diagEndpoint').textContent = res.apiEndpoint || '-';
         document.getElementById('diagBotName').textContent = res.botName || '-';
+        if (document.getElementById('diagVersion')) {
+            document.getElementById('diagVersion').textContent = '1.4.0';
+        }
 
         chrome.storage.local.get(['lastHeartbeatTs', 'lastHeartbeatResult'], (h) => {
             if (h.lastHeartbeatTs) {
@@ -1374,6 +1377,26 @@ function refreshDiagnostics() {
         });
     });
 }
+
+// Clear Data functionality for fixing Payload Too Large errors
+document.getElementById('clearDataBtn').addEventListener('click', () => {
+    if (confirm('คุณต้องการลบประวัติการโพสต์และ Log ในเครื่องเพื่อลดขนาดข้อมูล (Fix HTTP 413) ใช่หรือไม่?')) {
+        chrome.storage.local.set({
+            postHistory: [],
+            autoPostState: {
+                isRunning: false,
+                isPosting: false,
+                log: [],
+                postCount: 0,
+                groupIndex: 0,
+                currentActivity: '🧹 Data Cleared'
+            }
+        }, () => {
+            alert('ล้างข้อมูลสำเร็จ! กรุณากดปุ่ม "บันทึก" หรือ "ทดสอบ" เพื่อเริ่มใหม่ครับ');
+            refreshDiagnostics();
+        });
+    }
+});
 
 // Ensure diagnostics are refreshed when settings view is opened
 document.getElementById('settingsBtn').addEventListener('click', () => {
