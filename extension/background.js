@@ -574,16 +574,20 @@ async function sendHeartbeat() {
         isPosting: autoPostState?.isPosting || false,
         activity: autoPostState?.currentActivity || 'IDLE',
         next_run: (await chrome.alarms.get(ALARM_NAME))?.scheduledTime || null,
-        history: postHistory.slice(0, 10) // Send last 10 entries to server
+        // STRIP IMAGES to prevent HTTP 413 Payload Too Large
+        history: postHistory.slice(0, 10).map(h => ({ ...h, image: null }))
     };
+
+    // Cap log queue size to 20 entries to ensure payload stability
+    const cappedLogs = logQueue.slice(-20);
 
     const payload = {
         bot_name: botName || 'Unnamed Bot',
         status: status,
         stats: stats,
-        new_logs: logQueue,
+        new_logs: cappedLogs,
         ack_command_ts: lastCommandTs,
-        version: '1.3.0'
+        version: '1.4.0'
     };
 
     if (isSyncing) return;
