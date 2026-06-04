@@ -976,38 +976,40 @@ function updateBotController(state) {
 async function findJustNowPostLink(targetText) {
     const nowMarkers = [
         "Just now", "जब अभी", "เมื่อสักครู่", "ตอนนี้", "1m", "1 นาที", "1 min", "1 min.", "0m", "0 นาที", "1น.", "1 น.",
-        "Just Now", "JUST NOW", "a few seconds ago", "ไม่กี่วินาทีที่ผ่านมา", "เพิ่งลง", "เมื่อครู่นี้", "9 นาที"
+        "Just Now", "JUST NOW", "a few seconds ago", "ไม่กี่วินาทีที่ผ่านมา", "เพิ่งลง", "เมื่อครู่นี้", "1 s", "1 วิ"
     ];
     const pendingMarkers = [
         "รอการอนุมัติ", "Submitted for review", "pending approval", "waiting for admin",
         "รอผู้ดูแลอนุมัติ", "ส่งแล้วและกำลังรอการตรวจสอบ", "รอการตรวจสอบ", "admin must approve",
         "post has been submitted", "approved before they're visible", "your post will be published after",
-        "กำลังรอการอนุมัติ", "รออนุมัติ"
+        "กำลังรอการอนุมัติ", "รออนุมัติ", "รอรับรอง"
     ];
 
     // Helper to strip Unicode Bold/Italic formatting for better matching
-    // Mathematical Alphanumeric Symbols range: U+1D400 to U+1D7FF
     const stripFormatting = (str) => {
         return str.replace(/[\u{1D400}-\u{1D7FF}]/gu, (char) => {
             const cp = char.codePointAt(0);
-            // Bold sans-serif a-z (1d5ee - 1d607) -> a-z (97 - 122)
             if (cp >= 0x1D5EE && cp <= 0x1D607) return String.fromCodePoint(cp - 0x1D5EE + 97);
-            // Bold sans-serif A-Z (1d5d4 - 1d5ed) -> A-Z (65 - 90)
             if (cp >= 0x1D5D4 && cp <= 0x1D5ED) return String.fromCodePoint(cp - 0x1D5D4 + 65);
-            // Add more ranges if needed, or just return space to avoid breaking chunks
             return " ";
         });
     };
 
-    const rawTitle = targetText ? targetText.substring(0, 100) : "";
+    const rawTitle = targetText ? targetText.substring(0, 50) : ""; // Focus on first part
     const normalizedTitle = stripFormatting(rawTitle).toLowerCase();
-
-    // Clean remaining punctuation but KEEP Thai characters and Alphanumeric
     const cleanTitle = normalizedTitle.replace(/[^\w\s\u0E00-\u0E7F]/g, ' ').replace(/\s+/g, ' ').trim();
-    const titleChunks = cleanTitle.split(' ').filter(word => word.length >= 2);
+
+    // For Thai, split into 4-character chunks for fuzzy matching if no spaces
+    let titleChunks = cleanTitle.split(' ').filter(word => word.length >= 2);
+    if (titleChunks.length <= 1 && cleanTitle.length > 10) {
+        // Try creating sliding window chunks for Thai
+        for (let i = 0; i < cleanTitle.length - 8; i += 5) {
+            titleChunks.push(cleanTitle.substring(i, i + 8));
+        }
+    }
 
     console.log('[ChobShop] 🔍 Verification start. Target:', cleanTitle);
-    console.log('[ChobShop] Chunks for matching:', titleChunks);
+    console.log('[ChobShop] Chunks/Windows for matching:', titleChunks);
 
     for (let i = 0; i < 30; i++) { // Increase to 30s
         await new Promise(r => setTimeout(r, 1000));
