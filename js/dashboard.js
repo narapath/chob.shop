@@ -114,7 +114,8 @@ function renderOffice() {
         return;
     }
 
-    commandGrid.innerHTML = ''; // Clear loading state
+    const loadingState = commandGrid.querySelector('.loading-state');
+    if (loadingState) commandGrid.innerHTML = ''; // Clear only once
 
     bots.forEach(bot => {
         const safeId = bot.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
@@ -127,12 +128,17 @@ function renderOffice() {
         const currentActivity = isOffline ? 'Disconnected' : (bot.stats.activity || 'Waiting for next task...');
         const nextRunDisplay = isOffline ? 'OFFLINE' : (isPosting ? 'BUSY' : formatNextRun(bot.stats.next_run));
 
-        // --- 1. Render Command Card ---
-        const card = document.createElement('div');
-        card.className = `bot-command-card animate-fade-in ${isOffline ? 'offline' : ''}`;
-        card.id = `cmd-card-${safeId}`;
+        // --- 1. Render/Update Command Card ---
+        let card = document.getElementById(`cmd-card-${safeId}`);
+        if (!card) {
+            card = document.createElement('div');
+            card.id = `cmd-card-${safeId}`;
+            commandGrid.appendChild(card);
+        }
 
-        card.innerHTML = `
+        card.className = `bot-command-card animate-fade-in ${isOffline ? 'offline' : ''}`;
+
+        const cardHtml = `
             <div class="card-header">
                 <div class="card-title-group">
                     <div class="bot-avatar-circle">${avatar}</div>
@@ -162,7 +168,7 @@ function renderOffice() {
                 </div>
                 <div class="stat">
                     <span class="label">NEXT RUN</span>
-                    <span class="val">${nextRunDisplay}</span>
+                    <span class="val countdown" data-time="${bot.stats.next_run || 0}">${nextRunDisplay}</span>
                 </div>
             </div>
             
@@ -174,7 +180,13 @@ function renderOffice() {
                 <button class="btn-card" onclick="handleCommand('${bot.bot_name}', 'START', true)" style="background:rgba(255,255,255,0.05); color:#fff;">🔄 RESET</button>
             </div>
         `;
-        commandGrid.appendChild(card);
+
+        // Update only if content changed to prevent flicker but allow countdowns to keep refs
+        if (card.innerHTML !== cardHtml) {
+            // Note: If we use innerHTML, we lose focus on select. 
+            // However, handleCommand SET_INTERVAL triggers fetchBots so it's usually fine.
+            card.innerHTML = cardHtml;
+        }
 
         // --- 2. Render Isometric Sprite ---
         let goalZone = 'BREAK_ROOM';
@@ -229,6 +241,12 @@ function renderOffice() {
     });
 
     renderDecorations();
+
+    // Cleanup orphaned cards
+    const currentCardIds = bots.map(b => `cmd-card-${b.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}`);
+    Array.from(commandGrid.querySelectorAll('.bot-command-card')).forEach(card => {
+        if (!currentCardIds.includes(card.id)) commandGrid.removeChild(card);
+    });
 
     if (bots.length !== lastFetchedCount) {
         const diff = bots.length - lastFetchedCount;
