@@ -8,11 +8,13 @@ let historyCache = [];
 
 // Isometric Office Layout Coordinates (%)
 const OFFICE_ZONES = {
-    SALES_ZONE: { top: 20, left: 10 },
-    AUTOMATION_BAY: { top: 20, left: 70 },
-    TEAM_SYNC: { top: 50, left: 40 },
-    BREAK_ROOM: { top: 70, left: 10 },
-    ADMIN_LAB: { top: 70, left: 70 }
+    'CEO_STRATEGY': { top: 22, left: 25 },
+    'LEGAL_COMPLIANCE': { top: 12, left: 45 },
+    'MARKETING': { top: 40, left: 55 },
+    'PRODUCT_DESIGN': { top: 42, left: 80 },
+    'FINANCE_HR': { top: 48, left: 20 },
+    'SALES_OPERATIONS': { top: 75, left: 35 },
+    'DATA_ANALYTICS': { top: 75, left: 80 }
 };
 
 // Track current positions for smooth wandering
@@ -189,23 +191,28 @@ function renderOffice() {
         }
 
         // --- 2. Render Isometric Sprite ---
-        let goalZone = 'BREAK_ROOM';
-        if (isPosting) goalZone = 'AUTOMATION_BAY';
-        else if (bot.status === 'ACTIVE' || !isOffline) goalZone = 'SALES_ZONE';
-        if (bot.bot_name.toLowerCase().includes('master')) goalZone = 'ADMIN_LAB';
+        let goalZone = 'SALES_OPERATIONS';
+        if (isPosting) goalZone = 'MARKETING';
+        else if (bot.status === 'ACTIVE' || !isOffline) goalZone = 'PRODUCT_DESIGN';
+        if (bot.bot_name.toLowerCase().includes('master')) goalZone = 'CEO_STRATEGY';
 
-        const zone = OFFICE_ZONES[goalZone] || OFFICE_ZONES.BREAK_ROOM;
+        const zone = OFFICE_ZONES[goalZone] || OFFICE_ZONES.SALES_OPERATIONS;
 
+        // Ensure bots have persistent distinct offsets within zones to prevent clumping
         if (!botPositions[safeId]) {
             botPositions[safeId] = {
-                top: zone.top + (Math.random() * 10 - 5),
-                left: zone.left + (Math.random() * 10 - 5)
+                top: zone.top,
+                left: zone.left,
+                driftX: (Math.random() - 0.5) * 60,
+                driftY: (Math.random() - 0.5) * 40
             };
         } else {
-            // Smoothly wander within the zone
-            if (Math.random() > 0.7) {
-                botPositions[safeId].top = zone.top + (Math.random() * 12 - 6);
-                botPositions[safeId].left = zone.left + (Math.random() * 12 - 6);
+            // Very slow drift within the zone for a "living" office feel
+            if (Math.random() > 0.95) {
+                const targetTop = zone.top + (Math.random() * 25 - 12.5);
+                const targetLeft = zone.left + (Math.random() * 25 - 12.5);
+                botPositions[safeId].top = (botPositions[safeId].top * 0.9) + (targetTop * 0.1);
+                botPositions[safeId].left = (botPositions[safeId].left * 0.9) + (targetLeft * 0.1);
             }
         }
         const pos = botPositions[safeId];
@@ -214,49 +221,65 @@ function renderOffice() {
         if (!charDiv) {
             charDiv = document.createElement('div');
             charDiv.id = `char-container-${safeId}`;
-            charDiv.className = `bot-character bot-character-container`;
+            const isIdle = !isOffline && bot.status !== 'ACTIVE' && !isPosting;
+            charDiv.className = `bot-character bot-character-container ${isOffline ? 'offline' : ''} ${isPosting ? 'posting' : ''} ${isIdle ? 'idle' : ''}`;
+
+            // Create Voxel Structure
+            const shadow = document.createElement('div');
+            shadow.className = 'bot-character-shadow';
+            charDiv.appendChild(shadow);
+
+            const tag = document.createElement('div');
+            tag.className = 'bot-status-tag';
+            tag.textContent = `${avatar} ${bot.bot_name}`;
+            charDiv.appendChild(tag);
+
+            const stack = document.createElement('div');
+            stack.className = 'voxel-stack';
+            charDiv.appendChild(stack);
+
+            renderVoxelStack(stack, getBotSprite(bot.bot_name));
+
             office.appendChild(charDiv);
         }
 
+        // Update Position & Z-Index (Painter's Algorithm for Isometric)
         charDiv.style.top = `${pos.top}%`;
         charDiv.style.left = `${pos.left}%`;
+        charDiv.style.zIndex = Math.floor(pos.top * 10); // Higher top value = closer to viewer = higher z-index
 
-        const botSprite = getBotSprite(bot.bot_name);
-        const animClass = isOffline ? 'sleeping' : (isPosting ? 'working' : 'walking');
-
-        // Update combined classes: posting status adds a glow
-        charDiv.className = `bot-character bot-character-container ${isOffline ? 'sleeping' : ''} ${isPosting ? 'posting' : ''}`;
-
-        charDiv.innerHTML = `
-            <div class="bot-character-shadow"></div>
-            <div class="bot-label">${bot.bot_name}</div>
-            <img src="${botSprite}" class="bot-sprite ${animClass}" style="width:100px; height:100px;">
-        `;
-    });
-
-    // Cleanup orphaned sprites (only for bot-character class)
-    const currentSafeIds = bots.map(b => b.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''));
-    Array.from(office.querySelectorAll('.bot-character')).forEach(char => {
-        const cid = char.id.replace('char-container-', '');
-        if (!currentSafeIds.includes(cid)) office.removeChild(char);
-    });
-
-    // Cleanup orphaned cards
-    const currentCardIds = bots.map(b => `cmd-card-${b.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}`);
-    Array.from(commandGrid.querySelectorAll('.bot-command-card')).forEach(card => {
-        if (!currentCardIds.includes(card.id)) commandGrid.removeChild(card);
-    });
-
-    if (bots.length !== lastFetchedCount) {
-        const diff = bots.length - lastFetchedCount;
-        // Only log "new bots" if it's not the initial load (where we already show "Sync: Found X")
-        if (diff > 0 && lastFetchedCount !== 0) {
-            addConsoleLog(`✨ ${diff} new bot(s) appeared in the command center!`);
-        } else if (diff < 0) {
-            addConsoleLog(`🗑️ ${Math.abs(diff)} bot(s) removed from the command center.`);
+        // Update status tag
+        const tag = charDiv.querySelector('.bot-status-tag');
+        if (tag) {
+            tag.innerHTML = `${isOffline ? '💤' : (isPosting ? '⚡' : '✨')} ${bot.bot_name}`;
+            tag.style.borderColor = isOffline ? '#64748b' : (isPosting ? 'var(--pixel-pink)' : 'var(--pixel-green)');
+            tag.style.color = tag.style.borderColor;
         }
-        lastFetchedCount = bots.length;
-    }
+
+        // Cleanup orphaned sprites
+        const currentSafeIds = bots.map(b => b.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''));
+        Array.from(office.querySelectorAll('.bot-character')).forEach(char => {
+            const cid = char.id.replace('char-container-', '');
+            if (!currentSafeIds.includes(cid)) office.removeChild(char);
+        });
+
+        // Cleanup orphaned cards
+        const currentCardIds = bots.map(b => `cmd-card-${b.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}`);
+        Array.from(commandGrid.querySelectorAll('.bot-command-card')).forEach(card => {
+            if (!currentCardIds.includes(card.id)) commandGrid.removeChild(card);
+        });
+
+        if (bots.length !== lastFetchedCount) {
+            const diff = bots.length - lastFetchedCount;
+            // Only log "new bots" if it's not the initial load (where we already show "Sync: Found X")
+            if (diff > 0 && lastFetchedCount !== 0) {
+                addConsoleLog(`✨ ${diff} new bot(s) appeared in the command center!`);
+            } else if (diff < 0) {
+                addConsoleLog(`🗑️ ${Math.abs(diff)} bot(s) removed from the command center.`);
+            }
+            lastFetchedCount = bots.length;
+        }
+    });
 }
 
 function updateGlobalStats() {
@@ -348,14 +371,36 @@ function renderHistory(history) {
     });
 }
 
-function getBotSprite(name) {
-    const n = name.toLowerCase();
-    if (n.includes('bot 1') || n.includes('robot')) return '/assets/pixel_art/bot.png';
-    if (n.includes('bot 2') || n.includes('cat')) return '/assets/pixel_art/cat.png';
-    if (n.includes('bot 6') || n.includes('dino')) return '/assets/pixel_art/dino.png';
+// Voxel Stacking Renderer
+// Creates a 3D effect by layering slices vertically
+function renderVoxelStack(container, imageUrl) {
+    container.innerHTML = '';
+    const layers = 14; // Number of slices for thickness
 
-    // Default fallback: Generate a data URI for a pixelated emoji if needed or just use default bot
-    return '/assets/pixel_art/bot.png';
+    for (let i = 0; i < layers; i++) {
+        const layer = document.createElement('div');
+        layer.className = 'voxel-layer';
+        layer.style.backgroundImage = `url(${imageUrl})`;
+
+        // Offset each layer upwards
+        layer.style.transform = `translateZ(${i}px) translateY(-${i}px)`;
+
+        // Lighting: Darken lower layers to simulate depth/ambient occlusion
+        if (i < layers - 1) {
+            const brightness = 60 + (i / layers) * 40;
+            layer.style.filter = `brightness(${brightness}%)`;
+        } else {
+            // Top layer is full brightness + a slight glow
+            layer.style.filter = 'brightness(110%) saturate(1.2)';
+        }
+
+        container.appendChild(layer);
+    }
+}
+
+function getBotSprite(name) {
+    // We now use the modern sphere bot for all bots in the Corporate redesign
+    return '/assets/pixel_art/sphere_bot_walk.png';
 }
 
 function getBotAvatar(name) {

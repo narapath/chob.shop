@@ -470,174 +470,197 @@ body {
     filter: brightness(1.1);
 }
 
-/* Isometric Office Improvements */
+/* Isometric Office Overhaul */
 .office-simulation-area {
     width: 100%;
-    height: 600px;
-    background: radial-gradient(circle at center, #1a1a2e 0%, #030305 100%);
-    border-radius: 24px;
+    height: 650px;
+    background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #030305 100%);
+    border-radius: 28px;
     overflow: hidden;
     position: relative;
-    border: 1px solid var(--glass-border);
-    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.9), 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.office-simulation-area::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(139, 92, 246, 0.05) 0%, transparent 40%, transparent 60%, rgba(0, 245, 212, 0.05) 100%);
+    pointer-events: none;
 }
 
 .iso-stage {
-    position: absolute;
+    position: relative;
+    width: 1024px;
+    height: 1024px;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translate(-50%, -50%) rotateX(0deg) rotateZ(0deg);
     top: 50%;
     left: 50%;
-    width: 1000px;
-    height: 1000px;
-    transform: translate(-50%, -40%) rotateX(60deg) rotateZ(-45deg);
-    transform-style: preserve-3d;
-    transition: transform 1s ease;
 }
 
 .iso-floor {
     position: absolute;
     width: 100%;
     height: 100%;
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-    background-size: 100px 100px;
-    background-color: #08080c;
+    background: url('/assets/pixel_art/corporate_building.png') no-repeat center center;
+    background-size: contain;
+    z-index: 1;
+}
+
+.iso-floor::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 50% 50%, rgba(0, 245, 212, 0.1) 0%, transparent 60%);
+    animation: floor-glow 8s infinite alternate ease-in-out;
+}
+
+@keyframes floor-glow {
+    from {
+        opacity: 0.3;
+    }
+
+    to {
+        opacity: 0.8;
+    }
 }
 
 .office-zone {
     position: absolute;
-    width: 320px;
-    height: 320px;
-    border: 2px solid rgba(255, 255, 255, 0.03);
-    background: rgba(255, 255, 255, 0.01);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.5s ease;
-}
-
-.office-zone::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border: 1px solid transparent;
-    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
-}
-
-/* Zone Specifics */
-.sales-zone {
-    border-color: rgba(0, 245, 212, 0.2);
-    background: radial-gradient(circle, rgba(0, 245, 212, 0.05) 0%, transparent 70%);
-}
-
-.tech-zone {
-    border-color: rgba(139, 92, 246, 0.2);
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
-}
-
-.meeting-zone {
-    border-color: rgba(255, 214, 10, 0.2);
-    background: radial-gradient(circle, rgba(255, 214, 10, 0.05) 0%, transparent 70%);
-}
-
-.break-zone {
-    border-color: rgba(241, 91, 181, 0.2);
-    background: radial-gradient(circle, rgba(241, 91, 181, 0.05) 0%, transparent 70%);
-}
-
-.admin-zone {
-    border-color: rgba(255, 255, 255, 0.2);
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 10;
+    width: 10px;
+    /* Reference point only */
+    height: 10px;
 }
 
 .office-zone::after {
     content: attr(data-label);
-    font-family: 'Outfit', sans-serif;
+    position: absolute;
+    padding: 6px 16px;
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    color: rgba(255, 255, 255, 0.2);
-    transform: rotateZ(45deg) rotateX(-60deg) translateY(-20px);
+    letter-spacing: 1px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
     white-space: nowrap;
+    transform: translate(-50%, -100%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 10;
 }
 
+/* Character Styling - The "Voxel" Presence */
 .bot-character-container {
     position: absolute;
-    width: 100px;
-    height: 100px;
-    transform: rotateZ(45deg) rotateX(-60deg);
+    width: 64px;
+    height: 64px;
+    transform: translate(-50%, -100%);
+    /* Center on coordinate and float above */
     transform-origin: center bottom;
     transition: left 3s cubic-bezier(0.4, 0, 0.2, 1), top 3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 100;
+    pointer-events: auto;
+    cursor: pointer;
 }
 
-.bot-label {
+/* Floating Status Indicator */
+.bot-status-tag {
     position: absolute;
-    bottom: 115%;
+    bottom: 140%;
     left: 50%;
     transform: translateX(-50%);
-    background: #000;
-    color: var(--pixel-green);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
     border: 1px solid var(--pixel-green);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
-    pointer-events: none;
+    color: var(--pixel-green);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    animation: float-tag 3s infinite ease-in-out;
 }
 
-.bot-character-container.posting::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 40px;
-    height: 20px;
-    background: rgba(241, 91, 181, 0.4);
-    filter: blur(10px);
-    transform: translate(-50%, -20%) rotateX(60deg);
-    border-radius: 50%;
-    animation: aura-pulse 1.5s infinite;
-}
+@keyframes float-tag {
 
-@keyframes aura-pulse {
-    0% {
-        transform: translate(-50%, -20%) rotateX(60deg) scale(1);
-        opacity: 0.4;
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0);
     }
 
     50% {
-        transform: translate(-50%, -20%) rotateX(60deg) scale(1.5);
-        opacity: 0.7;
-    }
-
-    100% {
-        transform: translate(-50%, -20%) rotateX(60deg) scale(1);
-        opacity: 0.4;
+        transform: translateX(-50%) translateY(-5px);
     }
 }
 
-.bot-character-shadow {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: 40px;
-    height: 15px;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 50%;
-    transform: translateX(-50%) rotateX(60deg);
-    filter: blur(4px);
-    z-index: -1;
-}
-
-.bot-sprite {
+/* The Voxel Stacking Base */
+.voxel-stack {
+    position: relative;
     width: 64px;
     height: 64px;
+    margin: 0 auto;
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease;
+}
+
+.voxel-layer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: 600% 100%;
+    /* Assuming 6 frames per horizontal sheet */
+    background-repeat: no-repeat;
     image-rendering: pixelated;
-    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.2));
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    /* Fix white background issue */
+    filter: contrast(1.1) brightness(1.1);
+    /* Make them pop! */
+    animation: walk-animate 0.6s steps(6) infinite;
+}
+
+@keyframes walk-animate {
+    from {
+        background-position: 0% 0%;
+    }
+
+    to {
+        background-position: 100% 0%;
+    }
+}
+
+/* Pause animation when not walking/active */
+.bot-character-container.offline .voxel-layer,
+.bot-character-container.idle .voxel-layer {
+    animation-play-state: paused;
+}
+
+/* Bot Shadow - Decoupled from container for better depth */
+.bot-character-shadow {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    width: 50px;
+    height: 20px;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.7) 0%, transparent 80%);
+    transform: translateX(-50%) rotateX(60deg);
+    z-index: -1;
+    filter: blur(5px);
 }
 
 /* History Section Aesthetic */
