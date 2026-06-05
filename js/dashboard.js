@@ -224,29 +224,35 @@ function renderOffice() {
             const isIdle = !isOffline && bot.status !== 'ACTIVE' && !isPosting;
             charDiv.className = `bot-character bot-character-container ${isOffline ? 'offline' : ''} ${isPosting ? 'posting' : ''} ${isIdle ? 'idle' : ''}`;
 
-            // Create Voxel Structure
+            // Create Droid Structure
             const shadow = document.createElement('div');
             shadow.className = 'bot-character-shadow';
             charDiv.appendChild(shadow);
 
             const tag = document.createElement('div');
             tag.className = 'bot-status-tag';
-            tag.textContent = `${avatar} ${bot.bot_name}`;
             charDiv.appendChild(tag);
 
             const stack = document.createElement('div');
             stack.className = 'voxel-stack';
+
+            const body = document.createElement('div');
+            body.className = 'bot-character-body';
+            stack.appendChild(body);
+
+            const visor = document.createElement('div');
+            visor.className = 'bot-character-visor';
+            stack.appendChild(visor);
+
             charDiv.appendChild(stack);
-
-            renderVoxelStack(stack, getBotSprite(bot.bot_name));
-
             office.appendChild(charDiv);
         }
 
         // Update Position & Z-Index (Painter's Algorithm for Isometric)
         charDiv.style.top = `${pos.top}%`;
         charDiv.style.left = `${pos.left}%`;
-        charDiv.style.zIndex = Math.floor(pos.top * 10); // Higher top value = closer to viewer = higher z-index
+        charDiv.style.transform = 'translate(-50%, -100%)'; // Perfect centering
+        charDiv.style.zIndex = Math.floor(pos.top * 10) + 100;
 
         // Update status tag
         const tag = charDiv.querySelector('.bot-status-tag');
