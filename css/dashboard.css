@@ -544,7 +544,7 @@ body {
     content: attr(data-label);
     position: absolute;
     padding: 6px 16px;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.95);
     color: #fff;
     font-family: 'Inter', sans-serif;
     font-weight: 700;
@@ -552,14 +552,17 @@ body {
     text-transform: uppercase;
     letter-spacing: 1px;
     border-radius: 50px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    /* Neon border for pills */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 243, 255, 0.2);
     white-space: nowrap;
-    transform: translate(-50%, -100%);
+    transform: translate(-50%, -200%);
+    /* Move labels higher up */
     display: flex;
     align-items: center;
     gap: 8px;
-    z-index: 10;
+    z-index: 500;
+    /* Always above bots */
 }
 
 /* Character Styling - The "Voxel" Presence */
@@ -623,14 +626,11 @@ body {
     width: 100%;
     height: 100%;
     background-size: 600% 100%;
-    /* Assuming 6 frames per horizontal sheet */
     background-repeat: no-repeat;
-    image-rendering: pixelated;
+    image-rendering: auto;
     pointer-events: none;
-    mix-blend-mode: multiply;
-    /* Fix white background issue */
-    filter: contrast(1.1) brightness(1.1);
-    /* Make them pop! */
+    /* Removed mix-blend-mode: multiply as it causes black boxes on transparent PNGs */
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6));
     animation: walk-animate 0.6s steps(6) infinite;
 }
 

@@ -10,8 +10,8 @@ let historyCache = [];
 const OFFICE_ZONES = {
     'CEO_STRATEGY': { top: 22, left: 25 },
     'LEGAL_COMPLIANCE': { top: 12, left: 45 },
-    'MARKETING': { top: 40, left: 55 },
-    'PRODUCT_DESIGN': { top: 42, left: 80 },
+    'MARKETING': { top: 41, left: 58 },
+    'PRODUCT_DESIGN': { top: 40, left: 82 },
     'FINANCE_HR': { top: 48, left: 20 },
     'SALES_OPERATIONS': { top: 75, left: 35 },
     'DATA_ANALYTICS': { top: 75, left: 80 }
@@ -201,10 +201,10 @@ function renderOffice() {
         // Ensure bots have persistent distinct offsets within zones to prevent clumping
         if (!botPositions[safeId]) {
             botPositions[safeId] = {
-                top: zone.top,
-                left: zone.left,
-                driftX: (Math.random() - 0.5) * 60,
-                driftY: (Math.random() - 0.5) * 40
+                top: zone.top + (Math.random() * 10 - 5),
+                left: zone.left + (Math.random() * 10 - 5),
+                driftX: (Math.random() - 0.5) * 80,
+                driftY: (Math.random() - 0.5) * 60
             };
         } else {
             // Very slow drift within the zone for a "living" office feel
