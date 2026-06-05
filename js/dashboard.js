@@ -229,7 +229,8 @@ function renderOffice() {
 
         charDiv.innerHTML = `
             <div class="bot-character-shadow"></div>
-            <img src="${botSprite}" class="bot-sprite ${animClass}" style="width:64px; height:64px;">
+            <div class="bot-label">${bot.bot_name}</div>
+            <img src="${botSprite}" class="bot-sprite ${animClass}" style="width:100px; height:100px;">
         `;
     });
 
@@ -239,8 +240,6 @@ function renderOffice() {
         const cid = char.id.replace('char-container-', '');
         if (!currentSafeIds.includes(cid)) office.removeChild(char);
     });
-
-    renderDecorations();
 
     // Cleanup orphaned cards
     const currentCardIds = bots.map(b => `cmd-card-${b.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}`);
@@ -515,32 +514,6 @@ async function handleAllBots(action) {
     for (const bot of bots) {
         await handleCommand(bot.bot_name, action);
     }
-}
-
-function renderDecorations() {
-    const office = document.getElementById('botOffice');
-    if (document.getElementById('office-props')) return;
-
-    const propsContainer = document.createElement('div');
-    propsContainer.id = 'office-props';
-    propsContainer.className = 'bot-office-sprites';
-    office.appendChild(propsContainer);
-
-    const props = [
-        { icon: '🪴', top: 25, left: 15 }, { icon: '🪴', top: 25, left: 65 },
-        { icon: '🖥️', top: 35, left: 40 }, { icon: '🗄️', top: 75, left: 75 },
-        { icon: '🚰', top: 65, left: 15 }, { icon: '💻', top: 45, left: 45 }
-    ];
-
-    props.forEach((p, i) => {
-        const d = document.createElement('div');
-        d.className = 'bot-character-container office-prop';
-        d.style.top = `${p.top}%`;
-        d.style.left = `${p.left}%`;
-        d.style.opacity = '0.7';
-        d.innerHTML = `<span style="font-size:32px;">${p.icon}</span>`;
-        propsContainer.appendChild(d);
-    });
 }
 
 function getPingClass(ping) {
