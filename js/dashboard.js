@@ -198,21 +198,40 @@ function renderOffice() {
         }
 
         // --- 2. Render Isometric Sprite ---
-        // --- 2. Intelligent Room Distribution ---
+        // --- 2. Semantic Room Routing (System-aligned Logic) ---
         let goalZone = 'BUSINESS_SERVICE';
-        if (isPosting) goalZone = 'AC_CONTENT_FACTORY';
-        else if (bot.status === 'ACTIVE' || !isOffline) {
-            // Distribute active bots across key functional areas
-            if (safeId.includes('bot-1')) goalZone = 'MARKETING_OF_AI';
-            else if (safeId.includes('bot-2')) goalZone = 'PRODUCT_SAAS';
-            else if (safeId.includes('bot-3')) goalZone = 'COURSE_FACTORY';
-            else if (safeId.includes('bot-4')) goalZone = 'MeeOrder';
-            else if (safeId.includes('bot-5')) goalZone = 'GENIXPLUS_GLOBAL';
-            else goalZone = 'BUSINESS_SERVICE';
-        }
+        const activity = currentActivity.toLowerCase();
+        const name = bot.bot_name.toLowerCase();
 
-        if (bot.bot_name.toLowerCase().includes('master') || bot.bot_name.toLowerCase().includes('ceo')) {
+        if (isOffline) {
+            goalZone = 'BUSINESS_SERVICE';
+        } else if (isPosting) {
+            goalZone = 'AC_CONTENT_FACTORY';
+        } else if (activity.includes('error') || activity.includes('block') || activity.includes('fail')) {
+            goalZone = 'STUDENT_SUPPORT';
+        } else if (activity.includes('limit') || activity.includes('coin') || activity.includes('cost')) {
+            goalZone = 'DATA_COST_CONTROL';
+        } else if (name.includes('ceo') || name.includes('master') || name.includes('global')) {
             goalZone = 'CEO_STRATEGY';
+        } else if (name.includes('marketing') || name.includes('ad')) {
+            goalZone = 'MARKETING_OF_AI';
+        } else if (name.includes('product') || name.includes('saas')) {
+            goalZone = 'PRODUCT_SAAS';
+        } else if (name.includes('course') || name.includes('factory') || name.includes('academy')) {
+            goalZone = 'COURSE_FACTORY';
+        } else if (name.includes('finance') || name.includes('accounting') || name.includes('wallet') || name.includes('money')) {
+            goalZone = 'FINANCE_ACCOUNTING';
+        } else if (name.includes('mbai') || activity.includes('compute') || activity.includes('ai')) {
+            goalZone = 'MBAI_BUSINESS';
+        } else if (name.includes('order')) {
+            goalZone = 'MEEORDER';
+        } else if (name.includes('genix')) {
+            goalZone = 'GENIXPLUS_GLOBAL';
+        } else if (name.includes('dga') || name.includes('admin') || name.includes('root') || name.includes('sys')) {
+            goalZone = 'DGA';
+        } else {
+            // Default to business service for general active bots
+            goalZone = 'BUSINESS_SERVICE';
         }
 
         const zone = OFFICE_ZONES[goalZone] || OFFICE_ZONES.BUSINESS_SERVICE;
