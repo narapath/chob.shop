@@ -8,20 +8,10 @@ let historyCache = [];
 
 // Isometric Office Layout Coordinates (%)
 const OFFICE_ZONES = {
-    'MBAI_BUSINESS': { top: 12, left: 50 },
-    'GENIXPLUS_GLOBAL': { top: 13, left: 78 },
-    'DGA': { top: 15, left: 22 },
-    'CEO_STRATEGY': { top: 35, left: 50 },
-    'MARKETING_OF_AI': { top: 25, left: 20 },
-    'MEEORDER': { top: 28, left: 80 },
-    'PRODUCT_SAAS': { top: 48, left: 16 },
-    'COURSE_FACTORY': { top: 50, left: 34 },
-    'STUDENT_SUPPORT': { top: 52, left: 63 },
-    'KRUFERN_DIGITAL': { top: 48, left: 85 },
-    'FINANCE_ACCOUNTING': { top: 68, left: 14 },
-    'DATA_COST_CONTROL': { top: 68, left: 28 },
-    'BUSINESS_SERVICE': { top: 63, left: 47 },
-    'AC_CONTENT_FACTORY': { top: 65, left: 74 }
+    'DATA_COST_CONTROL': { top: 35, left: 50 },
+    'STUDENT_SUPPORT': { top: 50, left: 25 },
+    'AC_CONTENT_FACTORY': { top: 50, left: 75 },
+    'BUSINESS_SERVICE': { top: 65, left: 50 }
 };
 
 // Track current positions for smooth wandering
@@ -201,7 +191,6 @@ function renderOffice() {
         // --- 2. Semantic Room Routing (System-aligned Logic) ---
         let goalZone = 'BUSINESS_SERVICE';
         const activity = currentActivity.toLowerCase();
-        const name = bot.bot_name.toLowerCase();
 
         if (isOffline) {
             goalZone = 'BUSINESS_SERVICE';
@@ -211,24 +200,6 @@ function renderOffice() {
             goalZone = 'STUDENT_SUPPORT';
         } else if (activity.includes('limit') || activity.includes('coin') || activity.includes('cost')) {
             goalZone = 'DATA_COST_CONTROL';
-        } else if (name.includes('ceo') || name.includes('master') || name.includes('global')) {
-            goalZone = 'CEO_STRATEGY';
-        } else if (name.includes('marketing') || name.includes('ad')) {
-            goalZone = 'MARKETING_OF_AI';
-        } else if (name.includes('product') || name.includes('saas')) {
-            goalZone = 'PRODUCT_SAAS';
-        } else if (name.includes('course') || name.includes('factory') || name.includes('academy')) {
-            goalZone = 'COURSE_FACTORY';
-        } else if (name.includes('finance') || name.includes('accounting') || name.includes('wallet') || name.includes('money')) {
-            goalZone = 'FINANCE_ACCOUNTING';
-        } else if (name.includes('mbai') || activity.includes('compute') || activity.includes('ai')) {
-            goalZone = 'MBAI_BUSINESS';
-        } else if (name.includes('order')) {
-            goalZone = 'MEEORDER';
-        } else if (name.includes('genix')) {
-            goalZone = 'GENIXPLUS_GLOBAL';
-        } else if (name.includes('dga') || name.includes('admin') || name.includes('root') || name.includes('sys')) {
-            goalZone = 'DGA';
         } else {
             // Default to business service for general active bots
             goalZone = 'BUSINESS_SERVICE';

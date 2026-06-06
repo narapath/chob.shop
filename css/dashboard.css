@@ -495,18 +495,16 @@ body {
 
 .iso-floor {
     position: absolute;
+    width: 250%;
+    height: 250%;
+    /* Keep it wider to allow zooming/panning via transform */
     top: 50%;
     left: 50%;
-    width: 1024px;
-    height: 576px;
-    /* 16:9 Aspect Ratio matching the reference */
-    background: url('/assets/pixel_art/corporate_hq_v2.jpg') no-repeat center center;
-    background-size: contain;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
-    z-index: 1;
-    filter: brightness(1.2) contrast(1.1) saturate(1.2);
-    /* Boost vibrancy */
+    transform: translate(-50%, -50%) rotateX(0deg) rotateZ(0deg);
+    /* Set to 0 because the image is already rendered isometrically */
+    background: url('../assets/pixel_art/corporate_hq_4rooms.png') no-repeat center center;
+    background-size: cover;
+    filter: drop-shadow(0 40px 50px rgba(0, 0, 0, 0.8)) brightness(1.2) contrast(1.1) saturate(1.2);
 }
 
 /* Diagnostic Legend */
@@ -592,21 +590,6 @@ body {
 }
 
 /* Room specific label colors to match the reference glow */
-.office-zone[data-label*="การตลาด"]::after {
-    border-color: #a855f7;
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
-}
-
-.office-zone[data-label*="บริหาร"]::after {
-    border-color: #3b82f6;
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
-}
-
-.office-zone[data-label*="การเงิน"]::after {
-    border-color: #10b981;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
-}
-
 .office-zone[data-label*="สตูดิโอ"]::after {
     border-color: #ef4444;
     box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
