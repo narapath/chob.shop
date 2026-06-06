@@ -612,15 +612,47 @@ body {
     box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
 }
 
-/* The CSS Holographic Droid */
-.voxel-stack {
-    position: relative;
-    width: 32px;
-    /* Shrunk from 48px/64px */
-    height: 32px;
-    margin: 0 auto;
-    transform-style: preserve-3d;
-    animation: drone-float 3s infinite ease-in-out;
+/* The Emoji Animal Character */
+.bot-emoji-character {
+    font-size: 36px;
+    line-height: 1;
+    text-align: center;
+    filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.5));
+    animation: emoji-bounce 2s infinite ease-in-out;
+    cursor: pointer;
+}
+
+/* Bouncing walk animation */
+@keyframes emoji-bounce {
+
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+
+    25% {
+        transform: translateY(-6px) scale(1.05) rotate(-5deg);
+    }
+
+    50% {
+        transform: translateY(-2px) scale(1);
+    }
+
+    75% {
+        transform: translateY(-6px) scale(1.05) rotate(5deg);
+    }
+}
+
+/* Working state: faster bounce and intense glow */
+.bot-character-container.working .bot-emoji-character {
+    animation-duration: 0.8s;
+    filter: drop-shadow(0 0 15px rgba(0, 243, 255, 0.8)) drop-shadow(0 0 30px rgba(0, 243, 255, 0.4));
+}
+
+/* Offline state: greyscale and slow */
+.bot-character-container.offline .bot-emoji-character {
+    filter: grayscale(0.8) opacity(0.5);
+    animation-duration: 5s;
 }
 
 .bot-character-body {

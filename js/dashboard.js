@@ -265,30 +265,24 @@ function renderOffice() {
         if (!charDiv) {
             charDiv = document.createElement('div');
             charDiv.id = `char-container-${safeId}`;
-            const isIdle = !isOffline && bot.status !== 'ACTIVE' && !isPosting;
-            charDiv.className = `bot-character bot-character-container ${isOffline ? 'offline' : ''} ${isPosting ? 'posting working' : ''} ${isIdle ? 'idle' : ''}`;
+            charDiv.className = `bot-character bot-character-container`;
 
-            // Create Droid Structure
+            // Shadow
             const shadow = document.createElement('div');
             shadow.className = 'bot-character-shadow';
             charDiv.appendChild(shadow);
 
+            // Name Tag
             const tag = document.createElement('div');
             tag.className = 'bot-status-tag';
             charDiv.appendChild(tag);
 
-            const stack = document.createElement('div');
-            stack.className = 'voxel-stack';
+            // Emoji Animal Character (rendered large!)
+            const emojiChar = document.createElement('div');
+            emojiChar.className = 'bot-emoji-character';
+            emojiChar.textContent = avatar;
+            charDiv.appendChild(emojiChar);
 
-            const body = document.createElement('div');
-            body.className = 'bot-character-body';
-            stack.appendChild(body);
-
-            const visor = document.createElement('div');
-            visor.className = 'bot-character-visor';
-            stack.appendChild(visor);
-
-            charDiv.appendChild(stack);
             office.appendChild(charDiv);
         }
 
@@ -298,16 +292,9 @@ function renderOffice() {
         charDiv.style.transform = 'translate(-50%, -100%)';
         charDiv.style.zIndex = Math.floor(currentTop * 10) + 100;
 
-        // Update status class for animations and species
-        let species = 'droid';
-        const avatarStr = avatar || '';
-        if (avatarStr.includes('🦊')) species = 'fox';
-        else if (avatarStr.includes('🐼') || avatarStr.includes('🐨')) species = 'panda';
-        else if (avatarStr.includes('🦖') || avatarStr.includes('🐉')) species = 'dino';
-        else if (avatarStr.includes('🐱') || avatarStr.includes('🦁') || avatarStr.includes('🦄')) species = 'cat';
-
+        // Update status class for animations
         const isWorking = isPosting || (bot.status === 'ACTIVE');
-        charDiv.className = `bot-character bot-character-container ${species} ${isOffline ? 'offline' : ''} ${isPosting ? 'posting' : ''} ${isWorking ? 'working' : ''}`;
+        charDiv.className = `bot-character bot-character-container ${isOffline ? 'offline' : ''} ${isPosting ? 'posting' : ''} ${isWorking ? 'working' : ''}`;
 
         // Update status tag
         const tag = charDiv.querySelector('.bot-status-tag');
