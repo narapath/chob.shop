@@ -632,6 +632,115 @@ body {
     transition: all 0.3s ease;
 }
 
+/* Species Specific Styling */
+.bot-character-container.fox .bot-character-body {
+    background: radial-gradient(circle at 30% 30%, #fff 0%, #fb923c 40%, rgba(251, 146, 60, 0.4) 100%);
+    box-shadow: 0 0 20px rgba(251, 146, 60, 0.6);
+}
+
+.bot-character-container.panda .bot-character-body {
+    background: radial-gradient(circle at 30% 30%, #fff 0%, #94a3b8 40%, rgba(15, 23, 42, 0.4) 100%);
+    box-shadow: 0 0 20px rgba(148, 163, 184, 0.4);
+}
+
+.bot-character-container.dino .bot-character-body {
+    background: radial-gradient(circle at 30% 30%, #fff 0%, #4ade80 40%, rgba(74, 222, 128, 0.4) 100%);
+    box-shadow: 0 0 20px rgba(74, 222, 128, 0.6);
+}
+
+.bot-character-container.cat .bot-character-body {
+    background: radial-gradient(circle at 30% 30%, #fff 0%, #c084fc 40%, rgba(192, 132, 252, 0.4) 100%);
+    box-shadow: 0 0 20px rgba(192, 132, 252, 0.6);
+}
+
+/* Ears/Features Structure */
+.voxel-stack::before,
+.voxel-stack::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    top: -4px;
+    background: inherit;
+    border-radius: 50%;
+    z-index: -1;
+    display: none;
+}
+
+/* Fox Ears */
+.bot-character-container.fox .voxel-stack::before,
+.bot-character-container.fox .voxel-stack::after {
+    display: block;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 14px solid #fb923c;
+    border-radius: 0;
+    background: none;
+}
+
+.bot-character-container.fox .voxel-stack::before {
+    left: 5px;
+    transform: rotate(-20deg);
+}
+
+.bot-character-container.fox .voxel-stack::after {
+    right: 5px;
+    transform: rotate(20deg);
+}
+
+/* Panda Ears */
+.bot-character-container.panda .voxel-stack::before,
+.bot-character-container.panda .voxel-stack::after {
+    display: block;
+    background: #1e293b;
+    border: 1px solid rgba(251, 146, 60, 0.2);
+}
+
+.bot-character-container.panda .voxel-stack::before {
+    left: 2px;
+}
+
+.bot-character-container.panda .voxel-stack::after {
+    right: 2px;
+}
+
+/* Cat Ears */
+.bot-character-container.cat .voxel-stack::before,
+.bot-character-container.cat .voxel-stack::after {
+    display: block;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 12px solid #c084fc;
+    border-radius: 0;
+    background: none;
+}
+
+.bot-character-container.cat .voxel-stack::before {
+    left: 8px;
+    transform: rotate(-10deg);
+}
+
+.bot-character-container.cat .voxel-stack::after {
+    right: 8px;
+    transform: rotate(10deg);
+}
+
+/* Dino Spikes */
+.bot-character-container.dino .voxel-stack::before {
+    display: block;
+    width: 10px;
+    height: 10px;
+    background: #22c55e;
+    left: 45%;
+    top: -6px;
+    transform: rotate(45deg);
+    border-radius: 2px;
+}
+
 /* Working State Enhancements */
 .bot-character-container.working .bot-character-body {
     background: radial-gradient(circle at 30% 30%, #fff 0%, #00f3ff 20%, #00f3ff 60%, rgba(0, 243, 255, 0.8) 100%);

@@ -295,9 +295,16 @@ function renderOffice() {
         charDiv.style.transform = 'translate(-50%, -100%)';
         charDiv.style.zIndex = Math.floor(currentTop * 10) + 100;
 
-        // Update status class for animations
+        // Update status class for animations and species
+        let species = 'droid';
+        const avatarStr = avatar || '';
+        if (avatarStr.includes('🦊')) species = 'fox';
+        else if (avatarStr.includes('🐼') || avatarStr.includes('🐨')) species = 'panda';
+        else if (avatarStr.includes('🦖') || avatarStr.includes('🐉')) species = 'dino';
+        else if (avatarStr.includes('🐱') || avatarStr.includes('🦁') || avatarStr.includes('🦄')) species = 'cat';
+
         const isWorking = isPosting || (bot.status === 'ACTIVE');
-        charDiv.className = `bot-character bot-character-container ${isOffline ? 'offline' : ''} ${isPosting ? 'posting' : ''} ${isWorking ? 'working' : ''}`;
+        charDiv.className = `bot-character bot-character-container ${species} ${isOffline ? 'offline' : ''} ${isPosting ? 'posting' : ''} ${isWorking ? 'working' : ''}`;
 
         // Update status tag
         const tag = charDiv.querySelector('.bot-status-tag');
