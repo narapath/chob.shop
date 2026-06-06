@@ -615,8 +615,9 @@ body {
 /* The CSS Holographic Droid */
 .voxel-stack {
     position: relative;
-    width: 48px;
-    height: 48px;
+    width: 32px;
+    /* Shrunk from 48px/64px */
+    height: 32px;
     margin: 0 auto;
     transform-style: preserve-3d;
     animation: drone-float 3s infinite ease-in-out;
@@ -729,16 +730,39 @@ body {
     transform: rotate(10deg);
 }
 
-/* Dino Spikes */
+/* Dino Spikes/Tail */
 .bot-character-container.dino .voxel-stack::before {
     display: block;
     width: 10px;
     height: 10px;
     background: #22c55e;
-    left: 45%;
-    top: -6px;
+    left: -4px;
+    top: 10px;
     transform: rotate(45deg);
     border-radius: 2px;
+}
+
+/* Cat Tail */
+.bot-character-container.cat .voxel-stack::after {
+    display: block;
+    width: 4px;
+    height: 18px;
+    background: #c084fc;
+    right: -6px;
+    top: 15px;
+    border-radius: 10px;
+    transform-origin: top;
+    animation: tail-wag 2s infinite alternate ease-in-out;
+}
+
+@keyframes tail-wag {
+    from {
+        transform: rotate(-10deg);
+    }
+
+    to {
+        transform: rotate(30deg);
+    }
 }
 
 /* Working State Enhancements */
@@ -820,8 +844,9 @@ body {
 /* Character Styling - The "Voxel" Presence */
 .bot-character-container {
     position: absolute;
-    width: 64px;
-    height: 80px;
+    width: 48px;
+    /* Shrunk from 64px */
+    height: 60px;
     transform-origin: center bottom;
     transition: left 3s cubic-bezier(0.4, 0, 0.2, 1), top 3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 100;

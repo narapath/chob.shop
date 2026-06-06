@@ -249,14 +249,17 @@ function renderOffice() {
         const pos = botPositions[safeId];
 
         // --- High-Mobility Wandering ---
-        // Active bots wander more energetically
-        const activityScale = (bot.status === 'ACTIVE' || isPosting) ? 5 : 2;
-        pos.wanderX = Math.sin(Date.now() / 2000 + parseInt(safeId.split('-')[1] || 0)) * activityScale;
-        pos.wanderY = Math.cos(Date.now() / 2500 + parseInt(safeId.split('-')[1] || 0)) * (activityScale / 2);
+        const activityScale = (bot.status === 'ACTIVE' || isPosting) ? 12 : 5; // Increased radius
+        const uniqueOffset = parseInt(safeId.split('-')[1] || 0) * 137; // Unique phase shift
+        pos.wanderX = Math.sin((Date.now() + uniqueOffset) / 2000) * activityScale;
+        pos.wanderY = Math.cos((Date.now() + uniqueOffset) / 2500) * (activityScale / 2);
 
-        // Targeted movement towards the zone center + wandering
-        const currentTop = zone.top + pos.wanderY;
-        const currentLeft = zone.left + pos.wanderX;
+        // Targeted movement towards the zone center + unique per-bot static offset to prevent clumping
+        const staticOffsetX = (parseInt(safeId.split('-')[1] || 0) % 3 - 1) * 6;
+        const staticOffsetY = (Math.floor(parseInt(safeId.split('-')[1] || 0) / 3) - 1) * 4;
+
+        const currentTop = zone.top + pos.wanderY + staticOffsetY;
+        const currentLeft = zone.left + pos.wanderX + staticOffsetX;
 
         let charDiv = document.getElementById(`char-container-${safeId}`);
         if (!charDiv) {
