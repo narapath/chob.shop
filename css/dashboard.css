@@ -474,12 +474,14 @@ body {
 .office-simulation-area {
     width: 100%;
     height: 650px;
-    background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #030305 100%);
+    background: radial-gradient(circle at 50% 50%, #2a2a44 0%, #050508 100%);
+    /* Lightened center */
     border-radius: 28px;
     overflow: hidden;
     position: relative;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.9), 0 20px 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Brighter border */
+    box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.8), 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
 .office-simulation-area::after {
@@ -505,6 +507,8 @@ body {
     transform: translate(-50%, -50%);
     box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
     z-index: 1;
+    filter: brightness(1.2) contrast(1.1) saturate(1.2);
+    /* Boost vibrancy */
 }
 
 /* Diagnostic Legend */
@@ -516,15 +520,17 @@ body {
     font-family: 'Inter', sans-serif;
     font-size: 10px;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.7);
+    /* Brighter legend text */
     letter-spacing: 1px;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.7);
     padding: 8px 16px;
     border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     white-space: pre;
     word-spacing: 10px;
     z-index: 1000;
+    backdrop-filter: blur(4px);
 }
 
 /* Adjust the stage for 16:9 */
