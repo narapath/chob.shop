@@ -126,7 +126,7 @@ function renderOffice() {
     const loadingState = commandGrid.querySelector('.loading-state');
     if (loadingState) commandGrid.innerHTML = ''; // Clear only once
 
-    bots.forEach(bot => {
+    bots.forEach((bot, botIdx) => {
         const safeId = bot.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
         const lastHeartbeat = new Date(bot.last_heartbeat).getTime();
         const isOffline = (Date.now() - lastHeartbeat) > 120000;
@@ -250,16 +250,15 @@ function renderOffice() {
 
         // --- High-Mobility Wandering ---
         const activityScale = (bot.status === 'ACTIVE' || isPosting) ? 12 : 5; // Increased radius
-        // Use a proper hash of safeId for unique per-bot phase shift (works with any name format)
-        let idHash = 0;
-        for (let c = 0; c < safeId.length; c++) idHash = safeId.charCodeAt(c) + ((idHash << 5) - idHash);
-        const botIndex = Math.abs(idHash);
-        pos.wanderX = Math.sin((Date.now() + botIndex * 137) / 2000) * activityScale;
-        pos.wanderY = Math.cos((Date.now() + botIndex * 137) / 2500) * (activityScale / 2);
+        // Use forEach index for guaranteed unique per-bot offsets
+        const uniquePhase = botIdx * 1337; // Large prime multiplier for distinct wander phases
+        pos.wanderX = Math.sin((Date.now() + uniquePhase) / 2000) * activityScale;
+        pos.wanderY = Math.cos((Date.now() + uniquePhase) / 2500) * (activityScale / 2);
 
-        // Targeted movement towards the zone center + unique per-bot static offset to prevent clumping
-        const staticOffsetX = ((botIndex % 5) - 2) * 5;
-        const staticOffsetY = ((Math.floor(botIndex / 5) % 3) - 1) * 4;
+        // Grid-based static offset using index to guarantee no overlap
+        const cols = 4;
+        const staticOffsetX = ((botIdx % cols) - Math.floor(cols / 2)) * 6;
+        const staticOffsetY = (Math.floor(botIdx / cols) - 1) * 5;
 
         const currentTop = zone.top + pos.wanderY + staticOffsetY;
         const currentLeft = zone.left + pos.wanderX + staticOffsetX;
