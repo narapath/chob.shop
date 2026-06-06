@@ -250,13 +250,16 @@ function renderOffice() {
 
         // --- High-Mobility Wandering ---
         const activityScale = (bot.status === 'ACTIVE' || isPosting) ? 12 : 5; // Increased radius
-        const uniqueOffset = parseInt(safeId.split('-')[1] || 0) * 137; // Unique phase shift
-        pos.wanderX = Math.sin((Date.now() + uniqueOffset) / 2000) * activityScale;
-        pos.wanderY = Math.cos((Date.now() + uniqueOffset) / 2500) * (activityScale / 2);
+        // Use a proper hash of safeId for unique per-bot phase shift (works with any name format)
+        let idHash = 0;
+        for (let c = 0; c < safeId.length; c++) idHash = safeId.charCodeAt(c) + ((idHash << 5) - idHash);
+        const botIndex = Math.abs(idHash);
+        pos.wanderX = Math.sin((Date.now() + botIndex * 137) / 2000) * activityScale;
+        pos.wanderY = Math.cos((Date.now() + botIndex * 137) / 2500) * (activityScale / 2);
 
         // Targeted movement towards the zone center + unique per-bot static offset to prevent clumping
-        const staticOffsetX = (parseInt(safeId.split('-')[1] || 0) % 3 - 1) * 6;
-        const staticOffsetY = (Math.floor(parseInt(safeId.split('-')[1] || 0) / 3) - 1) * 4;
+        const staticOffsetX = ((botIndex % 5) - 2) * 5;
+        const staticOffsetY = ((Math.floor(botIndex / 5) % 3) - 1) * 4;
 
         const currentTop = zone.top + pos.wanderY + staticOffsetY;
         const currentLeft = zone.left + pos.wanderX + staticOffsetX;
