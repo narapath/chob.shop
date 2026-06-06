@@ -629,6 +629,36 @@ body {
     border-radius: 50%;
     box-shadow: 0 0 20px rgba(0, 243, 255, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+/* Working State Enhancements */
+.bot-character-container.working .bot-character-body {
+    background: radial-gradient(circle at 30% 30%, #fff 0%, #00f3ff 20%, #00f3ff 60%, rgba(0, 243, 255, 0.8) 100%);
+    box-shadow: 0 0 30px #00f3ff, inset 0 0 15px #fff;
+    animation: body-pulse 0.5s infinite alternate ease-in-out;
+}
+
+@keyframes body-pulse {
+    from {
+        transform: scale(1);
+    }
+
+    to {
+        transform: scale(1.05);
+        filter: contrast(1.2) brightness(1.2);
+    }
+}
+
+.bot-character-container.working .voxel-stack {
+    animation-duration: 1.5s;
+    /* Faster float when working */
+}
+
+.bot-character-container.working .bot-character-visor::after {
+    animation-duration: 0.5s;
+    /* Faster scan when working */
+    box-shadow: 0 0 15px #00f3ff;
 }
 
 .bot-character-visor {

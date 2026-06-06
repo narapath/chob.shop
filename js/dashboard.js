@@ -217,31 +217,34 @@ function renderOffice() {
 
         const zone = OFFICE_ZONES[goalZone] || OFFICE_ZONES.BUSINESS_SERVICE;
 
-        // Ensure bots have persistent distinct offsets within zones to prevent clumping
+        // Ensure bots have persistent distinct positions within zones
         if (!botPositions[safeId]) {
             botPositions[safeId] = {
-                top: zone.top + (Math.random() * 10 - 5),
-                left: zone.left + (Math.random() * 10 - 5),
-                driftX: (Math.random() - 0.5) * 80,
-                driftY: (Math.random() - 0.5) * 60
+                top: zone.top + (Math.random() * 8 - 4),
+                left: zone.left + (Math.random() * 8 - 4),
+                wanderX: 0,
+                wanderY: 0
             };
-        } else {
-            // Very slow drift within the zone for a "living" office feel
-            if (Math.random() > 0.95) {
-                const targetTop = zone.top + (Math.random() * 25 - 12.5);
-                const targetLeft = zone.left + (Math.random() * 25 - 12.5);
-                botPositions[safeId].top = (botPositions[safeId].top * 0.9) + (targetTop * 0.1);
-                botPositions[safeId].left = (botPositions[safeId].left * 0.9) + (targetLeft * 0.1);
-            }
         }
+
         const pos = botPositions[safeId];
+
+        // --- High-Mobility Wandering ---
+        // Active bots wander more energetically
+        const activityScale = (bot.status === 'ACTIVE' || isPosting) ? 5 : 2;
+        pos.wanderX = Math.sin(Date.now() / 2000 + parseInt(safeId.split('-')[1] || 0)) * activityScale;
+        pos.wanderY = Math.cos(Date.now() / 2500 + parseInt(safeId.split('-')[1] || 0)) * (activityScale / 2);
+
+        // Targeted movement towards the zone center + wandering
+        const currentTop = zone.top + pos.wanderY;
+        const currentLeft = zone.left + pos.wanderX;
 
         let charDiv = document.getElementById(`char-container-${safeId}`);
         if (!charDiv) {
             charDiv = document.createElement('div');
             charDiv.id = `char-container-${safeId}`;
             const isIdle = !isOffline && bot.status !== 'ACTIVE' && !isPosting;
-            charDiv.className = `bot-character bot-character-container ${isOffline ? 'offline' : ''} ${isPosting ? 'posting' : ''} ${isIdle ? 'idle' : ''}`;
+            charDiv.className = `bot-character bot-character-container ${isOffline ? 'offline' : ''} ${isPosting ? 'posting working' : ''} ${isIdle ? 'idle' : ''}`;
 
             // Create Droid Structure
             const shadow = document.createElement('div');
@@ -268,10 +271,14 @@ function renderOffice() {
         }
 
         // Update Position & Z-Index (Painter's Algorithm for Isometric)
-        charDiv.style.top = `${pos.top}%`;
-        charDiv.style.left = `${pos.left}%`;
-        charDiv.style.transform = 'translate(-50%, -100%)'; // Perfect centering
-        charDiv.style.zIndex = Math.floor(pos.top * 10) + 100;
+        charDiv.style.top = `${currentTop}%`;
+        charDiv.style.left = `${currentLeft}%`;
+        charDiv.style.transform = 'translate(-50%, -100%)';
+        charDiv.style.zIndex = Math.floor(currentTop * 10) + 100;
+
+        // Update status class for animations
+        const isWorking = isPosting || (bot.status === 'ACTIVE');
+        charDiv.className = `bot-character bot-character-container ${isOffline ? 'offline' : ''} ${isPosting ? 'posting' : ''} ${isWorking ? 'working' : ''}`;
 
         // Update status tag
         const tag = charDiv.querySelector('.bot-status-tag');
