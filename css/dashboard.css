@@ -592,22 +592,22 @@ body {
 }
 
 /* Room specific label colors to match the reference glow */
-.office-zone[data-label*="MARKETING"]::after {
+.office-zone[data-label*="การตลาด"]::after {
     border-color: #a855f7;
     box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
 }
 
-.office-zone[data-label*="CEO"]::after {
+.office-zone[data-label*="บริหาร"]::after {
     border-color: #3b82f6;
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
 }
 
-.office-zone[data-label*="FINANCE"]::after {
+.office-zone[data-label*="การเงิน"]::after {
     border-color: #10b981;
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
 }
 
-.office-zone[data-label*="AC_CONTENT"]::after {
+.office-zone[data-label*="สตูดิโอ"]::after {
     border-color: #ef4444;
     box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
 }
