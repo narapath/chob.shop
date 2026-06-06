@@ -8,13 +8,20 @@ let historyCache = [];
 
 // Isometric Office Layout Coordinates (%)
 const OFFICE_ZONES = {
-    'CEO_STRATEGY': { top: 22, left: 25 },
-    'LEGAL_COMPLIANCE': { top: 12, left: 45 },
-    'MARKETING': { top: 41, left: 58 },
-    'PRODUCT_DESIGN': { top: 40, left: 82 },
-    'FINANCE_HR': { top: 48, left: 20 },
-    'SALES_OPERATIONS': { top: 75, left: 35 },
-    'DATA_ANALYTICS': { top: 75, left: 80 }
+    'MBAI_BUSINESS': { top: 12, left: 50 },
+    'GENIXPLUS_GLOBAL': { top: 13, left: 78 },
+    'DGA': { top: 15, left: 22 },
+    'CEO_STRATEGY': { top: 35, left: 50 },
+    'MARKETING_OF_AI': { top: 25, left: 20 },
+    'MEEORDER': { top: 28, left: 80 },
+    'PRODUCT_SAAS': { top: 48, left: 16 },
+    'COURSE_FACTORY': { top: 50, left: 34 },
+    'STUDENT_SUPPORT': { top: 52, left: 63 },
+    'KRUFERN_DIGITAL': { top: 48, left: 85 },
+    'FINANCE_ACCOUNTING': { top: 68, left: 14 },
+    'DATA_COST_CONTROL': { top: 68, left: 28 },
+    'BUSINESS_SERVICE': { top: 63, left: 47 },
+    'AC_CONTENT_FACTORY': { top: 65, left: 74 }
 };
 
 // Track current positions for smooth wandering
@@ -191,12 +198,24 @@ function renderOffice() {
         }
 
         // --- 2. Render Isometric Sprite ---
-        let goalZone = 'SALES_OPERATIONS';
-        if (isPosting) goalZone = 'MARKETING';
-        else if (bot.status === 'ACTIVE' || !isOffline) goalZone = 'PRODUCT_DESIGN';
-        if (bot.bot_name.toLowerCase().includes('master')) goalZone = 'CEO_STRATEGY';
+        // --- 2. Intelligent Room Distribution ---
+        let goalZone = 'BUSINESS_SERVICE';
+        if (isPosting) goalZone = 'AC_CONTENT_FACTORY';
+        else if (bot.status === 'ACTIVE' || !isOffline) {
+            // Distribute active bots across key functional areas
+            if (safeId.includes('bot-1')) goalZone = 'MARKETING_OF_AI';
+            else if (safeId.includes('bot-2')) goalZone = 'PRODUCT_SAAS';
+            else if (safeId.includes('bot-3')) goalZone = 'COURSE_FACTORY';
+            else if (safeId.includes('bot-4')) goalZone = 'MeeOrder';
+            else if (safeId.includes('bot-5')) goalZone = 'GENIXPLUS_GLOBAL';
+            else goalZone = 'BUSINESS_SERVICE';
+        }
 
-        const zone = OFFICE_ZONES[goalZone] || OFFICE_ZONES.SALES_OPERATIONS;
+        if (bot.bot_name.toLowerCase().includes('master') || bot.bot_name.toLowerCase().includes('ceo')) {
+            goalZone = 'CEO_STRATEGY';
+        }
+
+        const zone = OFFICE_ZONES[goalZone] || OFFICE_ZONES.BUSINESS_SERVICE;
 
         // Ensure bots have persistent distinct offsets within zones to prevent clumping
         if (!botPositions[safeId]) {
