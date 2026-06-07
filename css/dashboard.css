@@ -128,7 +128,7 @@ body {
 /* Grids */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 1fr 1.2fr;
+    grid-template-columns: 1fr;
     gap: 32px;
     margin-bottom: 32px;
 }
@@ -495,16 +495,18 @@ body {
 
 .iso-floor {
     position: absolute;
-    width: 250%;
-    height: 250%;
-    /* Keep it wider to allow zooming/panning via transform */
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) rotateX(0deg) rotateZ(0deg);
-    /* Set to 0 because the image is already rendered isometrically */
-    background: url('../assets/pixel_art/premium_hq_4rooms.png') no-repeat center center;
-    background-size: cover;
-    filter: drop-shadow(0 40px 50px rgba(0, 0, 0, 0.8)) brightness(1.2) contrast(1.2) saturate(1.3);
+    width: 1024px;
+    height: 576px;
+    /* 16:9 Aspect Ratio matching the reference */
+    background: url('../assets/pixel_art/corporate_hq_v2.jpg') no-repeat center center;
+    background-size: contain;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    filter: brightness(1.2) contrast(1.1) saturate(1.2);
+    /* Boost vibrancy */
 }
 
 /* Diagnostic Legend */

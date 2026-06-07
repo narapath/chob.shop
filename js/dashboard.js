@@ -109,7 +109,7 @@ function renderOffice() {
 
     if (bots.length === 0) {
         commandGrid.innerHTML = '<div class="loading-state"><span>NO BOTS ONLINE...</span></div>';
-        office.innerHTML = '<div class="loading-pixel">NO BOTS ONLINE...</div>';
+        if (office) office.innerHTML = '<div class="loading-pixel">NO BOTS ONLINE...</div>';
         return;
     }
 
@@ -186,103 +186,6 @@ function renderOffice() {
             // However, handleCommand SET_INTERVAL triggers fetchBots so it's usually fine.
             card.innerHTML = cardHtml;
         }
-
-        // --- 2. Render Isometric Sprite ---
-        // --- 2. Semantic Room Routing (System-aligned Logic) ---
-        let goalZone = 'BUSINESS_SERVICE';
-        const activity = currentActivity.toLowerCase();
-
-        if (isOffline) {
-            goalZone = 'BUSINESS_SERVICE';
-        } else if (isPosting) {
-            goalZone = 'AC_CONTENT_FACTORY';
-        } else if (activity.includes('error') || activity.includes('block') || activity.includes('fail')) {
-            goalZone = 'STUDENT_SUPPORT';
-        } else if (activity.includes('limit') || activity.includes('coin') || activity.includes('cost')) {
-            goalZone = 'DATA_COST_CONTROL';
-        } else {
-            // Default to business service for general active bots
-            goalZone = 'BUSINESS_SERVICE';
-        }
-
-        const zone = OFFICE_ZONES[goalZone] || OFFICE_ZONES.BUSINESS_SERVICE;
-
-        // Ensure bots have persistent distinct positions within zones
-        if (!botPositions[safeId]) {
-            botPositions[safeId] = {
-                top: zone.top + (Math.random() * 8 - 4),
-                left: zone.left + (Math.random() * 8 - 4),
-                wanderX: 0,
-                wanderY: 0
-            };
-        }
-
-        const pos = botPositions[safeId];
-
-        // --- High-Mobility Wandering ---
-        const activityScale = (bot.status === 'ACTIVE' || isPosting) ? 12 : 5; // Increased radius
-        // Use forEach index for guaranteed unique per-bot offsets
-        const uniquePhase = botIdx * 1337; // Large prime multiplier for distinct wander phases
-        pos.wanderX = Math.sin((Date.now() + uniquePhase) / 2000) * activityScale;
-        pos.wanderY = Math.cos((Date.now() + uniquePhase) / 2500) * (activityScale / 2);
-
-        // Grid-based static offset using index to guarantee no overlap
-        const cols = 4;
-        const staticOffsetX = ((botIdx % cols) - Math.floor(cols / 2)) * 6;
-        const staticOffsetY = (Math.floor(botIdx / cols) - 1) * 5;
-
-        const currentTop = zone.top + pos.wanderY + staticOffsetY;
-        const currentLeft = zone.left + pos.wanderX + staticOffsetX;
-
-        let charDiv = document.getElementById(`char-container-${safeId}`);
-        if (!charDiv) {
-            charDiv = document.createElement('div');
-            charDiv.id = `char-container-${safeId}`;
-            charDiv.className = `bot-character bot-character-container`;
-
-            // Shadow
-            const shadow = document.createElement('div');
-            shadow.className = 'bot-character-shadow';
-            charDiv.appendChild(shadow);
-
-            // Name Tag
-            const tag = document.createElement('div');
-            tag.className = 'bot-status-tag';
-            charDiv.appendChild(tag);
-
-            // Emoji Animal Character (rendered large!)
-            const emojiChar = document.createElement('div');
-            emojiChar.className = 'bot-emoji-character';
-            emojiChar.textContent = avatar;
-            charDiv.appendChild(emojiChar);
-
-            office.appendChild(charDiv);
-        }
-
-        // Update Position & Z-Index (Painter's Algorithm for Isometric)
-        charDiv.style.top = `${currentTop}%`;
-        charDiv.style.left = `${currentLeft}%`;
-        charDiv.style.transform = 'translate(-50%, -100%)';
-        charDiv.style.zIndex = Math.floor(currentTop * 10) + 100;
-
-        // Update status class for animations
-        const isWorking = isPosting || (bot.status === 'ACTIVE');
-        charDiv.className = `bot-character bot-character-container ${isOffline ? 'offline' : ''} ${isPosting ? 'posting' : ''} ${isWorking ? 'working' : ''}`;
-
-        // Update status tag
-        const tag = charDiv.querySelector('.bot-status-tag');
-        if (tag) {
-            tag.innerHTML = `${isOffline ? '💤' : (isPosting ? '⚡' : '✨')} ${bot.bot_name}`;
-            tag.style.borderColor = isOffline ? '#64748b' : (isPosting ? 'var(--pixel-pink)' : 'var(--pixel-green)');
-            tag.style.color = tag.style.borderColor;
-        }
-
-        // Cleanup orphaned sprites
-        const currentSafeIds = bots.map(b => b.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''));
-        Array.from(office.querySelectorAll('.bot-character')).forEach(char => {
-            const cid = char.id.replace('char-container-', '');
-            if (!currentSafeIds.includes(cid)) office.removeChild(char);
-        });
 
         // Cleanup orphaned cards
         const currentCardIds = bots.map(b => `cmd-card-${b.bot_name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}`);
