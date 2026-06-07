@@ -188,10 +188,11 @@ router.post('/', requireAuth, async (req, res) => {
                 break;
             }
             lastError = error;
-            if (error.code === '42703') {
-                const match = error.message.match(/column "(.+)" of relation/);
+            if (error.code === 'PGRST204' || error.code === '42703') {
+                const match = error.message.match(/Could not find the '(.+?)' column/) || error.message.match(/column "(.+?)" of relation/);
                 const colName = match ? match[1] : null;
                 if (colName) {
+                    console.warn(`⚠️  Missing column: ${colName}. Retrying without it...`);
                     delete finalProduct[colName];
                     continue;
                 }
@@ -263,13 +264,13 @@ router.post('/bulk', requireAuth, async (req, res) => {
             }
 
             attemptError = error;
-            // Check if error is "column does not exist" (Postgres code 42703)
-            if (error.code === '42703') {
-                const match = error.message.match(/column "(.+)" of relation/);
+            // Check if error is "column does not exist" (PostgREST: PGRST204, Postgres: 42703)
+            if (error.code === 'PGRST204' || error.code === '42703') {
+                const match = error.message.match(/Could not find the '(.+?)' column/) || error.message.match(/column "(.+?)" of relation/);
                 const colName = match ? match[1] : null;
 
                 if (colName) {
-                    console.warn(`⚠️  Database missing column: ${colName}. Retrying without it...`);
+                    console.warn(`⚠️  Missing column: ${colName}. Retrying without it...`);
                     currentItems = currentItems.map(item => {
                         const newItem = { ...item };
                         delete newItem[colName];
@@ -370,10 +371,11 @@ router.put('/:id', requireAuth, async (req, res) => {
                 break;
             }
             lastError = error;
-            if (error.code === '42703') {
-                const match = error.message.match(/column "(.+)" of relation/);
+            if (error.code === 'PGRST204' || error.code === '42703') {
+                const match = error.message.match(/Could not find the '(.+?)' column/) || error.message.match(/column "(.+?)" of relation/);
                 const colName = match ? match[1] : null;
                 if (colName) {
+                    console.warn(`⚠️  Missing column: ${colName}. Retrying update without it...`);
                     delete finalPayload[colName];
                     continue;
                 }
