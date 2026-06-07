@@ -163,17 +163,11 @@ router.post('/', requireAuth, async (req, res) => {
             seo_keywords: [],
             seo_description: '',
             seo_title: req.body.seo_title || '',
-            commission: req.body.commission || 0
+            commission: req.body.commission || 0,
+            rating_value: req.body.ratingValue || 0,
+            review_count: req.body.reviewCount || 0,
+            sales_count: req.body.salesCount || 0
         };
-
-        // --- DYNAMIC COLUMN DETECTION ---
-        const { data: colCheck, error: colError } = await supabaseAdmin.from('products').select('*').limit(0);
-        const existingColumns = colError ? [] : Object.keys(colCheck || {});
-        const hasCol = (name) => existingColumns.length === 0 || existingColumns.includes(name);
-
-        if (hasCol('rating_value')) newProduct.rating_value = req.body.ratingValue || 0;
-        if (hasCol('review_count')) newProduct.review_count = req.body.reviewCount || 0;
-        if (hasCol('sales_count')) newProduct.sales_count = req.body.salesCount || 0;
 
         if (req.body.toggleAI) {
             const seoData = generateLocalSEO(newProduct.title, newProduct.category, newProduct.price);
@@ -182,8 +176,30 @@ router.post('/', requireAuth, async (req, res) => {
             newProduct.seo_title = seoData.seo_title;
         }
 
-        const { error } = await supabaseAdmin.from('products').insert([newProduct]);
-        if (error) throw error;
+        // --- SELF-HEALING INSERT ---
+        let finalProduct = { ...newProduct };
+        let successfulInsert = false;
+        let lastError;
+
+        for (let i = 0; i < 4; i++) {
+            const { error } = await supabaseAdmin.from('products').insert([finalProduct]);
+            if (!error) {
+                successfulInsert = true;
+                break;
+            }
+            lastError = error;
+            if (error.code === '42703') {
+                const match = error.message.match(/column "(.+)" of relation/);
+                const colName = match ? match[1] : null;
+                if (colName) {
+                    delete finalProduct[colName];
+                    continue;
+                }
+            }
+            break;
+        }
+
+        if (!successfulInsert) throw lastError;
 
         const siteUrl = process.env.SITE_URL || 'https://chob.shop';
         notifyGoogleIndexing(`${siteUrl}/?productId=${newProduct.id}`).catch(e => console.error('Indexing notify error:', e.message));
@@ -206,18 +222,12 @@ router.post('/bulk', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'Expected an array of products' });
         }
 
-        // --- DYNAMIC COLUMN DETECTION ---
-        // We check what columns actually exist to avoid crash if schema is out of sync
-        const { data: colCheck, error: colError } = await supabaseAdmin.from('products').select('*').limit(0);
-        const existingColumns = colError ? [] : Object.keys(colCheck || {});
-        const hasCol = (name) => existingColumns.length === 0 || existingColumns.includes(name);
-
         const itemsToAdd = items.map(p => {
             const seo = (p.seo_description && p.seo_keywords && p.seo_keywords.length > 0)
                 ? { seo_keywords: p.seo_keywords, seo_description: p.seo_description, seo_title: p.seo_title }
                 : generateLocalSEO(p.title, p.category, p.price);
 
-            const newItem = {
+            return {
                 ...seo,
                 title: p.title || 'Untitled Product',
                 price: parseFloat(p.price) || 0,
@@ -232,19 +242,47 @@ router.post('/bulk', requireAuth, async (req, res) => {
                 date: new Date().toISOString(),
                 facebook_post_id: null,
                 twitter_post_id: null,
-                commission: p.commission || 0
+                commission: p.commission || 0,
+                rating_value: p.ratingValue || 0,
+                review_count: p.reviewCount || 0,
+                sales_count: p.salesCount || 0
             };
-
-            // Only add these if they exist in the DB schema
-            if (hasCol('rating_value')) newItem.rating_value = p.ratingValue || 0;
-            if (hasCol('review_count')) newItem.review_count = p.reviewCount || 0;
-            if (hasCol('sales_count')) newItem.sales_count = p.salesCount || 0;
-
-            return newItem;
         });
 
-        const { error: insertError } = await supabaseAdmin.from('products').insert(itemsToAdd);
-        if (insertError) throw insertError;
+        // --- SELF-HEALING INSERT ---
+        let attemptError;
+        let successfulInsert = false;
+        let currentItems = [...itemsToAdd];
+
+        // Try up to 4 times (for the 3 potentially missing columns)
+        for (let i = 0; i < 4; i++) {
+            const { error } = await supabaseAdmin.from('products').insert(currentItems);
+            if (!error) {
+                successfulInsert = true;
+                break;
+            }
+
+            attemptError = error;
+            // Check if error is "column does not exist" (Postgres code 42703)
+            if (error.code === '42703') {
+                const match = error.message.match(/column "(.+)" of relation/);
+                const colName = match ? match[1] : null;
+
+                if (colName) {
+                    console.warn(`⚠️  Database missing column: ${colName}. Retrying without it...`);
+                    currentItems = currentItems.map(item => {
+                        const newItem = { ...item };
+                        delete newItem[colName];
+                        return newItem;
+                    });
+                    continue;
+                }
+            }
+            // If it's a different error or we can't find the column name, stop
+            break;
+        }
+
+        if (!successfulInsert) throw attemptError;
 
         const siteUrlForIndex = process.env.SITE_URL || 'https://chob.shop';
         const productUrls = itemsToAdd.map(p => `${siteUrlForIndex}/?productId=${p.id}`);
@@ -306,27 +344,44 @@ router.put('/:id', requireAuth, async (req, res) => {
             updatePayload.twitter_post_id = updatePayload.twitterPostId;
             delete updatePayload.twitterPostId;
         }
-        // --- DYNAMIC COLUMN DETECTION ---
-        const { data: colCheck, error: colError } = await supabaseAdmin.from('products').select('*').limit(0);
-        const existingColumns = colError ? [] : Object.keys(colCheck || {});
-        const hasCol = (name) => existingColumns.length === 0 || existingColumns.includes(name);
-
         if (updatePayload.ratingValue !== undefined) {
-            if (hasCol('rating_value')) updatePayload.rating_value = updatePayload.ratingValue;
+            updatePayload.rating_value = updatePayload.ratingValue;
             delete updatePayload.ratingValue;
         }
         if (updatePayload.reviewCount !== undefined) {
-            if (hasCol('review_count')) updatePayload.review_count = updatePayload.reviewCount;
+            updatePayload.review_count = updatePayload.reviewCount;
             delete updatePayload.reviewCount;
         }
         if (updatePayload.salesCount !== undefined) {
-            if (hasCol('sales_count')) updatePayload.sales_count = updatePayload.salesCount;
+            updatePayload.sales_count = updatePayload.salesCount;
             delete updatePayload.salesCount;
         }
         delete updatePayload.id;
 
-        const { error } = await supabaseAdmin.from('products').update(updatePayload).eq('id', req.params.id);
-        if (error) throw error;
+        // --- SELF-HEALING UPDATE ---
+        let finalPayload = { ...updatePayload };
+        let successfulUpdate = false;
+        let lastError;
+
+        for (let i = 0; i < 4; i++) {
+            const { error } = await supabaseAdmin.from('products').update(finalPayload).eq('id', req.params.id);
+            if (!error) {
+                successfulUpdate = true;
+                break;
+            }
+            lastError = error;
+            if (error.code === '42703') {
+                const match = error.message.match(/column "(.+)" of relation/);
+                const colName = match ? match[1] : null;
+                if (colName) {
+                    delete finalPayload[colName];
+                    continue;
+                }
+            }
+            break;
+        }
+
+        if (!successfulUpdate) throw lastError;
 
         res.json({ success: true });
     } catch (err) {
