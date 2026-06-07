@@ -1,0 +1,189 @@
+/* 📱 ChobShop Premium Mobile Overrides */
+
+@media (max-width: 768px) {
+    :root {
+        --sidebar-w: 0px;
+        --sidebar-collapsed-w: 0px;
+        --header-h: 70px;
+        --bottom-nav-h: 75px;
+    }
+
+    body {
+        padding-bottom: var(--bottom-nav-h);
+        /* Space for bottom nav */
+    }
+
+    /* Hide Desktop Sidebar */
+    .admin-sidebar {
+        display: none !important;
+    }
+
+    /* Adjust Main Content */
+    .admin-main {
+        margin-left: 0 !important;
+        padding: 20px 16px !important;
+        margin-top: var(--header-h) !important;
+    }
+
+    /* Bento Grid (Stats) to Single Column */
+    .dash-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    .bento-card {
+        padding: 24px !important;
+    }
+
+    /* Secondary Grid (Top Clicks & Recent) */
+    div[style*="display: grid; grid-template-columns: 1fr 1fr;"] {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    /* Office Simulation Auto-Scaling Container */
+    .office-simulation-area {
+        height: auto !important;
+        aspect-ratio: 16/9;
+        overflow: hidden !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .iso-stage {
+        /* Scaling will be handled by JS for precision */
+        top: 0 !important;
+        left: 0 !important;
+        transform-origin: top left !important;
+        position: relative !important;
+    }
+
+    /* Bottom Navigation Bar (Glassmorphism) */
+    .mobile-bottom-nav {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--bottom-nav-h);
+        background: rgba(13, 13, 26, 0.7);
+        backdrop-filter: blur(25px) saturate(200%);
+        -webkit-backdrop-filter: blur(25px) saturate(200%);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 9998;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 10px 10px 10px;
+        /* Padding for safe area/ergonomics */
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-item-mobile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: var(--text-muted);
+        text-decoration: none;
+        flex: 1;
+        transition: var(--transition-fast);
+        opacity: 0.6;
+    }
+
+    .nav-item-mobile .icon {
+        font-size: 22px;
+    }
+
+    .nav-item-mobile .label {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .nav-item-mobile.active {
+        color: var(--accent-light);
+        opacity: 1;
+        transform: translateY(-4px);
+    }
+
+    .nav-item-mobile.active .icon {
+        filter: drop-shadow(0 0 10px var(--accent-glow));
+    }
+
+    /* Refine Header for Mobile */
+    .admin-header {
+        left: 0 !important;
+        padding: 0 16px !important;
+    }
+
+    .header-actions .back-link .nav-label {
+        display: none;
+    }
+
+    /* Product Table Responsiveness */
+    .product-table-container {
+        border-radius: var(--radius-md) !important;
+    }
+
+    /* Form Grids to Single Column */
+    .form-grid-3 {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Buttons Scaling */
+    .btn {
+        padding: 14px 20px !important;
+        /* Larger touch target */
+    }
+
+    /* Modal Scaling */
+    .edit-modal {
+        width: 95% !important;
+        margin: 10px !important;
+    }
+
+    /* Bot Office Grid */
+    .bot-office {
+        grid-template-columns: 1fr !important;
+        padding: 16px !important;
+        gap: 16px !important;
+    }
+
+    /* Command Center Grid */
+    .command-cards-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    /* Filters Bar */
+    .filter-controls {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+
+    .filter-controls .btn,
+    .filter-controls select,
+    .filter-controls input {
+        width: 100% !important;
+    }
+
+    /* Bulk Actions Bar */
+    .bulk-actions-bar {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        padding: 12px !important;
+    }
+
+    .btn-bulk {
+        flex: 1 1 45% !important;
+        min-width: 120px !important;
+    }
+}
+
+/* Base styles for bottom nav (hidden on desktop) */
+.mobile-bottom-nav {
+    display: none;
+}

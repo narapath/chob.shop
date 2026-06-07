@@ -163,11 +163,17 @@ router.post('/', requireAuth, async (req, res) => {
             seo_keywords: [],
             seo_description: '',
             seo_title: req.body.seo_title || '',
-            commission: req.body.commission || 0,
-            rating_value: req.body.ratingValue || 0,
-            review_count: req.body.reviewCount || 0,
-            sales_count: req.body.salesCount || 0
+            commission: req.body.commission || 0
         };
+
+        // --- DYNAMIC COLUMN DETECTION ---
+        const { data: colCheck, error: colError } = await supabaseAdmin.from('products').select('*').limit(0);
+        const existingColumns = colError ? [] : Object.keys(colCheck || {});
+        const hasCol = (name) => existingColumns.length === 0 || existingColumns.includes(name);
+
+        if (hasCol('rating_value')) newProduct.rating_value = req.body.ratingValue || 0;
+        if (hasCol('review_count')) newProduct.review_count = req.body.reviewCount || 0;
+        if (hasCol('sales_count')) newProduct.sales_count = req.body.salesCount || 0;
 
         if (req.body.toggleAI) {
             const seoData = generateLocalSEO(newProduct.title, newProduct.category, newProduct.price);
@@ -200,12 +206,18 @@ router.post('/bulk', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'Expected an array of products' });
         }
 
+        // --- DYNAMIC COLUMN DETECTION ---
+        // We check what columns actually exist to avoid crash if schema is out of sync
+        const { data: colCheck, error: colError } = await supabaseAdmin.from('products').select('*').limit(0);
+        const existingColumns = colError ? [] : Object.keys(colCheck || {});
+        const hasCol = (name) => existingColumns.length === 0 || existingColumns.includes(name);
+
         const itemsToAdd = items.map(p => {
             const seo = (p.seo_description && p.seo_keywords && p.seo_keywords.length > 0)
                 ? { seo_keywords: p.seo_keywords, seo_description: p.seo_description, seo_title: p.seo_title }
                 : generateLocalSEO(p.title, p.category, p.price);
 
-            return {
+            const newItem = {
                 ...seo,
                 title: p.title || 'Untitled Product',
                 price: parseFloat(p.price) || 0,
@@ -220,15 +232,19 @@ router.post('/bulk', requireAuth, async (req, res) => {
                 date: new Date().toISOString(),
                 facebook_post_id: null,
                 twitter_post_id: null,
-                commission: p.commission || 0,
-                rating_value: p.ratingValue || 0,
-                review_count: p.reviewCount || 0,
-                sales_count: p.salesCount || 0
+                commission: p.commission || 0
             };
+
+            // Only add these if they exist in the DB schema
+            if (hasCol('rating_value')) newItem.rating_value = p.ratingValue || 0;
+            if (hasCol('review_count')) newItem.review_count = p.reviewCount || 0;
+            if (hasCol('sales_count')) newItem.sales_count = p.salesCount || 0;
+
+            return newItem;
         });
 
-        const { error } = await supabaseAdmin.from('products').insert(itemsToAdd);
-        if (error) throw error;
+        const { error: insertError } = await supabaseAdmin.from('products').insert(itemsToAdd);
+        if (insertError) throw insertError;
 
         const siteUrlForIndex = process.env.SITE_URL || 'https://chob.shop';
         const productUrls = itemsToAdd.map(p => `${siteUrlForIndex}/?productId=${p.id}`);
@@ -290,20 +306,21 @@ router.put('/:id', requireAuth, async (req, res) => {
             updatePayload.twitter_post_id = updatePayload.twitterPostId;
             delete updatePayload.twitterPostId;
         }
+        // --- DYNAMIC COLUMN DETECTION ---
+        const { data: colCheck, error: colError } = await supabaseAdmin.from('products').select('*').limit(0);
+        const existingColumns = colError ? [] : Object.keys(colCheck || {});
+        const hasCol = (name) => existingColumns.length === 0 || existingColumns.includes(name);
+
         if (updatePayload.ratingValue !== undefined) {
-            updatePayload.rating_value = updatePayload.ratingValue;
+            if (hasCol('rating_value')) updatePayload.rating_value = updatePayload.ratingValue;
             delete updatePayload.ratingValue;
         }
         if (updatePayload.reviewCount !== undefined) {
-            updatePayload.review_count = updatePayload.reviewCount;
+            if (hasCol('review_count')) updatePayload.review_count = updatePayload.reviewCount;
             delete updatePayload.reviewCount;
         }
         if (updatePayload.salesCount !== undefined) {
-            updatePayload.sales_count = updatePayload.salesCount;
-            delete updatePayload.salesCount;
-        }
-        if (updatePayload.salesCount) {
-            updatePayload.sales_count = updatePayload.salesCount;
+            if (hasCol('sales_count')) updatePayload.sales_count = updatePayload.salesCount;
             delete updatePayload.salesCount;
         }
         delete updatePayload.id;

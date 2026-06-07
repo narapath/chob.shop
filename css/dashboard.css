@@ -945,3 +945,278 @@ body {
 .animate-fade-in {
     animation: fade-in 0.5s ease-out;
 }
+
+/* ===== MOBILE RESPONSIVE ===== */
+
+/* Tablet: <= 1024px */
+@media (max-width: 1024px) {
+    .dashboard-wrapper {
+        margin-left: 0 !important;
+        padding: 16px;
+        padding-top: 80px;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        gap: 16px;
+        padding: 20px;
+        border-radius: 18px;
+        margin-bottom: 24px;
+    }
+
+    .header-stats {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .command-cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+    }
+
+    .secondary-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .history-tabs {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 6px;
+        padding-bottom: 4px;
+        max-width: 100%;
+    }
+
+    .history-tabs .tab-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    .console-content {
+        height: 200px;
+        font-size: 11px;
+    }
+
+    .mobile-close-btn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+}
+
+/* Phone: <= 640px */
+@media (max-width: 640px) {
+    .dashboard-wrapper {
+        padding: 10px;
+        padding-top: 70px;
+    }
+
+    .admin-header {
+        height: 56px;
+        padding: 0 12px;
+    }
+
+    .dashboard-header {
+        padding: 16px;
+        border-radius: 14px;
+        margin-bottom: 16px;
+    }
+
+    .logo-pixel .pixel-icon {
+        font-size: 28px;
+    }
+
+    .logo-pixel h1 {
+        font-size: 16px;
+    }
+
+    .logo-pixel .subtitle {
+        font-size: 9px;
+        letter-spacing: 1px;
+    }
+
+    .header-stats {
+        gap: 8px;
+    }
+
+    .stat-box.premium {
+        padding: 8px 14px;
+        border-radius: 12px;
+        gap: 8px;
+    }
+
+    .stat-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 18px;
+        border-radius: 8px;
+    }
+
+    .stat-box .value {
+        font-size: 16px;
+    }
+
+    .stat-box .label {
+        font-size: 8px;
+    }
+
+    .command-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .bot-command-card {
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .bot-command-card:hover {
+        transform: none;
+    }
+
+    .bot-avatar-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .bot-info .name {
+        font-size: 14px;
+    }
+
+    .card-activity-line {
+        font-size: 10px;
+        padding: 6px 10px;
+        height: 28px;
+        margin-bottom: 12px;
+    }
+
+    .card-stats-mini {
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .card-stats-mini .stat {
+        padding: 6px;
+        border-radius: 8px;
+    }
+
+    .card-controls {
+        gap: 8px;
+    }
+
+    .btn-card {
+        padding: 8px;
+        border-radius: 10px;
+        font-size: 10px;
+    }
+
+    .title-with-icon h2 {
+        font-size: 14px;
+    }
+
+    .title-with-icon .icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+    }
+
+    .global-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-outline.btn-sm {
+        font-size: 10px;
+        padding: 6px 10px;
+    }
+
+    .dashboard-grid {
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .secondary-grid {
+        gap: 16px;
+    }
+
+    .history-section.premium {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .history-list {
+        max-height: 350px;
+        gap: 8px;
+    }
+
+    .history-card {
+        padding: 10px 12px;
+        gap: 10px;
+        border-radius: 12px;
+        flex-wrap: wrap;
+    }
+
+    .history-card-body {
+        min-width: 0;
+    }
+
+    .history-card-top {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .history-product-title {
+        font-size: 12px;
+    }
+
+    .history-group-name {
+        font-size: 10px;
+    }
+
+    .history-thumb {
+        width: 44px;
+        height: 44px;
+    }
+
+    .history-card-action {
+        width: 100%;
+        text-align: right;
+    }
+
+    .console-window.premium {
+        border-radius: 12px;
+    }
+
+    .console-content {
+        height: 180px;
+        padding: 12px;
+        font-size: 10px;
+    }
+
+    .console-header {
+        padding: 8px 12px;
+    }
+
+    .sidebar-brand {
+        padding: 14px 16px;
+        margin-bottom: 20px;
+    }
+}

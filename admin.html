@@ -16,6 +16,7 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/css/theme_vars.css" />
     <link rel="stylesheet" href="/css/menu.css" />
+    <link rel="stylesheet" href="/css/admin_mobile.css" />
 
     <style>
         * {
@@ -1981,6 +1982,27 @@
                 <button class="btn btn-primary" onclick="logout()">ออกจากระบบ</button>
             </div>
         </header>
+
+        <!-- === MOBILE BOTTOM NAV === -->
+        <nav class="mobile-bottom-nav">
+            <a href="#" class="nav-item-mobile active" data-tab="dashboard"
+                onclick="mobileSwitchTab('dashboard', event)">
+                <span class="icon">📊</span>
+                <span class="label">Dash</span>
+            </a>
+            <a href="#" class="nav-item-mobile" data-tab="products" onclick="mobileSwitchTab('products', event)">
+                <span class="icon">📦</span>
+                <span class="label">Items</span>
+            </a>
+            <a href="#" class="nav-item-mobile" data-tab="bot-control" onclick="mobileSwitchTab('bot-control', event)">
+                <span class="icon">🤖</span>
+                <span class="label">Bots</span>
+            </a>
+            <a href="#" class="nav-item-mobile" data-tab="settings" onclick="mobileSwitchTab('settings', event)">
+                <span class="icon">⚙️</span>
+                <span class="label">Config</span>
+            </a>
+        </nav>
 
         <!-- === MAIN CONTENT === -->
         <main class="admin-main">
@@ -5003,6 +5025,39 @@
                 this.countdownInterval = null;
             }
         }
+
+        function mobileSwitchTab(tab, event) {
+            if (event) event.preventDefault();
+            switchTab(tab);
+
+            // Update active state in bottom nav
+            document.querySelectorAll('.nav-item-mobile').forEach(item => {
+                item.classList.toggle('active', item.dataset.tab === tab);
+            });
+        }
+
+        // Office Auto-Scaling Logic
+        function rescaleOffice() {
+            const officeArea = document.querySelector('.office-simulation-area');
+            const isoStage = document.querySelector('.iso-stage');
+            if (!officeArea || !isoStage) return;
+
+            if (window.innerWidth <= 768) {
+                const containerWidth = officeArea.clientWidth;
+                const officeWidth = 1024; // Original width
+                const scale = (containerWidth - 20) / officeWidth; // Padding margin
+
+                isoStage.style.transform = `scale(${scale})`;
+                officeArea.style.height = `${576 * scale}px`; // Maintain aspect ratio
+            } else {
+                isoStage.style.transform = 'translate(-50%, -50%)';
+                officeArea.style.height = '';
+            }
+        }
+
+        window.addEventListener('resize', rescaleOffice);
+        // Initial scale after a short delay for layout to settle
+        setTimeout(rescaleOffice, 1000);
 
         checkAuth();
 

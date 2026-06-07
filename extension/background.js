@@ -365,8 +365,9 @@ async function executeAutoPost() {
             throw new Error('ไม่พบข้อมูลกลุ่มหรือสินค้า (โปรดเปิด Popup เพื่อซิงค์ข้อมูล)');
         }
 
-        // --- Execute Single Post ---
-        const group = fbGroups[autoPostState.groupIndex % fbGroups.length];
+        // --- Execute Single Post (Randomly select Group) ---
+        const groupIndex = Math.floor(Math.random() * fbGroups.length);
+        const group = fbGroups[groupIndex];
         const product = products[Math.floor(Math.random() * products.length)];
 
         addLog(`🎯 เลือกโพสต์: "${product.title.substring(0, 30)}..." ลงกลุ่ม "${group.name}"`, 'INFO');
@@ -414,12 +415,31 @@ async function executeAutoPost() {
         autoPostState.currentActivity = `🖼️ กำลังเตรียมรูปภาพ...`;
         await saveState(autoPostState);
 
-        let finalImageUrl = product.image;
-        if (product.image && !product.image.startsWith('data:')) {
+        let finalImageUrls = [];
+        if (product.image) finalImageUrls.push(product.image);
+
+        // Attempt to scrape more images if it's a Shopee link
+        const productUrl = (product.affiliateUrl && product.affiliateUrl.length > 5) ? product.affiliateUrl : (product.id ? `https://shopee.co.th/product/${product.id}` : null);
+
+        if (productUrl && (productUrl.includes('shopee') || productUrl.includes('s.shopee'))) {
+            addLog(`🔍 กำลังดึงรูปภาพเพิ่มเติมจาก Shopee...`, 'INFO');
+            try {
+                const scrapeRes = await scrapeProduct(productUrl);
+                if (scrapeRes && scrapeRes.success && scrapeRes.base64s && scrapeRes.base64s.length > 0) {
+                    finalImageUrls = scrapeRes.base64s.slice(0, 5); // Take up to 5 images
+                    addLog(`✅ ดึงรูปภาพสำเร็จ ${finalImageUrls.length} รูป`, 'INFO');
+                }
+            } catch (e) {
+                console.warn('[AutoPost] Extra scrape failed:', e);
+            }
+        }
+
+        // If scraping failed or returned only 1, try to fetch the main image at least
+        if (finalImageUrls.length <= 1 && product.image && !product.image.startsWith('data:')) {
             try {
                 const imgUrl = product.image.startsWith('//') ? 'https:' + product.image : product.image;
                 const base64Result = await fetchImageAsBase64(imgUrl);
-                if (base64Result) finalImageUrl = base64Result;
+                if (base64Result) finalImageUrls = [base64Result];
             } catch (e) { console.error('Img error:', e); }
         }
 
@@ -436,7 +456,7 @@ async function executeAutoPost() {
             addLog('📤 กำลังส่งข้อมูลและรูปภาพเข้าหน้าเว็บ Facebook...', 'INFO');
 
             const response = await Promise.race([
-                chrome.tabs.sendMessage(tabId, { action: 'FILL_POST', data: { caption, imageUrl: finalImageUrl } }),
+                chrome.tabs.sendMessage(tabId, { action: 'FILL_POST', data: { caption, imageUrls: finalImageUrls, groupUrl: group.url } }),
                 timeoutPromise
             ]);
 
@@ -465,8 +485,7 @@ async function executeAutoPost() {
         // 8. Update stats
         autoPostState.postCount += 1;
         autoPostState.lastPostTime = Date.now();
-        autoPostState.groupIndex = (autoPostState.groupIndex || 0) + 1;
-        if (autoPostState.groupIndex >= fbGroups.length) autoPostState.groupIndex = 0;
+        autoPostState.groupIndex = Math.floor(Math.random() * fbGroups.length); // Pick next group randomly too
 
         const timeStr = new Date().toLocaleTimeString('th-TH');
         let statusIcon = '✅', statusText = 'โพสต์สำเร็จ';
@@ -482,7 +501,7 @@ async function executeAutoPost() {
         const updatedHistory = [{
             id: Date.now(), timestamp: new Date().toISOString(), groupName: group.name,
             productTitle: product.title, link: postLink, status: postStatus,
-            image: finalImageUrl
+            image: finalImageUrls[0] || null
         }, ...postHistory].slice(0, 50);
         await chrome.storage.local.set({ postHistory: updatedHistory, autoPostState }); // Save intermediate state
 
@@ -687,8 +706,7 @@ async function fetchImageAsBase64(imageUrl) {
             const blob = await response.blob();
             if (!blob.type.startsWith('image/')) {
                 console.warn('[ImageFetch] Response is not an image:', blob.type);
-                if (attempt < MAX_RETRIES) { await new Promise(r => setTimeout(r, 1000)); continue; }
-                return null;
+                return null; // Return null immediately for videos/non-images
             }
 
             const buffer = await blob.arrayBuffer();
@@ -743,22 +761,44 @@ async function scrapeProduct(url) {
         }
 
         // 3. Script-based CDN Fallback (Common in Shopee - multiple CDN domains)
-        if (!imageUrl) {
-            const cdnPatterns = [
-                /https:\/\/down-th\.img\.susercontent\.com\/file\/[a-z0-9_-]+/i,
-                /https:\/\/cf\.shopee\.co\.th\/file\/[a-z0-9_-]+/i,
-                /https:\/\/[a-z0-9-]+\.susercontent\.com\/file\/[a-z0-9_-]+/i
-            ];
-            for (const pattern of cdnPatterns) {
-                const cdnMatch = html.match(pattern);
-                if (cdnMatch) { imageUrl = cdnMatch[0]; break; }
+        const foundUrls = [];
+        const cdnPatterns = [
+            /https:\/\/down-th\.img\.susercontent\.com\/file\/[a-z0-9_-]+/gi,
+            /https:\/\/cf\.shopee\.co\.th\/file\/[a-z0-9_-]+/gi,
+            /https:\/\/[a-z0-9-]+\.susercontent\.com\/file\/[a-z0-9_-]+/gi
+        ];
+
+        for (const pattern of cdnPatterns) {
+            const matches = html.match(pattern);
+            if (matches) {
+                matches.forEach(img => {
+                    if (!foundUrls.includes(img) && foundUrls.length < 10) foundUrls.push(img);
+                });
             }
         }
 
-        if (imageUrl) {
-            console.log('[Scraper] Resolved image:', imageUrl);
-            const base64 = await fetchImageAsBase64(imageUrl);
-            if (base64) return { success: true, base64 };
+        // Use Set for unique URLs if needed, but array check is fine
+        let targets = [imageUrl, ...foundUrls].filter(u => !!u);
+        targets = [...new Set(targets)].slice(0, 8); // Unique first 8
+
+        if (targets.length > 0) {
+            console.log(`[Scraper] Found ${targets.length} potential images, downloading...`);
+            const base64s = [];
+            for (const target of targets) {
+                try {
+                    const b64 = await fetchImageAsBase64(target);
+                    if (b64) base64s.push(b64);
+                    if (base64s.length >= 5) break;
+                } catch (e) { }
+            }
+
+            if (base64s.length > 0) {
+                return {
+                    success: true,
+                    base64s: base64s,
+                    base64: base64s[0] // Compatibility
+                };
+            }
         }
 
         return { success: false, error: 'Could not find product image (OG Image missing)' };

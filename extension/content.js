@@ -77,7 +77,7 @@ if (!window.ChobShopInitialized) {
             let caption = request.data.caption;
             console.log('[ChobShop] Caption received, length:', caption?.length);
 
-            fillFacebookPost(caption, request.data.imageUrl)
+            fillFacebookPost(caption, request.data.imageUrls || [request.data.imageUrl], request.data.groupUrl)
                 .then((result) => {
                     console.log('[ChobShop] fillFacebookPost result:', result);
                     if (result === undefined) return;
@@ -237,7 +237,7 @@ function checkFacebookRestricted() {
     return false;
 }
 
-async function fillFacebookPost(caption, imageUrl) {
+async function fillFacebookPost(caption, imageUrls, groupUrl) {
     // --- Execution Lock ---
     if (window._chobShopPostLocked) {
         console.warn('[ChobShop] 🛑 Injection already in progress, skipping duplicate call.');
@@ -531,8 +531,9 @@ async function fillFacebookPost(caption, imageUrl) {
         if (!textbox) throw new Error('ไม่พบช่องใส่ข้อความ');
 
         // --- Photo Upload Logic ---
-        if (imageUrl) {
-            updateStatus('🖼️ กำลังอัปโหลดรูปภาพ...');
+        // --- Photo Upload Logic (Multi-image support) ---
+        if (imageUrls && imageUrls.length > 0) {
+            updateStatus(`🖼️ กำลังอัปโหลดรูปภาพ (${imageUrls.length} รูป)...`);
             try {
                 const searchRoot = dialog || document.body;
                 const findFileInput = () => {
@@ -542,8 +543,18 @@ async function fillFacebookPost(caption, imageUrl) {
                 };
 
                 let fileInput = findFileInput();
-                const file = imageUrl.startsWith('data:') ? base64ToFile(imageUrl, 'product.jpg') : null;
-                if (file) {
+                const files = [];
+
+                // Convert all Base64/URLs to files
+                for (let i = 0; i < imageUrls.length; i++) {
+                    const url = imageUrls[i];
+                    if (url && url.startsWith('data:')) {
+                        const file = base64ToFile(url, `product_${i}.jpg`);
+                        if (file) files.push(file);
+                    }
+                }
+
+                if (files.length > 0) {
                     if (!fileInput || fileInput.offsetWidth === 0) {
                         // Try to click the "Photo/Video" icon to trigger input
                         const photoLabels = ["รูปภาพ", "วิดีโอ", "Photo", "Video", "รูปภาพ/วิดีโอ"];
@@ -567,13 +578,15 @@ async function fillFacebookPost(caption, imageUrl) {
 
                     if (fileInput) {
                         const dataTransfer = new DataTransfer();
-                        dataTransfer.items.add(file);
+                        files.forEach(f => dataTransfer.items.add(f));
                         fileInput.files = dataTransfer.files;
                         fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-                    } else {
-                        simulateDrop(textbox, file);
+                        console.log(`[ChobShop] Multi-upload: ${files.length} files assigned to input`);
+                    } else if (files.length > 0) {
+                        // Fallback: simulate drop for first image at least
+                        simulateDrop(textbox, files[0]);
                     }
-                    await new Promise(r => setTimeout(r, 6000));
+                    await new Promise(r => setTimeout(r, 8000)); // Increased wait for multi-upload
                 }
             } catch (uploadErr) {
                 console.error('[ChobShop] Photo upload failed:', uploadErr);
@@ -747,7 +760,7 @@ async function fillFacebookPost(caption, imageUrl) {
             }
         }
 
-        return await findJustNowPostLink(caption);
+        return await findJustNowPostLink(caption, groupUrl);
     } catch (err) {
         console.error('[ChobShop] fillFacebookPost failed:', err);
         updateStatus('❌ เกิดข้อผิดพลาด: ' + err.message);
@@ -973,7 +986,7 @@ function updateBotController(state) {
     if (l && state.log) l.innerHTML = state.log.join('<br>');
 }
 
-async function findJustNowPostLink(targetText) {
+async function findJustNowPostLink(targetText, groupUrl) {
     const nowMarkers = [
         "Just now", "जब अभी", "เมื่อสักครู่", "ตอนนี้", "1m", "1 นาที", "1 min", "1 min.", "0m", "0 นาที", "1น.", "1 น.",
         "Just Now", "JUST NOW", "a few seconds ago", "ไม่กี่วินาทีที่ผ่านมา", "เพิ่งลง", "เมื่อครู่นี้", "1 s", "1 วิ"
@@ -1014,7 +1027,7 @@ async function findJustNowPostLink(targetText) {
     for (let i = 0; i < 30; i++) { // Increase to 30s
         await new Promise(r => setTimeout(r, 1000));
 
-        // 1. Toast / Notification Detection
+        // 1. Success Toast / Link Detection (HIGHEST PRIORITY)
         const allLinks = Array.from(document.querySelectorAll('a'));
         for (const a of allLinks) {
             const text = (a.innerText || "").toLowerCase();
@@ -1026,56 +1039,80 @@ async function findJustNowPostLink(targetText) {
             }
         }
 
-        // 2. Pending keywords
-        const pageText = document.body.innerText.toLowerCase();
-        if (pendingMarkers.some(m => pageText.includes(m.toLowerCase()))) {
-            console.log('[ChobShop] ⏳ Post verified as: PENDING');
-            return { status: 'PENDING', url: null };
-        }
-
-        // 3. Container-based Search
+        // 2. Feed Search (High Priority)
+        // Look for the post in the feed with "Just Now" marker
         const postContainers = Array.from(document.querySelectorAll('[role="article"], .x1y1aw1k, [data-testid="post_container"], .x1n2onr6.x1ja2u2z, .x78zum5.x1n2onr6.xh8yej3'));
-
         for (const container of postContainers) {
             const cText = (container.innerText || "").toLowerCase();
             const normalizedCText = stripFormatting(cText);
 
-            // Fuzzy Match
+            // Fuzzy Match Title
             let matchCount = 0;
             if (titleChunks.length > 0) {
                 matchCount = titleChunks.filter(word => normalizedCText.includes(word)).length;
             }
 
-            // At least 50% of chunks or 2 significant words must match
             const threshold = Math.max(1, Math.min(titleChunks.length, 2));
-            const isMatch = titleChunks.length > 0 ? (matchCount >= threshold) : true;
+            const isTitleMatch = titleChunks.length > 0 ? (matchCount >= threshold) : true;
 
-            if (!isMatch) continue;
+            if (isTitleMatch) {
+                const links = Array.from(container.querySelectorAll('a'));
+                for (const a of links) {
+                    const hr = a.href || "";
+                    const isPostLink = hr.includes('/posts/') || hr.includes('permalink.php') ||
+                        (hr.includes('/groups/') && (hr.includes('/multi_') || hr.includes('/permalink/'))) ||
+                        hr.includes('?id=');
+                    if (!isPostLink) continue;
 
-            const links = Array.from(container.querySelectorAll('a'));
-            for (const a of links) {
-                const hr = a.href || "";
-                const isPostLink = hr.includes('/posts/') || hr.includes('permalink.php') ||
-                    (hr.includes('/groups/') && (hr.includes('/multi_') || hr.includes('/permalink/'))) ||
-                    hr.includes('?id=');
-                if (!isPostLink) continue;
+                    const label = (a.getAttribute('aria-label') || "").toLowerCase();
+                    const text = (a.innerText || "").toLowerCase();
+                    const title = (a.getAttribute('title') || "").toLowerCase();
+                    const combined = text + "|" + label + "|" + title;
 
-                const label = (a.getAttribute('aria-label') || "").toLowerCase();
-                const text = (a.innerText || "").toLowerCase();
-                const title = (a.getAttribute('title') || "").toLowerCase();
-                const combined = text + "|" + label + "|" + title;
-
-                if (nowMarkers.some(m => combined.includes(m.toLowerCase()))) {
-                    console.log('[ChobShop] ✅ Verified via Container Match:', hr);
-                    return { status: 'PUBLISHED', url: hr };
+                    if (nowMarkers.some(m => combined.includes(m.toLowerCase()))) {
+                        console.log('[ChobShop] ✅ Verified via Feed Search:', hr);
+                        return { status: 'PUBLISHED', url: hr };
+                    }
                 }
             }
         }
 
-        // Strategy B: Current URL check
+        // 3. Current URL Check
         const currentUrl = window.location.href;
-        if ((currentUrl.includes('/posts/') || currentUrl.includes('/permalink')) && titleChunks.every(w => pageText.includes(w))) {
+        if ((currentUrl.includes('/posts/') || currentUrl.includes('/permalink')) && titleChunks.every(w => document.body.innerText.toLowerCase().includes(w))) {
             return { status: 'PUBLISHED', url: currentUrl };
+        }
+
+        // 4. Pending Detection (ONLY IF SUCCESS NOT FOUND)
+        // Check only in recent notifications or dialogs if possible, or use the markers
+        // narrowed to prevent false positives from sidebar rules
+        const dialogs = document.querySelectorAll('[role="dialog"], .x1n2onr6.x1ja2u2z, .x1y1aw1k');
+        let pendingFound = false;
+        for (const d of dialogs) {
+            const dText = d.innerText.toLowerCase();
+            if (pendingMarkers.some(m => dText.includes(m.toLowerCase()))) {
+                pendingFound = true;
+                break;
+            }
+        }
+
+        // Final broad check only after 5 seconds to give time for success toast to pop up
+        if (!pendingFound && i > 5) {
+            const pageText = document.body.innerText.toLowerCase();
+            // We search for phrases that only appear in the "Submitted" overlay
+            const specificPendingShort = ["your post has been submitted", "your post is pending", "รอการอนุมัติ"];
+            if (specificPendingShort.some(m => pageText.includes(m))) {
+                pendingFound = true;
+            }
+        }
+
+        if (pendingFound) {
+            console.log('[ChobShop] ⏳ Post verified as: PENDING');
+            let pendingUrl = groupUrl;
+            if (groupUrl) {
+                pendingUrl = groupUrl.endsWith('/') ? groupUrl + 'pending_posts' : groupUrl + '/pending_posts';
+            }
+            return { status: 'PENDING', url: pendingUrl || groupUrl };
         }
     }
 
@@ -1093,6 +1130,6 @@ async function findJustNowPostLink(targetText) {
         return { status: 'PUBLISHED', url: nowLinks[0].href };
     }
 
-    console.warn('[ChobShop] ❌ Verification timeout');
-    return { status: 'FAILED', url: null };
+    console.warn('[ChobShop] ❌ Verification timeout - using fallback group URL');
+    return { status: 'FAILED', url: groupUrl };
 }

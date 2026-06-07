@@ -3,7 +3,8 @@ let groups = [];
 const settings = {
     botName: '',
     apiEndpoint: 'https://chob.shop', // Default
-    captionTemplate: '{{title}}\n{{desc}}\n\n{{link}}'
+    captionTemplate: '{{title}}\n{{desc}}\n\n{{link}}',
+    apiToken: ''
 };
 let currentTabIsFBGroup = false;
 let displayLimit = 10;
@@ -11,6 +12,7 @@ const ITEMS_PER_PAGE = 10;
 const scrapedImages = new Map(); // Store high-res Base64 images here
 let isFetchingProducts = false;
 let productsPage = 1;
+let draggedIndex = null; // Track reordering index
 
 function getFormattedCaption(p) {
     const link = (p.affiliateUrl && p.affiliateUrl.length > 5)
@@ -76,19 +78,27 @@ let autoPollingInterval = null;
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await checkCurrentTab();
+    } catch (e) { console.warn('checkCurrentTab failed'); }
+
+    try {
         await loadSettings();
-        await loadGroups();
-        await fetchProducts();
+    } catch (e) { console.warn('loadSettings failed'); }
+
+    // Always init listeners first so UI remains responsive حتی if data loads fail
+    try {
         initEventListeners();
-        initAutoTab();
+    } catch (e) { console.error('UI init failed', e); }
 
-        // Ensure 'auto' tab is active and visible on startup
-        const autoTabBtn = document.querySelector('.tab-btn[data-tab="auto"]');
-        if (autoTabBtn) autoTabBtn.click();
+    try {
+        await loadGroups();
+    } catch (e) { console.warn('loadGroups failed'); }
 
-    } catch (err) {
-        console.error('[ChobShop] Initialization failed:', err);
-    }
+    try {
+        await fetchProducts();
+    } catch (e) { console.warn('fetchProducts failed'); }
+
+    // Initial page load: default to Auto tab
+    switchTab('auto');
 });
 
 async function checkCurrentTab() {
@@ -104,8 +114,8 @@ async function checkCurrentTab() {
 
 async function loadSettings() {
     return new Promise((resolve) => {
-        chrome.storage.local.get(['apiEndpoint', 'botName'], (localRes) => {
-            chrome.storage.sync.get(['apiEndpoint', 'botName', 'captionTemplate'], (syncRes) => {
+        chrome.storage.local.get(['apiEndpoint', 'botName', 'apiToken'], (localRes) => {
+            chrome.storage.sync.get(['apiEndpoint', 'botName', 'captionTemplate', 'apiToken'], (syncRes) => {
                 // Migration: If local is missing but sync has it, use sync and save to local
                 if (!localRes.apiEndpoint && syncRes.apiEndpoint) {
                     settings.apiEndpoint = syncRes.apiEndpoint;
@@ -123,10 +133,24 @@ async function loadSettings() {
 
                 if (syncRes.captionTemplate) settings.captionTemplate = syncRes.captionTemplate;
 
-                // Populate UI
-                document.getElementById('apiEndpoint').value = settings.apiEndpoint;
-                document.getElementById('captionTemplate').value = settings.captionTemplate;
-                document.getElementById('botName').value = settings.botName || '';
+                if (!localRes.apiToken && syncRes.apiToken) {
+                    settings.apiToken = syncRes.apiToken;
+                    chrome.storage.local.set({ apiToken: syncRes.apiToken });
+                } else if (localRes.apiToken) {
+                    settings.apiToken = localRes.apiToken;
+                }
+
+                // Populate UI safely
+                const elApi = document.getElementById('apiEndpoint');
+                const elTemplate = document.getElementById('captionTemplate');
+                const elBot = document.getElementById('botName');
+                const elToken = document.getElementById('apiToken');
+
+                if (elApi) elApi.value = settings.apiEndpoint || '';
+                if (elTemplate) elTemplate.value = settings.captionTemplate || '';
+                if (elBot) elBot.value = settings.botName || '';
+                if (elToken) elToken.value = settings.apiToken || '';
+
                 resolve();
             });
         });
@@ -157,10 +181,75 @@ async function loadGroups() {
     });
 }
 
-function saveGroups() {
+async function saveGroups() {
+    // 1. Save to local storage first for immediate offline persistence
     chrome.storage.local.set({ fbGroups: groups }, () => {
-        renderGroups();
+        console.log('[ChobShop] Groups saved to local storage');
     });
+
+    // 2. Re-render UI immediately
+    renderGroups();
+
+    // 3. Sync to server in background
+    saveGroupsToServer();
+}
+
+function switchTab(tab) {
+    try {
+        if (!tab) return;
+        console.log('[ChobShop] switchTab:', tab);
+
+        // Update tab buttons
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            if (b.dataset.tab === tab) b.classList.add('active');
+            else b.classList.remove('active');
+        });
+
+        // Hide all views safely
+        const viewIds = ['productsView', 'groupsView', 'autoView', 'scraperView', 'historyView'];
+        viewIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.add('hidden');
+                el.style.setProperty('display', 'none', 'important');
+            }
+        });
+
+        // Show/hide main search bar and filters
+        const mainSearch = document.getElementById('mainSearchContainer');
+        if (mainSearch) {
+            mainSearch.style.setProperty('display', (tab === 'products') ? 'block' : 'none', 'important');
+        }
+
+        // Show target view with force
+        const targetId = tab + 'View';
+        const targetView = document.getElementById(targetId);
+        if (targetView) {
+            targetView.classList.remove('hidden');
+            targetView.style.setProperty('display', 'flex', 'important');
+        } else {
+            console.error('[ChobShop] Target view not found:', targetId);
+        }
+
+        // Specific tab initialization
+        if (tab === 'products') {
+            stopAutoPolling();
+        } else if (tab === 'groups') {
+            // ONLY sync if empty to avoid overwriting manual reorders
+            if (groups.length === 0) syncGroupsFromServer();
+            stopAutoPolling();
+        } else if (tab === 'auto') {
+            refreshAutoStatus();
+            startAutoPolling();
+        } else if (tab === 'scraper') {
+            stopAutoPolling();
+        } else if (tab === 'history') {
+            renderHistory();
+            stopAutoPolling();
+        }
+    } catch (err) {
+        console.error('[ChobShop] switchTab failed:', err);
+    }
 }
 
 function initEventListeners() {
@@ -190,41 +279,11 @@ function initEventListeners() {
         }
     });
 
-    // Tab Switching (3 tabs: products / groups / auto)
+    // Tab Switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
             const tab = btn.dataset.tab;
-            const views = ['productsView', 'groupsView', 'autoView', 'scraperView', 'historyView'];
-            views.forEach(v => document.getElementById(v).classList.add('hidden'));
-
-            // Show/hide search bar and filters (only for products tab)
-            const searchContainer = document.querySelector('.search-container');
-            if (searchContainer) {
-                searchContainer.style.display = tab === 'products' ? '' : 'none';
-            }
-
-            if (tab === 'products') {
-                document.getElementById('productsView').classList.remove('hidden');
-                stopAutoPolling();
-            } else if (tab === 'groups') {
-                document.getElementById('groupsView').classList.remove('hidden');
-                syncGroupsFromServer();
-                stopAutoPolling();
-            } else if (tab === 'auto') {
-                document.getElementById('autoView').classList.remove('hidden');
-                refreshAutoStatus();
-                startAutoPolling();
-            } else if (tab === 'scraper') {
-                document.getElementById('scraperView').classList.remove('hidden');
-                stopAutoPolling();
-            } else if (tab === 'history') {
-                document.getElementById('historyView').classList.remove('hidden');
-                renderHistory();
-                stopAutoPolling();
-            }
+            switchTab(tab);
         });
     });
 
@@ -238,6 +297,8 @@ function initEventListeners() {
         }
     });
 
+    document.getElementById('syncHistoryBtn')?.addEventListener('click', syncHistoryFromServer);
+
     // Scraper Initialization
     initScraper();
 
@@ -248,7 +309,7 @@ function initEventListeners() {
         resetAutoPost();
     });
 
-    document.getElementById('autoInterval').addEventListener('change', updateAutoInterval);
+    document.getElementById('autoInterval')?.addEventListener('change', updateAutoInterval);
 
     document.getElementById('manualSyncBtn')?.addEventListener('click', () => {
         const btn = document.getElementById('manualSyncBtn');
@@ -279,38 +340,42 @@ function initEventListeners() {
     });
 
     // Settings Toggle
-    document.getElementById('settingsBtn').addEventListener('click', () => {
-        document.getElementById('settingsView').classList.remove('hidden');
+    document.getElementById('settingsBtn')?.addEventListener('click', () => {
+        document.getElementById('settingsView')?.classList.remove('hidden');
     });
 
-    document.getElementById('closeSettings').addEventListener('click', () => {
-        document.getElementById('settingsView').classList.add('hidden');
+    document.getElementById('closeSettings')?.addEventListener('click', () => {
+        document.getElementById('settingsView')?.classList.add('hidden');
     });
 
     // Auto-Connect API Button
-    document.getElementById('btnAutoConnect').addEventListener('click', () => {
+    document.getElementById('btnAutoConnect')?.addEventListener('click', () => {
         chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
             const activeTab = tabs[0];
             if (activeTab && activeTab.url && activeTab.url.startsWith('http')) {
                 try {
                     const url = new URL(activeTab.url);
                     const discovered = `${url.protocol}//${url.host}`;
-                    document.getElementById('apiEndpoint').value = discovered;
+                    const elApi = document.getElementById('apiEndpoint');
+                    if (elApi) elApi.value = discovered;
                     console.log('[ChobShop] API discovered:', discovered);
                 } catch (e) {
                     console.error('Invalid URL for auto-connect');
                 }
             } else {
                 // Fallback to default if no active tab URL
-                document.getElementById('apiEndpoint').value = 'https://chob.shop';
+                const elApi = document.getElementById('apiEndpoint');
+                if (elApi) elApi.value = 'https://chob.shop';
             }
         });
     });
 
     // Test API Button
-    document.getElementById('testApi').addEventListener('click', async () => {
-        const api = document.getElementById('apiEndpoint').value.trim();
-        const bName = document.getElementById('botName').value.trim();
+    document.getElementById('testApi')?.addEventListener('click', async () => {
+        const elApi = document.getElementById('apiEndpoint');
+        const elBot = document.getElementById('botName');
+        const api = elApi ? elApi.value.trim() : '';
+        const bName = elBot ? elBot.value.trim() : '';
 
         if (!api) {
             alert('กรุณาใส่ API Endpoint');
@@ -322,9 +387,11 @@ function initEventListeners() {
         }
 
         const btn = document.getElementById('testApi');
-        const originalText = btn.innerText;
-        btn.innerText = '⌛...';
-        btn.disabled = true;
+        const originalText = btn?.innerText || 'ทดสอบ';
+        if (btn) {
+            btn.innerText = '⌛...';
+            btn.disabled = true;
+        }
 
         // Auto-save settings to local storage so background service can pick them up
         let normalizedApi = api.replace(/\/+$/, '');
@@ -334,7 +401,8 @@ function initEventListeners() {
         chrome.storage.local.set({ apiEndpoint: normalizedApi, botName: bName });
         settings.apiEndpoint = normalizedApi;
         settings.botName = bName;
-        document.getElementById('apiEndpoint').value = normalizedApi;
+        const elApiUpdate = document.getElementById('apiEndpoint');
+        if (elApiUpdate) elApiUpdate.value = normalizedApi;
         console.log('[ChobShop] Auto-saved settings from test button:', { normalizedApi, bName });
 
         try {
@@ -375,10 +443,11 @@ function initEventListeners() {
         }
     });
 
-    document.getElementById('saveSettings').addEventListener('click', () => {
-        const api = document.getElementById('apiEndpoint').value.trim();
-        const template = document.getElementById('captionTemplate').value;
-        const botName = document.getElementById('botName').value.trim();
+    document.getElementById('saveSettings')?.addEventListener('click', () => {
+        const api = document.getElementById('apiEndpoint')?.value.trim() || '';
+        const template = document.getElementById('captionTemplate')?.value || '';
+        const botName = document.getElementById('botName')?.value.trim() || '';
+        const apiToken = document.getElementById('apiToken')?.value.trim() || '';
 
         // Normalize API Endpoint: trim and remove trailing slashes
         let normalizedApi = api.replace(/\/+$/, '');
@@ -388,13 +457,17 @@ function initEventListeners() {
             normalizedApi = 'https://' + normalizedApi;
         }
 
-        chrome.storage.local.set({ apiEndpoint: normalizedApi, botName: botName }, () => {
-            chrome.storage.sync.set({ captionTemplate: template }, () => {
+        chrome.storage.local.set({ apiEndpoint: normalizedApi, botName: botName, apiToken: apiToken }, () => {
+            chrome.storage.sync.set({ captionTemplate: template, apiToken: apiToken }, () => {
                 settings.apiEndpoint = normalizedApi;
                 settings.captionTemplate = template;
                 settings.botName = botName;
-                document.getElementById('apiEndpoint').value = normalizedApi; // Update UI
-                document.getElementById('settingsView').classList.add('hidden');
+                settings.apiToken = apiToken;
+
+                const elApi = document.getElementById('apiEndpoint');
+                if (elApi) elApi.value = normalizedApi;
+
+                document.getElementById('settingsView')?.classList.add('hidden');
                 fetchProducts();
 
                 chrome.runtime.sendMessage({ action: 'SEND_HEARTBEAT' });
@@ -492,6 +565,8 @@ async function fetchProducts(isLoadMore = false) {
     }
 }
 
+let dragSourceElement = null;
+
 function renderGroups() {
     const list = document.getElementById('groupList');
     if (groups.length === 0) {
@@ -527,11 +602,14 @@ function renderGroups() {
                 transition: 0.2s;
             }
             .btn-recheck:hover { background: var(--accent); color: white; border-color: var(--accent); }
+            .drag-handle { margin-right: 10px; cursor: grab; opacity: 0.5; }
+            .drag-handle:hover { opacity: 1; }
         `;
         document.head.appendChild(style);
     }
 
-    list.innerHTML = groups.map(g => {
+    list.innerHTML = '';
+    groups.forEach((g, index) => {
         const membershipStatus = g.membershipStatus || 'NOT_JOINED';
         const statusLabel = {
             'JOINED': '✅ เข้าแล้ว',
@@ -539,18 +617,32 @@ function renderGroups() {
             'PENDING': '⏳ รออนุมัติ'
         }[membershipStatus] || '❌ ยังไม่เข้า';
 
-        return `
-            <div class="group-item" style="flex-wrap: wrap;">
-                <div style="display: flex; align-items: center; flex: 1; min-width: 200px;">
-                    <span class="group-link" data-url="${g.url}" title="ไปยังกลุ่ม">👥 ${g.name}</span>
-                    <span class="group-status status-${g.membershipStatus || 'UNKNOWN'}">${statusLabel}</span>
-                </div>
-                <div class="group-actions">
-                    <span class="btn-del" data-id="${g.id}">🗑️</span>
-                </div>
+        const item = document.createElement('div');
+        item.className = 'group-item';
+        item.draggable = true;
+        item.dataset.index = index;
+        item.style.flexWrap = 'wrap';
+
+        item.innerHTML = `
+            <div class="drag-handle">⠿</div>
+            <div style="display: flex; align-items: center; flex: 1; min-width: 200px;">
+                <span class="group-link" data-url="${g.url}" title="ไปยังกลุ่ม">👥 ${g.name}</span>
+                <span class="group-status status-${g.membershipStatus || 'UNKNOWN'}">${statusLabel}</span>
+            </div>
+            <div class="group-actions">
+                <span class="btn-del" data-id="${g.id}">🗑️</span>
             </div>
         `;
-    }).join('');
+
+        // Drag events
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('dragleave', handleDragLeave);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragend', handleDragEnd);
+
+        list.appendChild(item);
+    });
 
     list.querySelectorAll('.group-link').forEach(link => {
         link.addEventListener('click', () => {
@@ -574,6 +666,97 @@ function renderGroups() {
             saveGroups();
         });
     });
+}
+
+function handleDragStart(e) {
+    draggedIndex = parseInt(this.dataset.index);
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', draggedIndex);
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) e.preventDefault();
+    this.classList.add('drag-over');
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) e.stopPropagation();
+    this.classList.remove('drag-over');
+
+    try {
+        const sourceIndex = draggedIndex;
+        const targetIndex = parseInt(this.dataset.index);
+
+        console.log(`[ChobShop] Drop: source=${sourceIndex}, target=${targetIndex}`);
+
+        if (sourceIndex === null || isNaN(targetIndex)) {
+            console.warn('[ChobShop] Invalid indices for drop operation');
+            return false;
+        }
+
+        if (sourceIndex !== targetIndex) {
+            console.log(`[ChobShop] Reordering: moving ${groups[sourceIndex]?.name} to position ${targetIndex}`);
+
+            // Perform reorder
+            const draggedItem = groups[sourceIndex];
+            groups.splice(sourceIndex, 1);
+            groups.splice(targetIndex, 0, draggedItem);
+
+            // Save and re-render
+            saveGroups();
+        }
+    } catch (err) {
+        console.error('[ChobShop] Drop handler error:', err);
+    } finally {
+        draggedIndex = null;
+    }
+    return false;
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.group-item').forEach(item => {
+        item.classList.remove('drag-over');
+    });
+}
+
+async function saveGroupsToServer() {
+    if (!settings.apiToken) {
+        console.warn('[ChobShop] No API Token set, skipping server sync for groups');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${settings.apiEndpoint}/api/settings`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${settings.apiToken}`
+            },
+            body: JSON.stringify({
+                FB_TARGET_GROUPS: JSON.stringify(groups.map(g => ({
+                    id: g.id,
+                    name: g.name,
+                    url: g.url
+                })))
+            })
+        });
+
+        if (response.ok) {
+            console.log('[ChobShop] Group list synced to server successfully');
+        } else {
+            console.error('[ChobShop] Failed to sync group list:', response.status);
+        }
+    } catch (err) {
+        console.error('[ChobShop] Error syncing groups to server:', err);
+    }
 }
 
 
@@ -1003,7 +1186,8 @@ function refreshAutoStatus() {
     chrome.runtime.sendMessage({ action: 'GET_AUTO_STATUS' }, (response) => {
         if (chrome.runtime.lastError) {
             console.error('Status check failed:', chrome.runtime.lastError);
-            if (document.getElementById('autoSubtext')) document.getElementById('autoSubtext').textContent = '⚠️ การเชื่อมต่อขัดข้อง';
+            const el = document.getElementById('autoSubtext');
+            if (el) el.textContent = '⚠️ การเชื่อมต่อขัดข้อง';
             return;
         }
 
@@ -1025,30 +1209,38 @@ function refreshAutoStatus() {
         const progress = document.getElementById('botProgress');
 
         // Reset classes
-        hero.classList.remove('running', 'posting');
-        statusTextLarge.className = 'hero-status-text';
-        liveBadge.style.display = 'none';
-        progress.style.display = 'none';
+        if (hero) hero.classList.remove('running', 'posting');
+        if (statusTextLarge) {
+            statusTextLarge.className = 'hero-status-text';
+        }
+        if (liveBadge) liveBadge.style.display = 'none';
+        if (progress) progress.style.display = 'none';
 
         if (isPosting) {
-            hero.classList.add('running', 'posting');
-            statusTextLarge.textContent = 'กำลังโพสต์...';
-            statusTextLarge.classList.add('status-posting');
-            subtext.textContent = state.currentActivity || 'ระบบกำลังส่งข้อมูลไปยังกลุ่ม Facebook';
+            if (hero) hero.classList.add('running', 'posting');
+            if (statusTextLarge) {
+                statusTextLarge.textContent = 'กำลังโพสต์...';
+                statusTextLarge.classList.add('status-posting');
+            }
+            if (subtext) subtext.textContent = state.currentActivity || 'ระบบกำลังส่งข้อมูลไปยังกลุ่ม Facebook';
             updateBotPersonality('POSTING');
-            liveBadge.style.display = 'inline-flex';
-            progress.style.display = 'block';
+            if (liveBadge) liveBadge.style.display = 'inline-flex';
+            if (progress) progress.style.display = 'block';
         } else if (isRunning) {
-            hero.classList.add('running');
-            statusTextLarge.textContent = 'ระบบกำลังทำงาน';
-            statusTextLarge.classList.add('status-active');
-            subtext.textContent = 'เตรียมความพร้อมสำหรับโพสต์ถัดไป';
+            if (hero) hero.classList.add('running');
+            if (statusTextLarge) {
+                statusTextLarge.textContent = 'ระบบกำลังทำงาน';
+                statusTextLarge.classList.add('status-active');
+            }
+            if (subtext) subtext.textContent = 'เตรียมความพร้อมสำหรับโพสต์ถัดไป';
             updateBotPersonality('ACTIVE');
-            liveBadge.style.display = 'inline-flex';
+            if (liveBadge) liveBadge.style.display = 'inline-flex';
         } else {
-            statusTextLarge.textContent = 'หยุดทำงาน';
-            statusTextLarge.classList.add('status-idle');
-            subtext.textContent = 'กดเริ่มเพื่อเริ่มระบบโพสต์ออโต้';
+            if (statusTextLarge) {
+                statusTextLarge.textContent = 'หยุดทำงาน';
+                statusTextLarge.classList.add('status-idle');
+            }
+            if (subtext) subtext.textContent = 'กดเริ่มเพื่อเริ่มระบบโพสต์ออโต้';
             updateBotPersonality('IDLE');
         }
 
@@ -1056,44 +1248,54 @@ function refreshAutoStatus() {
         const btn = document.getElementById('autoToggleBtn');
         const intervalSelect = document.getElementById('autoInterval');
         if (isRunning) {
-            btn.className = 'auto-stop-btn';
-            btn.innerHTML = '<span class="auto-btn-icon">⏸️</span><span class="auto-btn-text">หยุดออโต้</span>';
-            intervalSelect.disabled = true;
+            if (btn) {
+                btn.className = 'auto-stop-btn';
+                btn.innerHTML = '<span class="auto-btn-icon">⏸️</span><span class="auto-btn-text">หยุดออโต้</span>';
+            }
+            if (intervalSelect) intervalSelect.disabled = true;
         } else {
-            btn.className = 'auto-start-btn';
-            btn.innerHTML = '<span class="auto-btn-icon">▶️</span><span class="auto-btn-text">เริ่มระบบออโต้</span>';
-            intervalSelect.disabled = false;
+            if (btn) {
+                btn.className = 'auto-start-btn';
+                btn.innerHTML = '<span class="auto-btn-icon">▶️</span><span class="auto-btn-text">เริ่มระบบออโต้</span>';
+            }
+            if (intervalSelect) intervalSelect.disabled = false;
         }
 
         // Set interval dropdown to match running interval
-        if (state.intervalMinutes) {
+        if (state.intervalMinutes && intervalSelect) {
             intervalSelect.value = state.intervalMinutes;
         }
 
         // Stats
-        document.getElementById('statPostCount').textContent = state.postCount || 0;
+        const elPostCount = document.getElementById('statPostCount');
+        if (elPostCount) elPostCount.textContent = state.postCount || 0;
 
         // Current group
         chrome.storage.local.get(['fbGroups'], (result) => {
             const fbGroups = result.fbGroups || [];
             const el = document.getElementById('statCurrentGroup');
-            if (fbGroups.length > 0 && state.groupIndex !== undefined) {
-                const idx = state.groupIndex % fbGroups.length;
-                const groupName = fbGroups[idx]?.name || '-';
-                el.textContent = groupName;
-                el.title = groupName; // Show full name on hover
-            } else {
-                el.textContent = '-';
+            if (el) {
+                if (fbGroups.length > 0 && state.groupIndex !== undefined) {
+                    const idx = state.groupIndex % fbGroups.length;
+                    const groupName = fbGroups[idx]?.name || '-';
+                    el.textContent = groupName;
+                    el.title = groupName; // Show full name on hover
+                } else {
+                    el.textContent = '-';
+                }
             }
         });
 
         // Countdown
-        if (isPosting) {
-            document.getElementById('statCountdown').textContent = 'Live';
-        } else if (nextAlarm && isRunning) {
-            updateCountdown(nextAlarm);
-        } else {
-            document.getElementById('statCountdown').textContent = '--:--';
+        const elCountdown = document.getElementById('statCountdown');
+        if (elCountdown) {
+            if (isPosting) {
+                elCountdown.textContent = 'Live';
+            } else if (nextAlarm && isRunning) {
+                updateCountdown(nextAlarm);
+            } else {
+                elCountdown.textContent = '--:--';
+            }
         }
 
         // Activity Log
@@ -1140,7 +1342,13 @@ function renderAutoLog(log) {
                 if (links && links.length > 0) {
                     const lastLink = links[links.length - 1];
                     mainContent = entry.replace(lastLink, '').replace(/\s*\|\s*$/, '').trim();
-                    actionHtml = `<a href="${lastLink}" target="_blank" class="log-action">ดูโพสต์</a>`;
+
+                    // Logic to check if it's a fallback link
+                    const isFallback = lastLink.includes('/pending_posts') || (!lastLink.includes('/posts/') && !lastLink.includes('permalink'));
+                    const icon = lastLink.includes('/pending_posts') ? '⏳' : (isFallback ? '👥' : '🔗');
+                    const label = lastLink.includes('/pending_posts') ? 'รอดูโพสต์' : (isFallback ? 'ตรวจกลุ่ม' : 'ดูโพสต์');
+
+                    actionHtml = `<a href="${lastLink}" target="_blank" class="log-action">${icon} ${label}</a>`;
                 }
             } catch (e) { }
 
@@ -1153,6 +1361,62 @@ function renderAutoLog(log) {
         }).join('');
     } catch (err) {
         console.error('renderAutoLog error:', err);
+    }
+}
+
+async function syncHistoryFromServer() {
+    const btn = document.getElementById('syncHistoryBtn');
+    if (!btn) return;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '🔄 กำลังดึง...';
+    btn.disabled = true;
+
+    try {
+        let { botName = '' } = await chrome.storage.local.get('botName');
+        botName = botName.trim();
+        if (!botName) throw new Error('กรุณาตั้งชื่อบอทก่อนในเมนูตั้งค่า');
+
+        console.log(`[ChobShop] Syncing history for bot: "${botName}"`);
+        const response = await fetch(`${settings.apiEndpoint || 'https://chob.shop'}/api/bots/history?bot_name=${encodeURIComponent(botName)}`);
+        const data = await response.json();
+
+        if (data.success && Array.isArray(data.history)) {
+            // Merge with local history and keep unique IDs
+            const { postHistory = [] } = await chrome.storage.local.get('postHistory');
+
+            // Map server data to extension format
+            const serverHistory = data.history.map(h => ({
+                id: h.id || Date.now() + Math.random(),
+                timestamp: h.timestamp || new Date().toISOString(),
+                groupName: h.groupName || h.group || 'Unknown',
+                productTitle: h.productTitle || h.title || h.product || 'Untitled',
+                link: h.link || h.url || null,
+                status: h.status || 'PUBLISHED',
+                image: h.image || null
+            }));
+
+            // Filter out existing by some uniqueness (timestamp + group + title) since id might differ
+            const existingKeys = new Set(postHistory.map(h => `${h.timestamp}-${h.groupName}-${h.productTitle}`));
+            const uniqueServerHistory = serverHistory.filter(h => !existingKeys.has(`${h.timestamp}-${h.groupName}-${h.productTitle}`));
+
+            const merged = [...uniqueServerHistory, ...postHistory]
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .slice(0, 50);
+
+            await chrome.storage.local.set({ postHistory: merged });
+            renderHistory();
+            showToast(`✅ ดึงประวัติสำเร็จ (${uniqueServerHistory.length} ใหม่)`);
+            console.log(`[ChobShop] Merged ${uniqueServerHistory.length} new records from server.`);
+        } else {
+            console.warn('[ChobShop] No history found for this bot name on server.');
+            showToast('ℹ️ ไม่พบประวัติของบอทชื่อนี้ในระบบ');
+        }
+    } catch (err) {
+        console.error('History sync error:', err);
+        showToast('❌ Sync ผิดพลาด: ' + err.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
     }
 }
 
@@ -1188,10 +1452,12 @@ async function renderHistory() {
                     </div>
                     <div style="margin-top: 6px; display: flex; gap: 8px;">
                         ${h.status === 'PENDING'
-                ? `<span style="font-size: 10px; color: #f59e0b; font-weight: bold;">⏳ รออนุมัติ</span>`
+                ? `<a href="${h.link}" target="_blank" class="btn-sm btn-copy" style="text-decoration: none; padding: 4px 10px; background: #f59e0b; color: white;">⏳ รอดูโพสต์</a>`
                 : h.link
-                    ? `<a href="${h.link}" target="_blank" class="btn-sm btn-copy" style="text-decoration: none; padding: 4px 10px;">🔗 ดูโพสต์</a>`
-                    : `<span style="font-size: 10px; color: var(--error);">❌ ไม่มีลิงก์</span>`
+                    ? (h.status === 'FAILED' || (!h.link.includes('/posts/') && !h.link.includes('permalink')))
+                        ? `<a href="${h.link}" target="_blank" class="btn-sm btn-copy" style="text-decoration: none; padding: 4px 10px; background: #64748b; color: white;">👥 ตรวจหน้ากลุ่ม</a>`
+                        : `<a href="${h.link}" target="_blank" class="btn-sm btn-copy" style="text-decoration: none; padding: 4px 10px;">🔗 ดูโพสต์</a>`
+                    : `<span style="font-size: 10px; color: var(--error);">❌ ผิดพลาด</span>`
             }
                     </div>
                 </div>
